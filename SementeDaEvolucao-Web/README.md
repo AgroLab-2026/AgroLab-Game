@@ -2,8 +2,9 @@
 
 Serious game 2D top-down de agricultura de precisão (frente "Game" da iniciação científica AgroLab).
 Você é um fazendeiro que desconfia da tecnologia e cuida de uma estufa ao lado de uma **estufa autônoma**
-controlada por IA. Nas 7 fases você libera tecnologias, diminui a distância para a IA e, na última, trabalha
-**junto** com ela.
+controlada por IA. São **5 fases de 1:30**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
+tenta de novo (**3 tentativas por fase**, depois game over). Cada vitória libera tecnologias que ajudam (medem,
+avisam, sugerem), e na última fase a IA sugere as ações e você decide.
 
 HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
@@ -28,7 +29,7 @@ HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 | 1 | Aguardar (não fazer nada) |
 | 2 | Travar irrigação |
 | 3 | Irrigar |
-| 4 | Proteger a planta (sombrite por 30 s de jogo) |
+| 4 | Proteger a planta (sombrite por 15 s; 30 s com o Sombrite Reforçado) |
 | R | Encher o tanque de água |
 | P / Espaço | Pausa |
 | Enter | Confirmar (telas de fase) |
@@ -46,7 +47,7 @@ Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emul
 | `iaUrl` | `?ia=http&iaUrl=http://localhost:5000/decidir` | Endpoint da IA de vocês |
 | `mockAcoes` | `?ia=mock&mockAcoes=Irrigate,DoNothing` | Sequência fixa do mock |
 | `falasUrl` | `?falasUrl=http://localhost:5000/fala` | Gerador externo das falas do Bruno |
-| `fase` / `cultura` | `?fase=3&cultura=Tomate` | Começar numa fase/cultura (útil para apresentar) |
+| `fase` / `cultura` | `?fase=3&cultura=Tomate` | Começar numa fase (1–5) e cultura (útil para apresentar) |
 | `semente` | `?semente=42` | Clima reproduzível |
 | `intro=0`, `debug=1` | | Pular a tela de introdução; abrir o debug |
 
@@ -56,9 +57,9 @@ Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emul
 node tests/simular.mjs
 ```
 
-Roda ciclos completos das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, as 6 fases
-de crescimento, o fazendeiro sozinho nunca passando de 100 % da IA, a parceria (fase 7) melhor que a fase 1 e o
-fallback dos provedores de IA (sem URL, timeout, resposta inválida, mock).
+Roda partidas completas das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, fases de no
+máximo 1:30, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
+age sozinho na estufa do jogador, as tentativas e o game over, e o fallback dos provedores de IA.
 
 ## Estrutura
 

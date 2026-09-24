@@ -1,77 +1,211 @@
 {
-  "_comentario": "Números do jogo. Os marcados como fiéis vêm dos guias do Unity (Documentation/); o resto foi reconstruído e está listado em docs/paridade.md. Tempos em 'segundos de jogo' salvo quando indicado 'Real'.",
-
+  "_comentario": "Números do jogo. Os marcados como fiéis vêm dos guias do Unity (Documentation/); o resto foi reconstruído/rebalanceado e está em docs/paridade.md e docs/decisoes.md. Tempos em 'segundos de jogo' (timeScale 2) salvo quando o nome termina em 'Real'.",
   "gameManager": {
     "timeScale": 2,
     "passoFixoHz": 60
   },
-
   "planta": {
-    "baseGrowthRate": 0.3,
-    "maxHealthDecay": 6,
-    "healthRegenRate": 0.6,
+    "baseGrowthRate": 0.83,
+    "maxHealthDecay": 5,
+    "healthRegenRate": 0.8,
     "limiarEstresse": 0.9,
     "limiarRecuperacao": 0.95,
     "estagios": 6,
-    "nomesEstagios": ["Semente", "Muda", "Vegetativo", "Floração", "Frutificação", "Colheita"]
+    "nomesEstagios": [
+      "Semente",
+      "Muda",
+      "Vegetativo",
+      "Floração",
+      "Frutificação",
+      "Colheita"
+    ],
+    "expoenteCondicao": 3
   },
-
   "recursos": {
-    "water": 50, "waterMax": 50,
-    "nutrientStock": 20, "nutrientMax": 20,
-    "energy": 100, "energyMax": 100,
+    "water": 30,
+    "waterMax": 30,
+    "nutrientStock": 10,
+    "nutrientMax": 10,
+    "energy": 100,
+    "energyMax": 100,
     "energyRegenPerSecondReal": 3,
-    "refill": { "energia": 15 }
+    "refill": {
+      "energia": 15
+    }
   },
-
   "acoesJogador": {
-    "Irrigate":       { "custo": { "agua": 5, "fertilizante": 1, "energia": 15 }, "efeito": { "soilMoisture": 15, "nitrogen": 12, "phosphorus": 4, "potassium": 14 } },
-    "LockIrrigation": { "custo": { "agua": 0, "fertilizante": 0, "energia": 10 }, "efeito": { "soilMoisture": -12, "phParaCentro": 0.3 } },
-    "ProtectPlant":   { "custo": { "agua": 0, "fertilizante": 0, "energia": 12 }, "efeito": { "sombraSegundos": 30, "sombraTemperatura": -6, "sombraLuz": -30 } },
-    "DoNothing":      { "custo": { "agua": 0, "fertilizante": 0, "energia": 0 },  "efeito": {} }
+    "Irrigate": {
+      "custo": {
+        "agua": 5,
+        "fertilizante": 1,
+        "energia": 15
+      },
+      "efeito": {
+        "soilMoisture": 15,
+        "nitrogen": 12,
+        "phosphorus": 4,
+        "potassium": 14
+      }
+    },
+    "LockIrrigation": {
+      "custo": {
+        "agua": 0,
+        "fertilizante": 0,
+        "energia": 10
+      },
+      "efeito": {
+        "soilMoisture": -12,
+        "phParaCentro": 0.3
+      }
+    },
+    "ProtectPlant": {
+      "custo": {
+        "agua": 0,
+        "fertilizante": 0,
+        "energia": 12
+      },
+      "efeito": {
+        "sombraSegundos": 30,
+        "sombraTemperatura": -6,
+        "sombraLuz": -30
+      }
+    },
+    "DoNothing": {
+      "custo": {
+        "agua": 0,
+        "fertilizante": 0,
+        "energia": 0
+      },
+      "efeito": {}
+    }
   },
-
   "ia": {
     "_comentario": "A IA usa as mesmas ações, com dosagem de precisão: gasta menos água e energia por ação (o número que prova 'tecnologia = eficiência').",
     "intervaloDecisao": 1.0,
     "timeoutMs": 800,
     "acoes": {
-      "Irrigate":       { "custo": { "agua": 2, "fertilizante": 0.5, "energia": 5 }, "efeito": { "soilMoisture": 10, "nitrogen": 10, "phosphorus": 3, "potassium": 12 } },
-      "LockIrrigation": { "custo": { "agua": 0, "fertilizante": 0, "energia": 4 },   "efeito": { "soilMoisture": -8, "phParaCentro": 0.3 } },
-      "ProtectPlant":   { "custo": { "agua": 0, "fertilizante": 0, "energia": 4 },   "efeito": { "sombraSegundos": 30, "sombraTemperatura": -6, "sombraLuz": -30 } },
-      "DoNothing":      { "custo": { "agua": 0, "fertilizante": 0, "energia": 0 },   "efeito": {} }
+      "Irrigate": {
+        "custo": {
+          "agua": 2,
+          "fertilizante": 0.5,
+          "energia": 5
+        },
+        "efeito": {
+          "soilMoisture": 10,
+          "nitrogen": 10,
+          "phosphorus": 3,
+          "potassium": 12
+        }
+      },
+      "LockIrrigation": {
+        "custo": {
+          "agua": 0,
+          "fertilizante": 0,
+          "energia": 4
+        },
+        "efeito": {
+          "soilMoisture": -8,
+          "phParaCentro": 0.3
+        }
+      },
+      "ProtectPlant": {
+        "custo": {
+          "agua": 0,
+          "fertilizante": 0,
+          "energia": 4
+        },
+        "efeito": {
+          "sombraSegundos": 30,
+          "sombraTemperatura": -6,
+          "sombraLuz": -30
+        }
+      },
+      "DoNothing": {
+        "custo": {
+          "agua": 0,
+          "fertilizante": 0,
+          "energia": 0
+        },
+        "efeito": {}
+      }
     }
   },
-
   "ambiente": {
     "_comentario": "Deriva natural da bancada por segundo de jogo (clima externo + consumo da planta). Modelo do 'clima externo' da Fase 4, Passo 4.",
-    "evaporacaoBase": 0.12,
+    "evaporacaoBase": 0.4,
     "evaporacaoPorGrauAcima": 0.012,
     "temperaturaReferenciaEvaporacao": 22,
-    "consumoNutrientes": { "nitrogen": 0.08, "phosphorus": 0.025, "potassium": 0.09 },
+    "consumoNutrientes": {
+      "nitrogen": 0.3,
+      "phosphorus": 0.1,
+      "potassium": 0.35
+    },
     "derivaPh": 0.002,
     "relaxamentoClima": 0.1,
-    "externoBase": { "airTemperature": 22, "amplitudeTemperatura": 3, "luminosity": 65, "amplitudeLuz": 10, "umidadeAr": 65, "periodo": 240 }
-  },
-
-  "clima": {
-    "_comentario": "Intervalo e duração em segundos REAIS (a corrotina do Unity não usa o timeScale do GameManager). Pilar 8: 'espere de 25 a 50 segundos'.",
-    "minIntervalReal": 25,
-    "maxIntervalReal": 50,
-    "eventDurationReal": 15,
-    "eventos": {
-      "HeatWave":     { "nome": "Onda de Calor",    "icone": "sol",    "temperatura": 10, "luz": 25, "descricao": "Uma onda de calor chegou! A temperatura e a luz vão subir.", "pede": "ProtectPlant" },
-      "HeavyRain":    { "nome": "Chuva Intensa",    "icone": "chuva",  "temperatura": -4, "luz": -35, "umidadePorSegundo": 0.6, "descricao": "Uma forte chuva está chegando! A temperatura pode cair rapidamente.", "pede": "LockIrrigation" },
-      "Pest":         { "nome": "Praga",            "icone": "praga",  "phPorSegundo": -0.03, "nitrogenioPorSegundo": -0.8, "descricao": "Pulgões atacaram! O pH cai e o nitrogênio some.", "pede": "Irrigate" },
-      "PowerFailure": { "nome": "Falha de Energia", "icone": "energia","umidadePorSegundo": -0.4, "bloqueiaRegeneracao": true, "descricao": "Falha de energia! As bombas pararam e o substrato está secando.", "pede": "Irrigate" }
+    "externoBase": {
+      "airTemperature": 22,
+      "amplitudeTemperatura": 3,
+      "luminosity": 65,
+      "amplitudeLuz": 10,
+      "umidadeAr": 65,
+      "periodo": 240
     }
   },
-
+  "clima": {
+    "_comentario": "Intervalo e duração em segundos REAIS (a corrotina do Unity não usa o timeScale do GameManager). Rebalanceado para fases de 1:30: 2 a 3 eventos por fase.",
+    "minIntervalReal": 18,
+    "maxIntervalReal": 32,
+    "eventDurationReal": 12,
+    "eventos": {
+      "HeatWave": {
+        "nome": "Onda de Calor",
+        "icone": "sol",
+        "temperatura": 10,
+        "luz": 25,
+        "descricao": "Uma onda de calor chegou! A temperatura e a luz vão subir.",
+        "pede": "ProtectPlant"
+      },
+      "HeavyRain": {
+        "nome": "Chuva Intensa",
+        "icone": "chuva",
+        "temperatura": -4,
+        "luz": -35,
+        "umidadePorSegundo": 0.6,
+        "descricao": "Uma forte chuva está chegando! A temperatura pode cair rapidamente.",
+        "pede": "LockIrrigation"
+      },
+      "Pest": {
+        "nome": "Praga",
+        "icone": "praga",
+        "phPorSegundo": -0.03,
+        "nitrogenioPorSegundo": -0.8,
+        "descricao": "Pulgões atacaram! O pH cai e o nitrogênio some.",
+        "pede": "Irrigate"
+      },
+      "PowerFailure": {
+        "nome": "Falha de Energia",
+        "icone": "energia",
+        "umidadePorSegundo": -0.4,
+        "bloqueiaRegeneracao": true,
+        "descricao": "Falha de energia! As bombas pararam e o substrato está secando.",
+        "pede": "Irrigate"
+      }
+    }
+  },
   "fase": {
-    "_comentario": "Regras novas (decisão da conversa com a equipe): fim da fase, pontuação em % da IA.",
-    "tempoAposColheitaIA": 45,
-    "tempoMaximo": 600,
+    "_comentario": "Regras da conversa com a equipe: fase de 1:30 (tempo real). Vitória = colher antes do tempo acabar. Derrota = planta morre ou o tempo acaba. 3 tentativas por fase (progressao.json).",
+    "tempoLimiteReal": 90,
     "janelaReacao": 6,
-    "pesos": { "produtividade": 0.5, "agua": 0.25, "energia": 0.25 }
+    "pesos": {
+      "produtividade": 0.5,
+      "agua": 0.25,
+      "energia": 0.25
+    }
+  },
+  "tecnologias": {
+    "_comentario": "Efeitos das tecnologias (progressao.json).",
+    "timerIrrigacaoEnergia": 0.5,
+    "sombriteDuracao": 2,
+    "sombriteEnergia": 0.5
   }
 }

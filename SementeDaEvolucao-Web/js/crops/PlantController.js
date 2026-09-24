@@ -13,6 +13,8 @@ export class PlantController {
     this.limiarEstresse = cfg.limiarEstresse;
     this.limiarRecuperacao = cfg.limiarRecuperacao;
     this.estagios = cfg.estagios;
+    // Quanto maior, mais o crescimento cai quando as condições pioram (q³: 0,9 → 73%).
+    this.expoenteCondicao = cfg.expoenteCondicao ?? 1;
     this.Reset();
   }
 
@@ -43,7 +45,7 @@ export class PlantController {
     const q = this.crop.EvaluateConditions(env);
     this.ultimaCondicao = q;
 
-    this.growthPoints += this.baseGrowthRate * q * (0.5 + 0.5 * (this.health / 100)) * dt;
+    this.growthPoints += this.baseGrowthRate * q ** this.expoenteCondicao * (0.5 + 0.5 * (this.health / 100)) * dt;
 
     if (q < this.limiarEstresse) this.health -= this.maxHealthDecay * (1 - q) * dt;
     else if (q >= this.limiarRecuperacao) this.health += this.healthRegenRate * dt;

@@ -48,17 +48,29 @@ if (url.get('debug') === '1') debug.alternar();
 
 // ------------------------------------------------------------ eventos do jogo → interface
 gm.OnAcao.on((quem, acao, ok) => {
+  // Só o jogador move o fazendeiro; a IA move os robôs da estufa dela.
   if (!ok || acao === 'Refill' || acao === FarmAction.DoNothing) return;
   mundo.animarAcao(quem === 'ia' ? 'ia' : 'jogador', acao);
   if (quem === 'ia' && gm.progressao.tem('painelDados')) hud.toast(`IA: ${AutonomousFarmAI.Translate(acao)} — ${gm.aiAI.lastReason}`, false, 2200);
-  if (quem === 'automacao') hud.toast(`Automação: ${AutonomousFarmAI.Translate(acao)}`);
-  if (quem === 'assistente') hud.toast(`IA assistente: ${AutonomousFarmAI.Translate(acao)}`);
 });
-gm.OnMensagem.on((texto, ruim) => hud.toast(texto, ruim));
+// Falhas (falta de recurso, tanque cheio) e "aguardar" viram aviso; gastos viram números.
+gm.OnMensagem.on((texto, ruim) => { if (ruim || texto.includes('aguardar')) hud.toast(texto, ruim); });
+gm.OnGasto.on((g) => {
+  hud.mostrarGasto(g);
+  const partes = [];
+  if (g.agua) partes.push(`−${g.agua} L de água`);
+  if (g.aguaGanha) partes.push(`+${Math.round(g.aguaGanha)} L no tanque`);
+  if (g.energia) partes.push(`−${+g.energia.toFixed(1)} de energia`);
+  if (g.fertilizante) partes.push(`−${g.fertilizante} de fertilizante`);
+  const nome = g.acao === 'Refill' ? 'Encher água' : AutonomousFarmAI.Translate(g.acao);
+  hud.toast(`${nome}: ${partes.join(' · ')}`);
+});
 gm.OnFaseTerminou.on((rel) => {
-  telas.relatorio(gm, rel,
-    (fase) => { if (fase) gm.IniciarFase(fase); else gm.ProximaFase(); abrirIntroducao(); },
-    () => { gm.RepetirFase(); abrirIntroducao(); });
+  telas.resultado(gm, rel, {
+    proxima: () => { gm.ProximaFase(); abrirIntroducao(); },
+    tentarDeNovo: () => { gm.TentarDeNovo(); abrirIntroducao(); },
+    novoJogo: () => { gm.NovoJogo(); abrirIntroducao(); },
+  });
 });
 
 let emIntroducao = false;
@@ -66,7 +78,7 @@ function abrirIntroducao() {
   emIntroducao = true;
   telas.introducao(gm,
     () => { emIntroducao = false; },
-    (idCultura) => { gm.RepetirFase(idCultura); abrirIntroducao(); });
+    (idCultura) => { gm.TrocarCultura(idCultura); abrirIntroducao(); });
 }
 
 // Fase inicial pela URL (útil para apresentar uma fase específica).

@@ -41,8 +41,15 @@ export class ProvedorRegras {
     const crop = cropDoSnapshot(snapshot.cultura.faixas);
     const env = new EnvironmentState(snapshot.ambiente);
     let acao = env.SuggestAction(crop);
-    // Não renova a sombra que ainda está ativa (evita gastar energia à toa).
-    if (acao === FarmAction.ProtectPlant && snapshot.clima.sombraAtiva) acao = FarmAction.DoNothing;
-    return { acao, motivo: acao === FarmAction.DoNothing && snapshot.clima.sombraAtiva ? 'Sombra já ativa; aguardando.' : motivo(acao, snapshot.ambiente, crop) };
+    // Com a sombra já ativa, não renova a proteção (gastaria energia à toa):
+    // olha as próximas prioridades como se calor e luz estivessem resolvidos.
+    if (acao === FarmAction.ProtectPlant && snapshot.clima.sombraAtiva) {
+      const semCalor = env.Clone();
+      semCalor.airTemperature = Math.min(semCalor.airTemperature, crop.temperatureRange.max);
+      semCalor.luminosity = Math.min(semCalor.luminosity, crop.luminosityRange.max);
+      acao = semCalor.SuggestAction(crop);
+      if (acao === FarmAction.DoNothing) return { acao, motivo: 'Sombra já ativa; aguardando o calor passar.' };
+    }
+    return { acao, motivo: motivo(acao, snapshot.ambiente, crop) };
   }
 }

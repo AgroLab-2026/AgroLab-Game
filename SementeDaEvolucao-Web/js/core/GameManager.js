@@ -1,12 +1,17 @@
 // Porte de GameManager.cs: O MAESTRO. Avança o tempo de jogo, faz a planta do
 // jogador e a da IA crescerem, executa as 4 ações e conecta todos os sistemas.
 // Não toca DOM nem Canvas: a interface lê o estado e chama DoAction/UI_*.
-import { EnvironmentState, FarmAction } from './EnvironmentState.js';
+//
+// Regras de fase (conversa com a equipe): cada fase dura 1:30 (tempo real).
+// VITÓRIA = colher antes do tempo acabar. DERROTA = a planta morre ou o tempo
+// acaba. Só avança quem vence; 3 tentativas por fase, depois game over.
+// Nada age sozinho na estufa do jogador: as tecnologias medem, avisam e sugerem.
+import { EnvironmentState, FarmAction, VARIAVEIS } from './EnvironmentState.js';
 import { Evento } from './Eventos.js';
 import { carregarCulturas } from '../crops/CropData.js';
 import { PlantController } from '../crops/PlantController.js';
 import { ResourceSystem } from '../resources/ResourceSystem.js';
-import { PlayerActionController, aplicarEfeito } from '../resources/PlayerActionController.js';
+import { PlayerActionController } from '../resources/PlayerActionController.js';
 import { WeatherEventSystem } from '../systems/WeatherEventSystem.js';
 import { ClimateModel, novaEstufa } from '../systems/ClimateModel.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
@@ -42,7 +47,8 @@ export class GameManager {
     this.aiAI = new AutonomousFarmAI(b.ia, b.planta, provedor);
 
     // Eventos para a interface (HUD, som, animações).
-    this.OnAcao = new Evento();          // (quem: 'jogador'|'automacao'|'assistente'|'ia', acao, ok)
+    this.OnAcao = new Evento();          // (quem: 'jogador'|'ia', acao, ok)
+    this.OnGasto = new Evento();         // ({ acao, agua, fertilizante, energia, aguaGanha })
     this.OnMensagem = new Evento();      // (texto, ruim)
     this.OnFaseIniciada = new Evento();  // (dadosFase)
     this.OnFaseTerminou = new Evento();  // (relatorio)
@@ -58,7 +64,6 @@ export class GameManager {
     this.weather.OnEventEnded.on(() => { this._weatherMsg = 'Tempo estável.'; });
     this.resources.OnResourceDepleted.on((recurso) => {
       this._alertMsg = `Sem ${recurso}!`;
-      this.OnMensagem.emit(this._alertMsg, true);
     });
     this.aiAI.OnAction.on((acao) => this.OnAcao.emit('ia', acao, true));
 
@@ -67,6 +72,8 @@ export class GameManager {
 
   get crop() { return this.cropAtual; }
   get evento() { return this.weather.eventoAtual ? { id: this.weather.eventoAtual, restante: this.weather.restante, ...this.weather.dadosAtuais } : null; }
+  get tempoLimite() { return this.bal.fase.tempoLimiteReal; }
+  get tempoRestante() { return Math.max(0, this.tempoLimite - this.tempoReal); }
 
   /** Começa (ou recomeça) uma fase com a cultura indicada. */
   IniciarFase(numero, idCultura) {
@@ -74,6 +81,7 @@ export class GameManager {
     const fase = this.progressao.dadosFase;
     const crop = this.crops[idCultura ?? fase.cultura];
     this.cropAtual = crop;
+    const tec = this.bal.tecnologias;
 
     // Distribui a MESMA instância de ambiente e a cultura para todo mundo.
     this.playerEnv = EnvironmentState.paraCultura(crop);
@@ -83,7 +91,10 @@ export class GameManager {
     this.playerActions.playerEnv = this.playerEnv;
     this.playerActions.estufa = this.estufaJogador;
     this.playerActions.crop = crop;
-    this.playerActions.multiplicadorEnergia = this.progressao.tem('timerIrrigacao') ? { [FarmAction.Irrigate]: 0.5 } : {};
+    this.playerActions.multiplicadorEnergia = {};
+    if (this.progressao.tem('timerIrrigacao')) this.playerActions.multiplicadorEnergia[FarmAction.Irrigate] = tec.timerIrrigacaoEnergia;
+    if (this.progressao.tem('sombrite')) this.playerActions.multiplicadorEnergia[FarmAction.ProtectPlant] = tec.sombriteEnergia;
+    this.playerActions.duracaoSombra = this.progressao.tem('sombrite') ? tec.sombriteDuracao : 1;
     this.playerPlant.crop = crop;
     this.playerPlant.Reset();
     this.bruno.crop = crop;
@@ -95,17 +106,18 @@ export class GameManager {
     this.tempo = 0;          // segundos de jogo
     this.tempoReal = 0;      // segundos reais desde o início da fase
     this.maoDeObra = 0;      // tarefas manuais feitas pelo fazendeiro
-    this.acoesJogador = [];  // { tempo, acao, quem }
-    this.tempoColheitaIA = null;
+    this.acoesJogador = [];  // { tempo, acao }
+    this.registroGastos = []; // { tempoReal, acao, agua, fertilizante, energia, aguaGanha }
+    this.foraDaFaixa = Object.fromEntries(VARIAVEIS.map((v) => [v, 0])); // segundos reais fora da faixa
     this.relatorio = null;
-    this._automacaoAcum = 0;
-    this._assistenteAcum = 0;
-    this._assistentePendente = false;
-    this._assistenteResposta = null;
+    this.sugestaoIA = null;
+    this._sugestaoAcum = 0;
+    this._sugestaoPendente = false;
     this._alertMsg = '';
     this.estado = EstadoJogo.Jogando;
 
-    const texto = this.progressao.tem('iaAssistente') ? this.falas.parceria : numero === 1 ? this.falas.abertura : fase.objetivo;
+    const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura
+      : this.progressao.tem('iaAssistente') ? this.falas.parceria : fase.objetivo;
     this.bruno.Anunciar(texto, 0, 10);
     this.OnFaseIniciada.emit(fase);
   }
@@ -126,39 +138,74 @@ export class GameManager {
 
     const ativa = !this.playerPlant.morta && !this.playerPlant.colhida;
     this.clima.aplicarDeriva(this.playerEnv, this.estufaJogador, ativa, evento, dt);
-    this.automacoes(dt);
-    this.assistente(dt);
+    this.pedirSugestaoIA(dt);
 
     this.playerPlant.Tick(this.playerEnv, dt);   // planta do jogador
     this.aiAI.Tick(this.clima, evento, dt, this.tempo); // IA sente o mesmo clima e cultiva a dela
 
+    for (const v of VARIAVEIS) if (!this.crop.faixaDe(v).Contains(this.playerEnv[v])) this.foraDaFaixa[v] += real;
     this.verificarFimDeFase();
   }
 
   // ------------------------------------------------------------ ações
+  /** Custo atual de uma ação do jogador (já com os descontos das tecnologias). */
+  CustoDe(action) {
+    if (action === 'Refill') return { agua: 0, fertilizante: 0, energia: this.bal.recursos.refill.energia };
+    return this.playerActions.custoDe(action);
+  }
+
+  /** Diz se o jogador tem recursos para a ação (e qual recurso falta). */
+  PodePagar(action) {
+    const c = this.CustoDe(action), r = this.resources;
+    const falta = [];
+    if (c.agua > r.water + 1e-9) falta.push('agua');
+    if (c.fertilizante > r.nutrientStock + 1e-9) falta.push('fertilizante');
+    if (c.energia > r.energy + 1e-9) falta.push('energia');
+    if (action === 'Refill' && r.water >= r.waterMax - 1e-6) falta.push('cheio');
+    return { ok: falta.length === 0, falta };
+  }
+
   /** Executa uma ação do jogador (teclas 1–4 ou botões). */
-  DoAction(action, quem = 'jogador') {
+  DoAction(action) {
     if (this.estado !== EstadoJogo.Jogando) return false;
+    const custo = this.CustoDe(action);
     const ok = this.playerActions.Execute(action);
-    this._alertMsg = ok ? `Você: ${AutonomousFarmAI.Translate(action)}` : 'Recurso insuficiente para essa ação!';
     if (ok && action !== FarmAction.DoNothing) {
-      if (quem === 'jogador') this.maoDeObra++;
-      this.acoesJogador.push({ tempo: this.tempo, acao: action, quem });
+      this.maoDeObra++;
+      this.acoesJogador.push({ tempo: this.tempo, acao: action });
+      this.registrarGasto({ acao: action, ...custo, aguaGanha: 0 });
+      this._alertMsg = `Você: ${AutonomousFarmAI.Translate(action)}`;
+    } else if (ok) {
+      this._alertMsg = 'Você: aguardar e observar';
+    } else {
+      this._alertMsg = `Falta ${this.PodePagar(action).falta.map(nomeRecurso).join(' e ')} para ${AutonomousFarmAI.Translate(action).toLowerCase()}!`;
     }
-    this.OnAcao.emit(quem, action, ok);
-    if (quem === 'jogador') this.OnMensagem.emit(this._alertMsg, !ok);
+    this.OnAcao.emit('jogador', action, ok);
+    this.OnMensagem.emit(this._alertMsg, !ok);
     return ok;
   }
 
   /** Reabastece a água (tecla R). */
   Refill() {
     if (this.estado !== EstadoJogo.Jogando) return false;
+    const antes = this.resources.water;
     const ok = this.resources.RefillWater();
-    if (ok) this.maoDeObra++;
-    this._alertMsg = ok ? 'Você: Encher água' : this.resources.water >= this.resources.waterMax ? 'O tanque já está cheio.' : 'Recurso insuficiente para essa ação!';
+    if (ok) {
+      this.maoDeObra++;
+      this.registrarGasto({ acao: 'Refill', agua: 0, fertilizante: 0, energia: this.bal.recursos.refill.energia, aguaGanha: this.resources.water - antes });
+      this._alertMsg = 'Você: encher o tanque de água';
+    } else {
+      this._alertMsg = this.resources.water >= this.resources.waterMax - 1e-6 ? 'O tanque já está cheio.' : 'Falta energia para encher o tanque!';
+    }
     this.OnAcao.emit('jogador', 'Refill', ok);
     this.OnMensagem.emit(this._alertMsg, !ok);
     return ok;
+  }
+
+  registrarGasto(g) {
+    const item = { tempoReal: this.tempoReal, ...g };
+    this.registroGastos.push(item);
+    this.OnGasto.emit(item);
   }
 
   // Comandos dos botões (Fase 2 do Unity).
@@ -167,41 +214,23 @@ export class GameManager {
   UI_Irrigar() { return this.DoAction(FarmAction.Irrigate); }
   UI_Proteger() { return this.DoAction(FarmAction.ProtectPlant); }
 
-  /** Tecnologias automáticas (sensor de umidade e sombrite). Gastam energia como a IA. */
-  automacoes(dt) {
-    this._automacaoAcum += dt;
-    if (this._automacaoAcum < 1) return;
-    this._automacaoAcum = 0;
-    const c = this.crop, e = this.playerEnv;
-    if (this.progressao.tem('sensorUmidade') && e.soilMoisture > c.moistureRange.max) this.executarAutomatico(FarmAction.LockIrrigation, 'automacao');
-    if (this.progressao.tem('sombrite') && this.estufaJogador.sombra <= 0 &&
-        (e.airTemperature > c.temperatureRange.max || e.luminosity > c.luminosityRange.max)) this.executarAutomatico(FarmAction.ProtectPlant, 'automacao');
+  // ------------------------------------------------------------ tecnologias (só ajudam, não agem)
+  /** Sensor de Umidade: qual ação a umidade pede agora (ou null). */
+  get alertaSensor() {
+    if (!this.progressao.tem('sensorUmidade')) return null;
+    const e = this.playerEnv.soilMoisture, f = this.crop.moistureRange;
+    if (e < f.min) return FarmAction.Irrigate;
+    if (e > f.max) return FarmAction.LockIrrigation;
+    return null;
   }
 
-  /** Ação feita por automação/IA assistente: usa a tabela de precisão da IA e os recursos do jogador. */
-  executarAutomatico(action, quem) {
-    if (action === FarmAction.DoNothing) return false;
-    const t = this.bal.ia.acoes[action];
-    if (!this.resources.TrySpend(t.custo.agua, t.custo.fertilizante, t.custo.energia)) return false;
-    aplicarEfeito(this.playerEnv, this.crop, t.efeito, this.estufaJogador);
-    this.acoesJogador.push({ tempo: this.tempo, acao: action, quem });
-    this.OnAcao.emit(quem, action, true);
-    return true;
-  }
-
-  /** Fase 7: a IA assistente cuida da estufa do jogador junto com ele. */
-  assistente(dt) {
+  /** IA Assistente: pede ao provedor a melhor ação para a estufa DO JOGADOR, só como sugestão. */
+  pedirSugestaoIA(dt) {
     if (!this.progressao.tem('iaAssistente')) return;
-    if (this._assistenteResposta) {
-      const r = this._assistenteResposta;
-      this._assistenteResposta = null;
-      this.ultimaDicaAssistente = r;
-      this.executarAutomatico(r.acao, 'assistente');
-    }
-    this._assistenteAcum += dt;
-    if (this._assistentePendente || this._assistenteAcum < this.bal.ia.intervaloDecisao * 2) return;
-    this._assistenteAcum = 0;
-    this._assistentePendente = true;
+    this._sugestaoAcum += dt;
+    if (this._sugestaoPendente || this._sugestaoAcum < this.bal.ia.intervaloDecisao) return;
+    this._sugestaoAcum = 0;
+    this._sugestaoPendente = true;
     const fase = this.progressao.faseAtual;
     const snap = criarSnapshot({
       crop: this.crop, env: this.playerEnv, planta: this.playerPlant, tempo: this.tempo, estufa: this.estufaJogador,
@@ -209,24 +238,22 @@ export class GameManager {
       clima: this.clima.ambienteExterno, evento: this.evento,
     });
     this.provedorIA.decidir(snap).then((r) => {
-      this._assistentePendente = false;
-      if (this.progressao.faseAtual === fase && this.estado === EstadoJogo.Jogando) this._assistenteResposta = r;
-    }, () => { this._assistentePendente = false; });
+      this._sugestaoPendente = false;
+      if (this.progressao.faseAtual === fase && this.estado === EstadoJogo.Jogando) this.sugestaoIA = r;
+    }, () => { this._sugestaoPendente = false; });
   }
 
   // ------------------------------------------------------------ fim de fase e pontuação
   verificarFimDeFase() {
-    const f = this.bal.fase;
-    if (this.aiAI.aiPlant.colhida && this.tempoColheitaIA === null) this.tempoColheitaIA = this.tempo;
     let motivo = null;
     if (this.playerPlant.colhida) motivo = 'colheu';
     else if (this.playerPlant.morta) motivo = 'morreu';
-    else if (this.tempoColheitaIA !== null && this.tempo - this.tempoColheitaIA > f.tempoAposColheitaIA) motivo = 'tempoIA';
-    else if (this.tempo > f.tempoMaximo) motivo = 'tempoMaximo';
+    else if (this.tempoReal >= this.tempoLimite) motivo = 'tempo';
     if (!motivo) return;
     this.estado = EstadoJogo.FimDeFase;
-    this.relatorio = this.GerarRelatorio(motivo);
-    this.progressao.registrar({ fase: this.progressao.faseAtual, cultura: this.crop.cropName, eficiencia: this.relatorio.eficiencia });
+    const venceu = motivo === 'colheu';
+    this.relatorio = this.GerarRelatorio(motivo, venceu);
+    this.progressao.registrar({ fase: this.progressao.faseAtual, cultura: this.crop.cropName, venceu, eficiencia: this.relatorio.eficiencia });
     this.relatorio.historico = this.progressao.historico.slice();
     this.OnFaseTerminou.emit(this.relatorio);
   }
@@ -252,8 +279,18 @@ export class GameManager {
     };
   }
 
-  /** Relatório de fim de fase: "a derrota que ensina". */
-  GerarRelatorio(motivo) {
+  /** Gasto total por tipo de ação (para o relatório). */
+  gastosPorAcao() {
+    const r = {};
+    for (const g of this.registroGastos) {
+      const t = (r[g.acao] ??= { vezes: 0, agua: 0, fertilizante: 0, energia: 0 });
+      t.vezes++; t.agua += g.agua; t.fertilizante += g.fertilizante; t.energia += g.energia;
+    }
+    return r;
+  }
+
+  /** Relatório de fim de fase: vitória ou "a derrota que ensina". */
+  GerarRelatorio(motivo, venceu) {
     const p = this.Pontuacao();
     const janela = this.bal.fase.janelaReacao;
     const reacoes = this.aiAI.historico.map((h) => ({
@@ -261,11 +298,16 @@ export class GameManager {
       jogadorReagiu: this.acoesJogador.some((a) => a.acao === h.acao && Math.abs(a.tempo - h.tempo) <= janela),
     }));
     const perdidas = reacoes.filter((r) => !r.jogadorReagiu);
+    const proximoPasso = this.progressao.resultado(venceu);
     return {
-      motivo,
+      motivo, venceu, proximoPasso,
       fase: this.progressao.faseAtual,
+      ultimaFase: this.progressao.ultimaFase,
       titulo: this.progressao.dadosFase.titulo,
       cultura: this.crop.cropName,
+      tentativa: this.progressao.tentativa,
+      tentativasPorFase: this.progressao.tentativasPorFase,
+      tempoReal: this.tempoReal,
       eficiencia: p.eficiencia,
       pontuacao: p,
       jogador: {
@@ -278,25 +320,45 @@ export class GameManager {
         produtividade: p.prodIA, agua: this.aiAI.waterUsed, energia: this.aiAI.energyUsed,
         fertilizante: this.aiAI.fertilizerUsed, acoes: this.aiAI.actionsTaken,
       },
+      gastos: this.gastosPorAcao(),
+      foraDaFaixa: { ...this.foraDaFaixa },
       reacoesIA: reacoes.length,
       reacoesPerdidas: perdidas.length,
       momentosPerdidos: perdidas.slice(0, 4),
-      tecnologiaLiberada: this.progressao.faseAtual < this.progressao.ultimaFase ? this.progressao.proximaTecnologia : null,
+      tecnologiasLiberadas: venceu ? this.progressao.proximasTecnologias : [],
       historico: this.progressao.historico.slice(),
       tempo: this.tempo,
     };
   }
 
-  /** Vai para a próxima fase (liberando a tecnologia). */
+  /** Vai para a próxima fase (só depois de vencer). */
   ProximaFase() {
+    if (!this.relatorio?.venceu) return;
     this.progressao.avancar();
     this.IniciarFase(this.progressao.faseAtual);
   }
 
-  RepetirFase(idCultura) { this.IniciarFase(this.progressao.faseAtual, idCultura); }
+  /** Nova tentativa da mesma fase (gasta uma das 3). */
+  TentarDeNovo(idCultura) {
+    this.progressao.novaTentativa();
+    this.IniciarFase(this.progressao.faseAtual, idCultura);
+  }
+
+  /** Troca a cultura antes de começar, sem gastar tentativa. */
+  TrocarCultura(idCultura) { this.IniciarFase(this.progressao.faseAtual, idCultura); }
+
+  /** Recomeça o jogo do zero (depois do game over ou da vitória final). */
+  NovoJogo() {
+    this.progressao.Reset();
+    this.IniciarFase(1);
+  }
 
   AlternarPausa() {
     if (this.estado === EstadoJogo.Jogando) this.estado = EstadoJogo.Pausado;
     else if (this.estado === EstadoJogo.Pausado) this.estado = EstadoJogo.Jogando;
   }
+}
+
+function nomeRecurso(r) {
+  return { agua: 'água', fertilizante: 'fertilizante', energia: 'energia', cheio: 'espaço no tanque' }[r] ?? r;
 }

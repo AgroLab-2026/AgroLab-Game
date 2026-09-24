@@ -1,5 +1,5 @@
 {
-  "_comentario": "Roteiro do Sr. Bruno (BrunoDialogue). Prioridade (Pilar 7): saúde crítica → calor/luz em excesso → substrato encharcado → substrato seco → pH fora da faixa → tudo ótimo. Acrescentamos nutrientes baixos entre substrato seco e pH, e falas de evento/abertura/fase.",
+  "_comentario": "Roteiro do Sr. Bruno (BrunoDialogue). Prioridade (Pilar 7): saúde crítica → calor/luz em excesso → substrato encharcado → substrato seco → pH fora da faixa → tudo ótimo. Também: nutrientes baixos, abertura, eventos, vitória, derrota e game over.",
   "saudeCritica": [
     "Meu amigo, a planta está sofrendo! Olhe as barras vermelhas e aja agora.",
     "Assim a gente perde a colheita! Descubra o que está fora da faixa e corrija."
@@ -33,17 +33,25 @@
     "Olha que beleza! Às vezes a melhor ação é não fazer nada.",
     "Cada pequeno passo conta. A tecnologia é uma ferramenta para todos!"
   ],
-  "abertura": "Olá, meu amigo! Eu cuido desta estufa há 40 anos, sem aparelho nenhum. Dizem que aquela estufa autônoma ali do lado é melhor... Vamos ver! Use as teclas 1 a 4 ou clique nas ferramentas.",
+  "abertura": "Olá, meu amigo! Cuido desta estufa há 40 anos, sem aparelho nenhum. Temos 1 minuto e meio para colher. Irrigue quando secar (3), trave quando encharcar (2) e proteja do calor (4). Cada ação gasta água ou energia: olhe os números à esquerda!",
   "eventos": {
     "HeatWave": "Onda de calor! Isso pede proteção para a planta.",
     "HeavyRain": "Chuva forte! Cuidado para não encharcar: talvez seja hora de travar a irrigação.",
     "Pest": "Praga na estufa! O pH e o nitrogênio vão cair. Fique de olho.",
     "PowerFailure": "Acabou a luz! Sem bomba o substrato seca e a sua energia não recupera."
   },
-  "fimDeFase": [
-    "A estufa autônoma foi melhor de novo... Mas olhe quanto a distância diminuiu!",
-    "Eu desconfiava dessas máquinas. Mas os números não mentem, né?",
-    "Não é sobre vencer a máquina. É sobre aprender a trabalhar com ela."
+  "parceria": "Agora a IA trabalha com a gente: ela sugere, eu decido. Olhe o botão marcado 'IA sugere' e vamos colher juntos!",
+  "vitoria": [
+    "Colhemos! Viu como observar antes de agir faz diferença?",
+    "Que beleza de colheita! E com a ferramenta nova vai ficar ainda melhor.",
+    "Essa tecnologia está me convencendo... Vamos para a próxima!",
+    "Mais uma! A estufa ao lado que se cuide."
   ],
-  "parceria": "Agora a IA trabalha com a gente. Eu decido, ela ajuda. Juntos somos melhores que qualquer um sozinho!"
+  "derrota": [
+    "Não foi dessa vez. Olhe o que ficou fora da faixa e tente de novo.",
+    "Calma, meu amigo. Na agricultura a gente aprende com cada safra.",
+    "Última chance nesta fase! Cuide da água e do calor com atenção."
+  ],
+  "gameOver": "A safra se perdeu... Mas todo agricultor recomeça. Vamos plantar de novo, agora sabendo mais!",
+  "vitoriaFinal": "Eu desconfiava dessas máquinas. Hoje vejo: com a tecnologia do nosso lado, a colheita é melhor para todo mundo!"
 }

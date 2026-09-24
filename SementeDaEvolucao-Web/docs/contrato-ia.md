@@ -79,7 +79,7 @@ Exemplo real, gerado pelo jogo durante uma Onda de Calor (Morango):
 | `planta.estagio` | 0 Semente · 1 Muda · 2 Vegetativo · 3 Floração · 4 Frutificação · 5 Colheita |
 | `planta.saude` | 0–100 |
 | `planta.crescimento` | 0–1 (1 = pronta para colher) |
-| `recursos` | Estufa autônoma: consumo acumulado. IA assistente (fase 7): quanto o jogador ainda tem |
+| `recursos` | Estufa autônoma: consumo acumulado. IA assistente (fase 5): quanto o jogador ainda tem |
 | `clima.externo` | Clima fora da estufa (o mesmo para as duas estufas) |
 | `clima.evento` | Evento ativo (`HeatWave`, `HeavyRain`, `Pest`, `PowerFailure`) e segundos reais restantes, ou `null` |
 | `clima.sombraAtiva` | Se a proteção (sombrite) já está ativa nesta estufa |
@@ -101,8 +101,8 @@ Outros exemplos:
 ## Onde a IA é usada
 
 1. **Estufa autônoma** (`AutonomousFarmAI`): pede uma decisão a cada 1 s de jogo (`ia.intervaloDecisao`).
-2. **IA assistente** (fase 7): pede decisões para a estufa **do jogador**, a cada 2 s de jogo, gastando os
-   recursos dele com a tabela de precisão da IA.
+2. **IA assistente** (fase 5): pede decisões para a estufa **do jogador**, a cada 1 s de jogo, **só como sugestão**:
+   o botão da ação ganha a marca "IA sugere" e quem executa é o jogador.
 
 ## Falas do Sr. Bruno (gerador externo, opcional)
 

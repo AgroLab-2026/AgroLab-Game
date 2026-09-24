@@ -1,20 +1,89 @@
 {
-  "_comentario": "Decisão da conversa com a equipe: cada fase libera uma tecnologia. O fazendeiro nunca vence a IA sozinho, mas a distância diminui. A última fase é a parceria fazendeiro + IA.",
+  "_comentario": "5 fases. Cada VITÓRIA libera as tecnologias da fase seguinte. As tecnologias ajudam o jogador (medem, avisam, sugerem, economizam), mas NUNCA agem sozinhas na estufa dele. 3 tentativas por fase; ao esgotar, game over.",
+  "tentativasPorFase": 3,
   "tecnologias": [
-    { "id": "medidorPh",     "nome": "Medidor de pH e EC",   "icone": "medidor", "efeito": "Mostra os valores exatos de N, P, K e pH. Sem ele você só 'acha'." },
-    { "id": "timerIrrigacao","nome": "Timer de Irrigação",   "icone": "gotaGrande",  "efeito": "Irrigar custa metade da energia." },
-    { "id": "sensorUmidade", "nome": "Sensor de Umidade",    "icone": "sensor",  "efeito": "Trava a irrigação sozinho quando o substrato encharca." },
-    { "id": "sombrite",      "nome": "Sombrite Automático",  "icone": "sombra",  "efeito": "Protege a planta sozinho quando o calor ou a luz passam do limite." },
-    { "id": "painelDados",   "nome": "Painel de Dados",      "icone": "painel",  "efeito": "Previsão exata do próximo evento e ações da IA ao vivo." },
-    { "id": "iaAssistente",  "nome": "IA Assistente",        "icone": "robo",    "efeito": "A IA passa a cuidar da SUA estufa junto com você." }
+    {
+      "id": "medidorPh",
+      "nome": "Medidor de pH e EC",
+      "icone": "medidor",
+      "efeito": "Mostra os valores exatos de pH e N·P·K. Sem ele você só 'acha'."
+    },
+    {
+      "id": "timerIrrigacao",
+      "nome": "Timer de Irrigação",
+      "icone": "gotaGrande",
+      "efeito": "Irrigar gasta metade da energia."
+    },
+    {
+      "id": "sensorUmidade",
+      "nome": "Sensor de Umidade",
+      "icone": "sensor",
+      "efeito": "Avisa quando o substrato seca ou encharca: o botão certo pisca."
+    },
+    {
+      "id": "sombrite",
+      "nome": "Sombrite Reforçado",
+      "icone": "sombra",
+      "efeito": "Proteger dura o dobro (1 minuto de jogo) e gasta menos energia."
+    },
+    {
+      "id": "painelDados",
+      "nome": "Painel de Dados",
+      "icone": "painel",
+      "efeito": "Previsão exata: qual evento vem e quando."
+    },
+    {
+      "id": "iaAssistente",
+      "nome": "IA Assistente",
+      "icone": "robo",
+      "efeito": "A IA sugere a melhor ação (o botão ganha a marca 'IA sugere'). Quem decide é você."
+    }
   ],
   "fases": [
-    { "numero": 1, "titulo": "Do jeito antigo",      "cultura": "Morango",      "objetivo": "Mantenha suas plantas saudáveis até o final do ciclo e aprenda a competir com a IA!" },
-    { "numero": 2, "titulo": "Medindo de verdade",   "cultura": "AlfaceCrespa", "objetivo": "Agora você tem um medidor. Mantenha N, P, K e pH na faixa ideal." },
-    { "numero": 3, "titulo": "Tempo é dinheiro",     "cultura": "Tomate",       "objetivo": "O timer economiza energia. Irrigue na hora certa e gaste menos." },
-    { "numero": 4, "titulo": "A estufa sente",       "cultura": "Morango",      "objetivo": "O sensor trava a irrigação por você. Foque no clima e nos nutrientes." },
-    { "numero": 5, "titulo": "Sombra na hora certa", "cultura": "AlfaceCrespa", "objetivo": "O sombrite reage ao calor sozinho. Veja quanto você ganha com isso." },
-    { "numero": 6, "titulo": "Olhando os dados",     "cultura": "Tomate",       "objetivo": "Use a previsão e compare suas decisões com as da IA ao vivo." },
-    { "numero": 7, "titulo": "Parceria",             "cultura": "Morango",      "objetivo": "Você e a IA juntos. Supere o fazendeiro que trabalhava sozinho!" }
+    {
+      "numero": 1,
+      "titulo": "Do jeito antigo",
+      "cultura": "AlfaceCrespa",
+      "tecnologias": [],
+      "objetivo": "Colha a alface antes do tempo acabar. Irrigue quando secar e proteja do calor."
+    },
+    {
+      "numero": 2,
+      "titulo": "Medindo de verdade",
+      "cultura": "Morango",
+      "tecnologias": [
+        "medidorPh"
+      ],
+      "objetivo": "Use o medidor: mantenha pH e nutrientes na faixa e colha o morango a tempo."
+    },
+    {
+      "numero": 3,
+      "titulo": "Tempo é dinheiro",
+      "cultura": "Tomate",
+      "tecnologias": [
+        "timerIrrigacao"
+      ],
+      "objetivo": "O timer economiza energia. Irrigue na hora certa e colha o tomate a tempo."
+    },
+    {
+      "numero": 4,
+      "titulo": "A estufa avisa",
+      "cultura": "Morango",
+      "tecnologias": [
+        "sensorUmidade",
+        "sombrite"
+      ],
+      "objetivo": "O sensor avisa e o sombrite dura mais. Enfrente o clima e colha a tempo."
+    },
+    {
+      "numero": 5,
+      "titulo": "Parceria",
+      "cultura": "Tomate",
+      "tecnologias": [
+        "painelDados",
+        "iaAssistente"
+      ],
+      "objetivo": "A IA sugere, você decide. Colham juntos o tomate antes do tempo acabar!"
+    }
   ]
 }

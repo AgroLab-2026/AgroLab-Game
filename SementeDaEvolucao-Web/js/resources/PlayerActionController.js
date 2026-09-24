@@ -6,7 +6,7 @@ import { FarmAction } from '../core/EnvironmentState.js';
  * Aplica o efeito de uma ação num ambiente. Compartilhado com a IA (que usa
  * uma tabela de efeitos mais precisa). `estufa` guarda a sombra ativa.
  */
-export function aplicarEfeito(env, crop, efeito, estufa) {
+export function aplicarEfeito(env, crop, efeito, estufa, duracaoSombra = 1) {
   if (efeito.soilMoisture) env.soilMoisture += efeito.soilMoisture;
   if (efeito.nitrogen) env.nitrogen += efeito.nitrogen;
   if (efeito.phosphorus) env.phosphorus += efeito.phosphorus;
@@ -18,7 +18,8 @@ export function aplicarEfeito(env, crop, efeito, estufa) {
     env.ph += Math.sign(alvo - env.ph) * passo;
   }
   if (efeito.sombraSegundos) {
-    estufa.sombra = efeito.sombraSegundos;
+    estufa.sombra = efeito.sombraSegundos * duracaoSombra;
+    estufa.sombraTotal = estufa.sombra;
     estufa.sombraTemperatura = efeito.sombraTemperatura;
     estufa.sombraLuz = efeito.sombraLuz;
   }
@@ -33,6 +34,7 @@ export class PlayerActionController {
     this.estufa = null;         // estado da estufa do jogador (sombra)
     this.crop = null;
     this.multiplicadorEnergia = {}; // ex.: { Irrigate: 0.5 } com o Timer de Irrigação
+    this.duracaoSombra = 1;         // 2 com o Sombrite Reforçado
   }
 
   custoDe(action) {
@@ -47,7 +49,7 @@ export class PlayerActionController {
     if (action === FarmAction.DoNothing) return true;
     const c = this.custoDe(action);
     if (!this.resources.TrySpend(c.agua, c.fertilizante, c.energia)) return false;
-    aplicarEfeito(this.playerEnv, this.crop, this.tabela[action].efeito, this.estufa);
+    aplicarEfeito(this.playerEnv, this.crop, this.tabela[action].efeito, this.estufa, this.duracaoSombra);
     return true;
   }
 }

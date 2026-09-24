@@ -40,15 +40,15 @@ Legenda: ✅ fiel (há fonte) · 🔧 reconstruído (sem fonte; ajustar com o C#
 | Regra | Status | Onde |
 |---|---|---|
 | `health` (0–100), `growthPoints` | ✅ Pilar 3 | campos |
-| `baseGrowthRate`, `maxHealthDecay` | ✅ nomes / 🔧 valores 0.3 e 6 | `balanceamento.planta` |
-| `Tick(env, dt)`: cresce mais rápido com boas condições e perde saúde com as ruins | ✅ comportamento / 🔧 fórmula: `growth += baseGrowthRate · q · (0.5 + 0.5·health/100) · dt`; se `q < 0.9`, `health −= maxHealthDecay · (1−q) · dt`; se `q ≥ 0.95`, `health += 0.6 · dt` | `PlantController.Tick` |
+| `baseGrowthRate`, `maxHealthDecay` | ✅ nomes / 🔧 valores 0.83 e 5 (rebalanceados para fases de 1:30) | `balanceamento.planta` |
+| `Tick(env, dt)`: cresce mais rápido com boas condições e perde saúde com as ruins | ✅ comportamento / 🔧 fórmula: `growth += baseGrowthRate · q³ · (0.5 + 0.5·health/100) · dt`; se `q < 0.9`, `health −= maxHealthDecay · (1−q) · dt`; se `q ≥ 0.95`, `health += healthRegenRate · dt` (valores em `balanceamento.planta`) | `PlantController.Tick` |
 | Planta "acinzentada" quando a saúde cai | ✅ Pilar 3 | render: dessaturação proporcional à saúde |
 
 ## ResourceSystem — `js/resources/ResourceSystem.js`
 
 | Regra | Status | Onde |
 |---|---|---|
-| `water`/`waterMax = 50`, `nutrientStock = 20`, `energy`/`energyMax = 100`, `energyRegenPerSecond = 3` | ✅ Pilar 4 | `balanceamento.recursos` |
+| `water`/`waterMax`, `nutrientStock`, `energy`/`energyMax = 100`, `energyRegenPerSecond = 3` | ✅ Pilar 4 (50 L e 20 doses) / 🔧 v2: 30 L e 10 doses, para a água pesar numa fase de 1:30 | `balanceamento.recursos` |
 | Regeneração em segundos **reais** (o `Update` do Unity usa `Time.deltaTime`, sem o `timeScale` do GameManager) | 🔧 | `ResourceSystem.Tick(dtReal)` |
 | `TrySpend(água, fert, energia)` devolve `false` se faltar | ✅ Pilar 4 | `ResourceSystem.TrySpend` |
 | `RefillWater()` | ✅ API / 🔧 custa 15 de energia | `ResourceSystem.RefillWater` |
@@ -90,7 +90,7 @@ Legenda: ✅ fiel (há fonte) · 🔧 reconstruído (sem fonte; ajustar com o C#
 |---|---|---|
 | Eventos: Onda de Calor, Praga, Chuva Intensa, Falha de Energia | ✅ Pilar 8 | `clima.eventos` |
 | Efeitos: Calor (+temp, +luz); Chuva (−luz, +umidade); Praga (−pH, −N); Falha (−umidade) | ✅ Pilar 8 / 🔧 intensidades | idem |
-| `minInterval`/`maxInterval` = 25–50 s, `eventDuration` | ✅ Pilar 8 (25–50 s) / 🔧 duração de 15 s | idem |
+| `minInterval`/`maxInterval`, `eventDuration` | ✅ Pilar 8 (25–50 s) / 🔧 v2: 18–32 s e 12 s, para caber 2–3 eventos em 1:30 | idem |
 | Tempo em segundos reais (corrotina) | 🔧 | `Tick(dtReal)` |
 | `OnEventStarted(evt, desc)` / `OnEventEnded(evt)` | ✅ GameManager.cs | eventos |
 | Falha de energia bloqueia a regeneração de energia | ➕ | `bloqueiaRegeneracao` |
@@ -105,7 +105,7 @@ Legenda: ✅ fiel (há fonte) · 🔧 reconstruído (sem fonte; ajustar com o C#
 | Mensagens de HUD: "Você: {ação}" / "Recurso insuficiente para essa ação!" / "Sem {recurso}!" / "Tempo estável." | ✅ | `DoAction`, eventos |
 | `UI_Nada/UI_Travar/UI_Irrigar/UI_Proteger` (Fase 2) | ✅ | `GameManager.UI_*` |
 | Clima externo separado (proteger só esfria quem protegeu) | ✅ Fase 4, Passo 4 | `systems/ClimateModel.js` |
-| Fases, tecnologias, pontuação em % da IA, relatório de fim de fase | ➕ decisão da conversa | `systems/ProgressionSystem.js`, `GameManager` |
+| 5 fases de 1:30, vitória ao colher, 3 tentativas + game over, tecnologias que só ajudam, pontuação em % da IA, relatório | ➕ decisões da conversa (`decisoes.md` #15–#21) | `systems/ProgressionSystem.js`, `GameManager` |
 
 ## Ritmo
 

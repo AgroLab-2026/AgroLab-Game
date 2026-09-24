@@ -42,17 +42,6 @@ function faixaNpk(crop) {
   return { min: (Math.max(n[0], p[0], k[0])) * 100, max: (Math.min(n[1], p[1], k[1])) * 100 };
 }
 
-function rotuloAgua(razao) {
-  if (razao <= 1.3) return ['Baixo', 'bom'];
-  if (razao <= 2.2) return ['Médio', 'medio'];
-  return ['Alto', 'ruim'];
-}
-function rotuloEnergia(razao) {
-  if (razao <= 1.5) return ['Alta', 'bom'];
-  if (razao <= 3) return ['Média', 'medio'];
-  return ['Baixa', 'ruim'];
-}
-
 export function vistaHud(gm) {
   const crop = gm.crop, e = gm.playerEnv, ia = gm.aiAI, r = gm.resources, prog = gm.progressao;
   const medidor = prog.tem('medidorPh');
@@ -73,21 +62,12 @@ export function vistaHud(gm) {
       '#5fae3a', indiceNpk(ia.aiEnv, crop), !medidor),
   ];
 
-  const novaTec = prog.faseAtual >= 2 ? prog.tecnologias[prog.faseAtual - 2]?.id : null;
+  const novas = new Set(prog.novasNestaFase.map((t) => t.id));
   const tecnologias = prog.tecnologias.map((t) => ({
     nome: t.nome, icone: t.icone, efeito: t.efeito,
-    estado: prog.tem(t.id) ? (t.id === novaTec ? 'ativa nova' : 'ativa') : 'bloqueada',
+    estado: prog.tem(t.id) ? (novas.has(t.id) ? 'ativa nova' : 'ativa') : 'bloqueada',
   }));
 
-  const auto = ['sensorUmidade', 'sombrite'].filter((id) => prog.tem(id)).length;
-  const automacao = prog.tem('iaAssistente') ? 'Ativa' : auto ? `Parcial (${auto})` : 'Inativa';
-
-  // Comparação: consumo por ponto de crescimento, relativo à IA.
-  const pJ = Math.max(0.05, gm.playerPlant.progresso), pI = Math.max(0.05, ia.aiPlant.progresso);
-  const aguaRazao = (r.aguaGasta / pJ) / Math.max(0.5, ia.waterUsed / pI);
-  const energiaRazao = (r.energiaGasta / pJ) / Math.max(0.5, ia.energyUsed / pI);
-  const [aguaTxt, aguaClasse] = r.aguaGasta < 1 ? ['Baixo', 'bom'] : rotuloAgua(aguaRazao);
-  const [energiaTxt, energiaClasse] = r.energiaGasta < 1 ? ['Alta', 'bom'] : rotuloEnergia(energiaRazao);
   const estrelas = (h) => Math.max(0, Math.min(5, Math.round(h / 20)));
   const pontuacao = gm.Pontuacao();
 
@@ -104,7 +84,7 @@ export function vistaHud(gm) {
   const ext = gm.clima.ambienteExterno;
   const iconeClima = evento ? ICONE_EVENTO[evento.id] : ext.condicao === 'Nublado' ? 'nuvem' : 'sol';
   const previsao = evento
-    ? { texto: `${evento.nome} agora! Aguente firme.`, icone: ICONE_EVENTO[evento.id] }
+    ? { texto: `${evento.nome} agora!`, icone: ICONE_EVENTO[evento.id] }
     : painel
       ? { texto: `${gm.bal.clima.eventos[gm.weather.proximo].nome} em ${mmss(gm.weather.tempoParaProximo)}`, icone: ICONE_EVENTO[gm.weather.proximo] }
       : { texto: PREVISAO_VAGA[gm.weather.proximo], icone: ICONE_EVENTO[gm.weather.proximo] };
@@ -114,25 +94,37 @@ export function vistaHud(gm) {
     objetivo: fase.objetivo,
     subtitulo: 'CULTIVE O FUTURO!',
     recursos: {
-      agua: Math.round((r.water / r.waterMax) * 100),
-      energia: Math.round((r.energy / r.energyMax) * 100),
-      nutrientes: Math.round((r.nutrientStock / r.nutrientMax) * 100),
-      mao: gm.maoDeObra,
-      automacao,
+      agua: { txt: `${Math.floor(r.water)}/${r.waterMax} L`, frac: r.water / r.waterMax },
+      energia: { txt: `${Math.floor(r.energy)}/${r.energyMax}`, frac: r.energy / r.energyMax, regen: r.regeneracaoBloqueada ? 'sem luz!' : `+${r.energyRegenPerSecond}/s` },
+      nutrientes: { txt: `${Math.floor(r.nutrientStock)}/${r.nutrientMax}`, frac: r.nutrientStock / r.nutrientMax },
+      mao: `${gm.maoDeObra} tarefa${gm.maoDeObra === 1 ? '' : 's'}`,
+      automacao: `${prog.liberadas.size}/${prog.tecnologias.length}`,
     },
+    fase: {
+      titulo: `FASE ${prog.faseAtual} DE ${prog.ultimaFase}`,
+      tempo: mmss(gm.tempoRestante),
+      urgencia: gm.tempoRestante <= 10 ? 'urgente' : gm.tempoRestante <= 25 ? 'pouco-tempo' : '',
+      tentativasRestantes: prog.tentativasPorFase - prog.tentativa + 1,
+      tentativasPorFase: prog.tentativasPorFase,
+      colheita: gm.playerPlant.progresso,
+    },
+    ferramentas: ferramentas(gm),
     clima: { condicao: ext.condicao, icone: iconeClima, temp: Math.round(ext.airTemperature), umid: Math.round(ext.umidadeAr) },
     previsao,
     controle,
     tecnologias,
     comparar: {
       voce: {
-        saude: Math.round(gm.playerPlant.health), prod: gm.produtividade(gm.playerPlant),
-        agua: aguaTxt, aguaClasse, energia: energiaTxt, energiaClasse, estrelas: estrelas(gm.playerPlant.health),
+        saude: Math.round(gm.playerPlant.health), crescimento: Math.round(gm.playerPlant.progresso * 100),
+        agua: `${r.aguaGasta.toFixed(0)} L`, aguaClasse: r.aguaGasta > ia.waterUsed * 1.8 + 2 ? 'ruim' : r.aguaGasta > ia.waterUsed * 1.2 + 1 ? 'medio' : 'bom',
+        energia: r.energiaGasta.toFixed(0), energiaClasse: r.energiaGasta > ia.energyUsed * 2.5 + 5 ? 'ruim' : r.energiaGasta > ia.energyUsed * 1.5 + 3 ? 'medio' : 'bom',
+        estrelas: estrelas(gm.playerPlant.health),
         visual: crop.visual, estagio: gm.playerPlant.estagio, saude01: gm.playerPlant.health / 100,
       },
       ia: {
-        saude: Math.round(ia.aiPlant.health), prod: gm.produtividade(ia.aiPlant),
-        agua: 'Baixo', aguaClasse: 'bom', energia: 'Alta', energiaClasse: 'bom', estrelas: estrelas(ia.aiPlant.health),
+        saude: Math.round(ia.aiPlant.health), crescimento: Math.round(ia.aiPlant.progresso * 100),
+        agua: `${ia.waterUsed.toFixed(0)} L`, aguaClasse: 'azul', energia: ia.energyUsed.toFixed(0), energiaClasse: 'azul',
+        estrelas: estrelas(ia.aiPlant.health),
         visual: crop.visual, estagio: ia.aiPlant.estagio, saude01: ia.aiPlant.health / 100,
       },
       // No comecinho (quase nada crescido) a razão não diz nada: mostra um traço.
@@ -140,9 +132,33 @@ export function vistaHud(gm) {
     },
     evento: eventoVista,
     bruno: { texto: gm.bruno.GetContextualTip(e, gm.playerPlant, gm.tempoReal) },
-    acoesDesabilitadas: gm.estado !== 'jogando' ? { Irrigate: true, LockIrrigation: true, ProtectPlant: true, DoNothing: true, Refill: true } : null,
     iaUltima: `${AutonomousFarmAI.Translate(ia.lastAction)}: ${ia.lastReason}`,
   };
+}
+
+/**
+ * Estado de cada ferramenta: custo (com descontos), o que falta, se está em uso
+ * (sombra ativa), se o sensor pede, se a IA assistente sugere.
+ */
+function ferramentas(gm) {
+  const jogando = gm.estado === 'jogando';
+  const sugestao = gm.progressao.tem('iaAssistente') ? gm.sugestaoIA?.acao : null;
+  const alerta = gm.alertaSensor;
+  const sombra = gm.estufaJogador.sombra, total = gm.estufaJogador.sombraTotal || 1;
+  const r = {};
+  for (const acao of ['Irrigate', 'LockIrrigation', 'ProtectPlant', 'DoNothing', 'Refill']) {
+    const custo = gm.CustoDe(acao);
+    const pode = gm.PodePagar(acao);
+    r[acao] = {
+      custo, falta: pode.falta, desabilitado: !jogando,
+      aguaGanha: acao === 'Refill' ? Math.round(gm.resources.waterMax - gm.resources.water) : 0,
+      emUso: acao === 'ProtectPlant' && sombra > 0 ? sombra / total : 0,
+      emUsoTxt: acao === 'ProtectPlant' && sombra > 0 ? `${Math.ceil(sombra / gm.timeScale)} s` : '',
+      sugerido: jogando && sugestao === acao && acao !== 'DoNothing',
+      alerta: jogando && alerta === acao,
+    };
+  }
+  return r;
 }
 
 export function vistaMundo(gm, tempoAnimacao) {

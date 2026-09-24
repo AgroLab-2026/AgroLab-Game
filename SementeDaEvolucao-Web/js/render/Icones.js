@@ -341,6 +341,40 @@ const MAPAS = {
     'kkkkkkkkkk',
   ], { k: '#5a1a0a', r: '#c8452a', w: '#ffe8c8' }],
 
+  coracao: [[
+    '.kk...kk.',
+    'krrk.krwk',
+    'krrrkrrrk',
+    'krrrrrrrk',
+    '.krrrrrk.',
+    '..krrrk..',
+    '...krk...',
+    '....k....',
+  ], { k: '#5a0a0a', r: '#e2453a', w: '#ffc8b8' }],
+
+  coracaoVazio: [[
+    '.kk...kk.',
+    'kggk.kggk',
+    'kgggkgggk',
+    'kgggggggk',
+    '.kgggggk.',
+    '..kgggk..',
+    '...kgk...',
+    '....k....',
+  ], { k: '#2a2018', g: '#5a4a3a' }],
+
+  relogio: [[
+    '...kkkk...',
+    '..kwwwwk..',
+    '.kwwkwwwk.',
+    'kwwwkwwwwk',
+    'kwwwkkkwwk',
+    'kwwwwwwwwk',
+    '.kwwwwwwk.',
+    '..kwwwwk..',
+    '...kkkk...',
+  ], { k: '#2a1a0a', w: '#f4ead0' }],
+
   raminho: [[
     '......kk',
     '....kkgk',

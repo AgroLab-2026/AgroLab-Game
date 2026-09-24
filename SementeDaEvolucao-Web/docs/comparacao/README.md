@@ -8,6 +8,9 @@
 | `onda-de-calor.png` | Evento climático com o sombrite ativo nas duas estufas |
 | `relatorio-fim-de-fase.png` | O relatório "a derrota que ensina" |
 | `fase1-lado-a-lado.png` | A primeira versão da tela estática (histórico) |
+| `v2-jogando.png` | v2: lousa da fase (tempo, tentativas, colheita), custos nas ferramentas, "Protegendo · 14 s" |
+| `v2-ia-sugere.png` | v2, fase 5: todas as tecnologias e o botão marcado "IA sugere" |
+| `v2-vitoria.png` / `v2-derrota.png` / `v2-game-over.png` | v2: telas de vitória, derrota ("o que deu errado") e game over |
 
 Nas capturas `final-*`, a fonte Pixelify Sans não carregou (falha de rede deste ambiente), então aparece a fonte
 de reserva. Com internet, ou com a fonte copiada para o projeto, o texto fica em pixel art, como em

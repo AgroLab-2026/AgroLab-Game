@@ -5,10 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Semente da Evolução — Estufa Inteligente</title>
   <meta name="description" content="Serious game de agricultura de precisão: você contra a estufa autônoma.">
-  <!-- Pixelify Sans (OFL). Para rodar 100% offline, copie o .woff2 para fonts/ (ver docs/decisoes.md #4). -->
+  <!-- Nunito (OFL): arredondada e simples. Sem internet, cai na Trebuchet/Segoe (ver docs/decisoes.md #4). -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
   <link rel="stylesheet" href="css/estilo.css">
 </head>
 <body>
@@ -35,11 +35,14 @@
       <section id="painel-recursos" class="painel moldura">
         <h2 class="faixa">RECURSOS</h2>
         <ul class="lista-recursos">
-          <li><img data-icone="agua" alt=""><span>Água</span><b id="rec-agua">100%</b></li>
-          <li><img data-icone="energia" alt=""><span>Energia</span><b id="rec-energia">100%</b></li>
-          <li><img data-icone="nutrientes" alt=""><span>Nutrientes</span><b id="rec-nutrientes">100%</b></li>
-          <li><img data-icone="maoDeObra" alt=""><span>Mão de Obra</span><b id="rec-mao">0</b></li>
-          <li><img data-icone="automacao" alt=""><span>Automação (IA)</span><b id="rec-automacao">Inativa</b></li>
+          <li id="linha-agua"><img data-icone="agua" alt=""><span class="nome">Água</span><b id="rec-agua">30/30 L</b>
+            <div class="mini-barra"><i id="barra-agua" class="agua"></i></div></li>
+          <li id="linha-energia"><img data-icone="energia" alt=""><span class="nome">Energia <small id="rec-energia-regen">+3/s</small></span><b id="rec-energia">100/100</b>
+            <div class="mini-barra"><i id="barra-energia" class="energia"></i></div></li>
+          <li id="linha-fertilizante"><img data-icone="nutrientes" alt=""><span class="nome">Fertilizante</span><b id="rec-nutrientes">10/10</b>
+            <div class="mini-barra"><i id="barra-nutrientes" class="fertilizante"></i></div></li>
+          <li class="simples"><img data-icone="maoDeObra" alt=""><span class="nome">Mão de obra</span><b id="rec-mao">0 tarefas</b></li>
+          <li class="simples"><img data-icone="automacao" alt=""><span class="nome">Tecnologias</span><b id="rec-automacao">0/6</b></li>
         </ul>
       </section>
 
@@ -47,11 +50,16 @@
       <section id="painel-ferramentas" class="painel moldura">
         <h2 class="faixa">FERRAMENTAS INICIAIS</h2>
         <ul class="lista-ferramentas">
-          <li><button data-acao="Irrigate"><img data-icone="regador" alt=""><span>Irrigar</span><kbd>3</kbd></button></li>
-          <li><button data-acao="LockIrrigation"><img data-icone="valvula" alt=""><span>Travar irrigação</span><kbd>2</kbd></button></li>
-          <li><button data-acao="ProtectPlant"><img data-icone="proteger" alt=""><span>Proteger</span><kbd>4</kbd></button></li>
-          <li><button data-acao="DoNothing"><img data-icone="aguardar" alt=""><span>Aguardar</span><kbd>1</kbd></button></li>
-          <li><button data-acao="Refill"><img data-icone="balde" alt=""><span>Encher água</span><kbd>R</kbd></button></li>
+          <li><button data-acao="Irrigate"><img data-icone="regador" alt=""><span class="nome">Irrigar</span><kbd>3</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="LockIrrigation"><img data-icone="valvula" alt=""><span class="nome">Travar irrigação</span><kbd>2</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="ProtectPlant"><img data-icone="proteger" alt=""><span class="nome">Proteger</span><kbd>4</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="DoNothing"><img data-icone="aguardar" alt=""><span class="nome">Aguardar</span><kbd>1</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="Refill"><img data-icone="balde" alt=""><span class="nome">Encher água</span><kbd>R</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
         </ul>
       </section>
 
@@ -65,6 +73,13 @@
       <div id="lousa-previsao" class="lousa moldura-lousa">
         <h3>PREVISÃO</h3>
         <div class="previsao"><img id="ico-previsao" data-icone="nuvemChuva" alt=""><span id="txt-previsao">Chuva intensa esta tarde!</span></div>
+      </div>
+
+      <div id="lousa-fase" class="lousa moldura-lousa">
+        <h3 id="txt-fase">FASE 1 DE 5</h3>
+        <div class="cronometro"><img data-icone="relogio" alt=""><b id="txt-tempo">01:30</b></div>
+        <div class="tentativas" id="tentativas" title="Tentativas restantes nesta fase"></div>
+        <div class="colheita"><span>Colheita</span><div class="mini-barra"><i id="barra-colheita"></i></div><b id="txt-colheita">0%</b></div>
       </div>
 
       <!-- CONTROLE DA ESTUFA -->
@@ -90,9 +105,9 @@
             <div class="estrelas" id="estrelas-voce"></div>
             <dl>
               <dt>Saúde:</dt><dd id="voce-saude">100%</dd>
-              <dt>Produtividade:</dt><dd id="voce-prod">0.0kg</dd>
-              <dt>Consumo Água:</dt><dd id="voce-agua">—</dd>
-              <dt class="pequeno">Eficiência Energética:</dt><dd id="voce-energia">—</dd>
+              <dt>Crescimento:</dt><dd id="voce-prod">0%</dd>
+              <dt>Água usada:</dt><dd id="voce-agua">0 L</dd>
+              <dt>Energia usada:</dt><dd id="voce-energia">0</dd>
             </dl>
           </article>
           <div class="vs">VS</div>
@@ -102,9 +117,9 @@
             <div class="estrelas" id="estrelas-ia"></div>
             <dl>
               <dt>Saúde:</dt><dd id="ia-saude">100%</dd>
-              <dt>Produtividade:</dt><dd id="ia-prod">0.0kg</dd>
-              <dt>Consumo Água:</dt><dd id="ia-agua">—</dd>
-              <dt class="pequeno">Eficiência Energética:</dt><dd id="ia-energia">—</dd>
+              <dt>Crescimento:</dt><dd id="ia-prod">0%</dd>
+              <dt>Água usada:</dt><dd id="ia-agua">0 L</dd>
+              <dt>Energia usada:</dt><dd id="ia-energia">0</dd>
             </dl>
           </article>
         </div>

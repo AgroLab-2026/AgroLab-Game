@@ -25,7 +25,17 @@ export class HUDController {
       eventoRotulo: $('txt-evento-rotulo'), eventoTempo: $('txt-evento-tempo'),
       bruno: $('txt-bruno'), cvBruno: $('cv-bruno'), falaBox: $('bruno-fala'),
       toast: $('toast'),
+      'barra-agua': $('barra-agua'), 'barra-energia': $('barra-energia'), 'barra-nutrientes': $('barra-nutrientes'),
+      energiaRegen: $('rec-energia-regen'),
+      lousaFase: $('lousa-fase'), faseTitulo: $('txt-fase'), faseTempo: $('txt-tempo'), tentativas: $('tentativas'),
+      barraColheita: $('barra-colheita'), txtColheita: $('txt-colheita'),
     };
+    this.botoes = {};
+    for (const btn of raiz.querySelectorAll('.lista-ferramentas button')) {
+      this.botoes[btn.dataset.acao] = {
+        btn, custos: btn.querySelector('.custos'), selo: btn.querySelector('.selo'), uso: btn.querySelector('.uso i'),
+      };
+    }
     this.linhasControle = [];
     this.celulasTec = [];
     this._cache = new Map();
@@ -82,14 +92,34 @@ export class HUDController {
     if (h.tituloObjetivo) this.set(e.tituloObjetivo, 'text', h.tituloObjetivo);
     this.set(e.subtitulo, 'text', h.subtitulo);
 
-    this.set(e.agua, 'text', `${h.recursos.agua}%`);
-    this.set(e.agua, 'class', h.recursos.agua <= 20 ? 'ruim' : '');
-    this.set(e.energia, 'text', `${h.recursos.energia}%`);
-    this.set(e.energia, 'class', h.recursos.energia <= 20 ? 'ruim' : '');
-    this.set(e.nutrientes, 'text', `${h.recursos.nutrientes}%`);
-    this.set(e.nutrientes, 'class', h.recursos.nutrientes <= 20 ? 'ruim' : '');
-    this.set(e.mao, 'text', String(h.recursos.mao));
+    for (const [chave, cls] of [['agua', 'agua'], ['energia', 'energia'], ['nutrientes', 'fertilizante']]) {
+      const d = h.recursos[chave];
+      this.set(e[chave], 'text', d.txt);
+      this.set(e[chave], 'class', d.frac <= 0.2 ? 'ruim' : '');
+      this.set(e[`barra-${chave}`], 'width', `${(d.frac * 100).toFixed(1)}%`);
+      this.set(e[`barra-${chave}`], 'class', d.frac <= 0.2 ? 'baixo' : cls);
+    }
+    this.set(e.energiaRegen, 'text', h.recursos.energia.regen);
+    this.set(e.mao, 'text', h.recursos.mao);
     this.set(e.automacao, 'text', h.recursos.automacao);
+
+    // Lousa da fase: tempo, tentativas e colheita.
+    this.set(e.faseTitulo, 'text', h.fase.titulo);
+    this.set(e.faseTempo, 'text', h.fase.tempo);
+    this.set(e.lousaFase, 'class', `lousa moldura-lousa ${h.fase.urgencia}`);
+    this.set(e.barraColheita, 'width', `${(h.fase.colheita * 100).toFixed(1)}%`);
+    this.set(e.txtColheita, 'text', `${Math.floor(h.fase.colheita * 100)}%`);
+    const chaveT = `${h.fase.tentativasRestantes}/${h.fase.tentativasPorFase}`;
+    if (e.tentativas.dataset.chave !== chaveT) {
+      e.tentativas.dataset.chave = chaveT;
+      e.tentativas.title = `Tentativas restantes nesta fase: ${chaveT}`;
+      e.tentativas.innerHTML = '';
+      for (let i = 0; i < h.fase.tentativasPorFase; i++) {
+        const img = document.createElement('img');
+        img.src = iconeUrl(i < h.fase.tentativasRestantes ? 'coracao' : 'coracaoVazio');
+        e.tentativas.appendChild(img);
+      }
+    }
 
     this.set(e.icoClima, 'src', iconeUrl(h.clima.icone));
     this.set(e.condicao, 'text', h.clima.condicao);
@@ -133,18 +163,79 @@ export class HUDController {
 
     this.fala(h.bruno);
 
-    for (const btn of this.raiz.querySelectorAll('.lista-ferramentas button')) {
-      const des = !!(h.acoesDesabilitadas && h.acoesDesabilitadas[btn.dataset.acao]);
-      if (btn.disabled !== des) btn.disabled = des;
+    this.ferramentas(h.ferramentas);
+  }
+
+  /** Custos de cada ferramenta e seus estados (falta recurso, em uso, alerta, IA sugere). */
+  ferramentas(f) {
+    for (const [acao, d] of Object.entries(f)) {
+      const b = this.botoes[acao];
+      if (!b) continue;
+      const chave = JSON.stringify([d.custo, d.falta, d.aguaGanha]);
+      if (b.custos.dataset.chave !== chave) {
+        b.custos.dataset.chave = chave;
+        b.custos.innerHTML = '';
+        const item = (icone, txt, falta) => {
+          const sp = document.createElement('span');
+          if (falta) sp.className = 'falta';
+          if (icone) { const img = document.createElement('img'); img.src = iconeUrl(icone); sp.appendChild(img); }
+          sp.appendChild(document.createTextNode(txt));
+          b.custos.appendChild(sp);
+        };
+        const c = d.custo;
+        if (acao === 'Refill') {
+          item('energia', `−${c.energia}`, d.falta.includes('energia'));
+          item('agua', d.aguaGanha > 0 ? `+${d.aguaGanha} L` : 'cheio', false);
+        } else if (!c.agua && !c.fertilizante && !c.energia) {
+          const sp = document.createElement('span'); sp.className = 'gratis'; sp.textContent = 'grátis · só observa';
+          b.custos.appendChild(sp);
+        } else {
+          if (c.agua) item('agua', `−${c.agua} L`, d.falta.includes('agua'));
+          if (c.energia) item('energia', `−${+c.energia.toFixed(1)}`, d.falta.includes('energia'));
+          if (c.fertilizante) item('nutrientes', `−${c.fertilizante}`, d.falta.includes('fertilizante'));
+        }
+        b.btn.title = d.falta.length ? `Falta: ${d.falta.join(', ')}` : '';
+      }
+      const cl = b.btn.classList;
+      if (cl.contains('sem-recurso') !== d.falta.length > 0) cl.toggle('sem-recurso', d.falta.length > 0);
+      if (cl.contains('em-uso') !== !!d.emUso) cl.toggle('em-uso', !!d.emUso);
+      if (cl.contains('sugerido') !== d.sugerido) cl.toggle('sugerido', d.sugerido);
+      if (cl.contains('alerta') !== d.alerta) cl.toggle('alerta', d.alerta);
+      const selo = d.sugerido ? 'IA sugere' : d.alerta ? 'sensor!' : '';
+      this.set(b.selo, 'text', selo);
+      if (d.emUso) b.uso.style.width = `${(d.emUso * 100).toFixed(1)}%`;
+      const nome = b.btn.querySelector('.nome');
+      const rotulo = acao === 'ProtectPlant' && d.emUsoTxt ? `Protegendo · ${d.emUsoTxt}` : nome.dataset.original ?? nome.textContent;
+      nome.dataset.original ??= nome.textContent;
+      this.set(nome, 'text', rotulo);
+      if (b.btn.disabled !== d.desabilitado) b.btn.disabled = d.desabilitado;
     }
+  }
+
+  /** Mostra o gasto de uma ação: números subindo nas linhas de recurso. */
+  mostrarGasto(g) {
+    const flutuar = (idLinha, txt, ganho = false) => {
+      const li = document.getElementById(idLinha);
+      if (!li) return;
+      const d = document.createElement('span');
+      d.className = `delta${ganho ? ' ganho' : ''}`;
+      d.textContent = txt;
+      li.appendChild(d);
+      li.classList.remove('gastou'); void li.offsetWidth; if (!ganho) li.classList.add('gastou');
+      setTimeout(() => d.remove(), 1500);
+    };
+    if (g.agua) flutuar('linha-agua', `−${g.agua} L`);
+    if (g.aguaGanha) flutuar('linha-agua', `+${Math.round(g.aguaGanha)} L`, true);
+    if (g.energia) flutuar('linha-energia', `−${+g.energia.toFixed(1)}`);
+    if (g.fertilizante) flutuar('linha-fertilizante', `−${g.fertilizante}`);
   }
 
   comparar(cmp) {
     const lado = (pref, d) => {
       this.set($(`${pref}-saude`), 'text', `${d.saude}%`);
       this.set($(`${pref}-saude`), 'class', d.saude >= 70 ? (pref === 'ia' ? 'azul' : 'bom') : d.saude >= 40 ? 'medio' : 'ruim');
-      this.set($(`${pref}-prod`), 'text', `${d.prod.toFixed(1)}kg`);
-      this.set($(`${pref}-prod`), 'class', 'bom');
+      this.set($(`${pref}-prod`), 'text', `${d.crescimento}%`);
+      this.set($(`${pref}-prod`), 'class', pref === 'ia' ? 'azul' : 'bom');
       this.set($(`${pref}-agua`), 'text', d.agua);
       this.set($(`${pref}-agua`), 'class', d.aguaClasse);
       this.set($(`${pref}-energia`), 'text', d.energia);
