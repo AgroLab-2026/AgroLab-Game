@@ -1,0 +1,7 @@
+{
+  "_comentario": "Provedor de IA padrão. A URL pode sobrescrever: ?ia=regras|mock|http&iaUrl=...&mockAcoes=Irrigate,DoNothing. Nunca coloque chaves de API aqui: o endpoint http deve ser um serviço de vocês (proxy) que guarda a chave no servidor.",
+  "ia": "regras",
+  "iaUrl": "",
+  "timeoutMs": 800,
+  "mockAcoes": ""
+}

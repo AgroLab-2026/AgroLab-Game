@@ -1,10 +1,32 @@
-// Fase 1: tela estática fiel à referência (sem lógica de jogo).
+// Ponto de entrada: carrega os dados, cria o GameManager (simulação), o
+// WorldRenderer (canvas) e o HUD (DOM), e roda o laço:
+// lógica em passo fixo de 60 Hz + desenho com requestAnimationFrame.
+import { GameManager, EstadoJogo } from './core/GameManager.js';
+import { FarmAction } from './core/EnvironmentState.js';
+import { criarProvedorIA } from './ai/IAProvider.js';
+import { AutonomousFarmAI } from './ai/AutonomousFarmAI.js';
 import { WorldRenderer } from './render/WorldRenderer.js';
 import { registrarMolduras } from './render/Molduras.js';
+import { criarRng } from './render/Pixel.js';
 import { HUDController } from './ui/HUDController.js';
+import { TelasFase } from './ui/TelasFase.js';
+import { Debug } from './ui/Debug.js';
+import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
 
-const culturas = await (await fetch('data/culturas.json')).json();
+const carregar = async (f) => (await fetch(`data/${f}`)).json();
+const [culturas, balanceamento, progressao, falas, iaPadrao] = await Promise.all(
+  ['culturas.json', 'balanceamento.json', 'progressao.json', 'falas.json', 'ia.json'].map(carregar));
+
+// Configuração pela URL: ?ia=mock|http|regras&iaUrl=&mockAcoes=&fase=&cultura=&semente=&debug=1
+const url = new URLSearchParams(location.search);
+const configIA = {
+  ia: url.get('ia') || iaPadrao.ia,
+  iaUrl: url.get('iaUrl') ?? iaPadrao.iaUrl,
+  mockAcoes: url.get('mockAcoes') ?? iaPadrao.mockAcoes,
+  timeoutMs: Number(url.get('timeoutMs') || iaPadrao.timeoutMs),
+};
+const semente = url.get('semente');
 
 registrarMolduras();
 const palco = document.getElementById('palco');
@@ -12,56 +34,97 @@ const ajustar = () => ajustarEscala(palco);
 addEventListener('resize', ajustar);
 ajustar();
 
+const gm = new GameManager({ culturas, balanceamento, progressao, falas }, {
+  provedorIA: criarProvedorIA(configIA),
+  rng: semente ? criarRng(Number(semente)) : Math.random,
+});
 const mundo = new WorldRenderer(document.getElementById('mundo'));
 const hud = new HUDController();
+const telas = new TelasFase();
+const debug = new Debug(gm);
+if (url.get('debug') === '1') debug.alternar();
 
-const vista = {
-  tempo: 0,
-  evento: null,
-  jogador: { visual: culturas.Morango.visual, estagio: 2, saude01: 0.55, sombra: 0 },
-  ia: { visual: culturas.Morango.visual, estagio: 4, saude01: 1, sombra: 0 },
-};
+// ------------------------------------------------------------ eventos do jogo → interface
+gm.OnAcao.on((quem, acao, ok) => {
+  if (!ok || acao === 'Refill' || acao === FarmAction.DoNothing) return;
+  mundo.animarAcao(quem === 'ia' ? 'ia' : 'jogador', acao);
+  if (quem === 'ia' && gm.progressao.tem('painelDados')) hud.toast(`IA: ${AutonomousFarmAI.Translate(acao)} — ${gm.aiAI.lastReason}`, false, 2200);
+  if (quem === 'automacao') hud.toast(`Automação: ${AutonomousFarmAI.Translate(acao)}`);
+  if (quem === 'assistente') hud.toast(`IA assistente: ${AutonomousFarmAI.Translate(acao)}`);
+});
+gm.OnMensagem.on((texto, ruim) => hud.toast(texto, ruim));
+gm.OnFaseTerminou.on((rel) => {
+  telas.relatorio(gm, rel,
+    (fase) => { if (fase) gm.IniciarFase(fase); else gm.ProximaFase(); abrirIntroducao(); },
+    () => { gm.RepetirFase(); abrirIntroducao(); });
+});
 
-const barra = (id, icone, rotulo, valorTxt, classe, pos, ini, fim, posIa, cor) =>
-  ({ id, icone, rotulo, valorTxt, classe, pos, idealIni: ini, idealFim: fim, posIa, cor, mostrarIa: true });
+let emIntroducao = false;
+function abrirIntroducao() {
+  emIntroducao = true;
+  telas.introducao(gm,
+    () => { emIntroducao = false; },
+    (idCultura) => { gm.RepetirFase(idCultura); abrirIntroducao(); });
+}
 
-const estadoHud = {
-  objetivo: 'Mantenha suas plantas saudáveis até o final do ciclo e aprenda a competir com a IA!',
-  subtitulo: 'CULTIVE O FUTURO!',
-  recursos: { agua: 20, energia: 15, nutrientes: 5, mao: 3, automacao: 'Ativa' },
-  clima: { condicao: 'Ensolarado', icone: 'sol', temp: 28, umid: 65 },
-  previsao: { texto: 'Chuva intensa esta tarde!', icone: 'nuvemChuva' },
-  controle: [
-    barra('temp', 'termometro', 'Temperatura do ar', '28°C', 'ruim', 0.47, 0.3, 0.4, 0.35, '#8a8e96'),
-    barra('umid', 'gotaGrande', 'Umidade do substrato', '65%', 'azul', 0.72, 0.6, 0.75, 0.68, '#2a5f98'),
-    barra('luz', 'lampada', 'Luminosidade', '53%', 'bom', 0.2, 0.55, 0.75, 0.62, '#e8c83a'),
-    barra('ph', 'ph', 'pH da solução', '6.0', 'bom', 0.2, 0.18, 0.28, 0.22, '#3f8a5a'),
-    barra('npk', 'nutrientes', 'Nutrientes (N·P·K)', '0%', 'bom', 0.22, 0.5, 0.8, 0.65, '#6aaa3a'),
-  ],
-  tecnologias: [
-    { nome: 'Medidor de pH e EC', icone: 'medidor', estado: 'ativa', efeito: '' },
-    { nome: 'Timer de Irrigação', icone: 'gotaGrande', estado: 'bloqueada', efeito: '' },
-    { nome: 'Sensor de Umidade', icone: 'sensor', estado: 'bloqueada', efeito: '' },
-    { nome: 'Sombrite Automático', icone: 'sombra', estado: 'bloqueada', efeito: '' },
-    { nome: 'Painel de Dados', icone: 'painel', estado: 'bloqueada', efeito: '' },
-    { nome: 'IA Assistente', icone: 'robo', estado: 'bloqueada', efeito: '' },
-  ],
-  comparar: {
-    voce: { saude: 30, prod: 0.5, agua: 'Alto', aguaClasse: 'ruim', energia: 'Baixa', energiaClasse: 'ruim', estrelas: 1, visual: culturas.Morango.visual, estagio: 2, saude01: 0.5 },
-    ia: { saude: 98, prod: 4.2, agua: 'Baixo', aguaClasse: 'bom', energia: 'Alta', energiaClasse: 'bom', estrelas: 5, visual: culturas.Morango.visual, estagio: 5, saude01: 1 },
-    eficiencia: '12%',
-  },
-  evento: { ativo: false, nome: 'CHUVA INTENSA', desc: 'Uma forte chuva está chegando! A temperatura pode cair rapidamente.', icone: 'nuvemChuva', rotulo: 'Tempo para o evento', tempo: '02:15' },
-  bruno: { texto: 'Olá, meu amigo! Sua situação parece difícil, mas não desanime. A IA é avançada, sim, mas com tempo e aprendizado, você pode superá-la. A tecnologia é uma ferramenta para todos! Comece gerenciando o que você tem com sabedoria. Use a ventilação manual para controlar a umidade, como eu disse antes. Cada pequeno passo conta.' },
-};
+// Fase inicial pela URL (útil para apresentar uma fase específica).
+const faseUrl = Number(url.get('fase'));
+if (faseUrl || url.get('cultura')) gm.IniciarFase(faseUrl || 1, url.get('cultura') || undefined);
+if (url.get('intro') !== '0') abrirIntroducao();
 
+// ------------------------------------------------------------ entrada
+const TECLAS = { 1: FarmAction.DoNothing, 2: FarmAction.LockIrrigation, 3: FarmAction.Irrigate, 4: FarmAction.ProtectPlant };
+
+function agir(acao) {
+  if (telas.aberta) return;
+  if (acao === 'Refill') gm.Refill();
+  else gm.DoAction(acao);
+  hud.destacarFerramenta(acao);
+}
+
+addEventListener('keydown', (e) => {
+  if (e.repeat || e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.code === 'Backquote' || e.key === '`') { debug.alternar(); e.preventDefault(); return; }
+  if (e.key === 'Enter' && telas.confirmar()) { e.preventDefault(); return; }
+  if (telas.aberta) return;
+  const tecla = e.key.toLowerCase();
+  if (TECLAS[tecla]) { agir(TECLAS[tecla]); e.preventDefault(); }
+  else if (tecla === 'r') agir('Refill');
+  else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
+  else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
+});
+
+for (const btn of document.querySelectorAll('.lista-ferramentas button')) {
+  btn.addEventListener('click', () => agir(btn.dataset.acao));
+}
+document.getElementById('btn-fechar-bruno').addEventListener('click', () => document.getElementById('bruno-fala').classList.toggle('minimizado'));
+document.getElementById('btn-proxima-fala').addEventListener('click', () => gm.bruno.Proxima());
+
+// ------------------------------------------------------------ laço
+const PASSO = 1 / balanceamento.gameManager.passoFixoHz;
+let acumulado = 0;
 let anterior = performance.now();
+let tempoAnimacao = 0;
+
+// Aba oculta: não acumula tempo (o jogo "pausa" e não dá um salto ao voltar).
+document.addEventListener('visibilitychange', () => { anterior = performance.now(); acumulado = 0; });
+
 function quadro(agora) {
-  const dt = Math.min(0.1, (agora - anterior) / 1000);
+  const dt = Math.min(0.25, (agora - anterior) / 1000);
   anterior = agora;
-  vista.tempo += dt;
-  mundo.desenhar(vista, dt);
-  hud.atualizar(estadoHud);
+  if (!document.hidden) {
+    if (!telas.aberta && !emIntroducao) {
+      acumulado += dt;
+      while (acumulado >= PASSO) { gm.Step(PASSO); acumulado -= PASSO; }
+    }
+    tempoAnimacao += gm.estado === EstadoJogo.Pausado ? 0 : dt;
+    mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
+    hud.atualizar(vistaHud(gm));
+    debug.quadro();
+  }
   requestAnimationFrame(quadro);
 }
 requestAnimationFrame(quadro);
+
+// Acesso pelo console para testes e apresentações: window.jogo.gm
+window.jogo = { gm, mundo, hud, telas };

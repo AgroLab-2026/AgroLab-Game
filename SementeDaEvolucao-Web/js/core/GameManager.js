@@ -227,6 +227,7 @@ export class GameManager {
     this.estado = EstadoJogo.FimDeFase;
     this.relatorio = this.GerarRelatorio(motivo);
     this.progressao.registrar({ fase: this.progressao.faseAtual, cultura: this.crop.cropName, eficiencia: this.relatorio.eficiencia });
+    this.relatorio.historico = this.progressao.historico.slice();
     this.OnFaseTerminou.emit(this.relatorio);
   }
 

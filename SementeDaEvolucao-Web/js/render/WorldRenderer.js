@@ -173,12 +173,12 @@ export class WorldRenderer {
 
   sombrite(c, area, restante) {
     // Tela de sombreamento verde (some aos poucos no fim).
-    const alfa = Math.min(1, restante / 3) * 0.55;
+    const alfa = Math.min(1, restante / 3) * 0.28;
     c.globalAlpha = alfa;
     ret(c, area.x0 - 4, area.y0 - 6, area.x1 - area.x0 + 8, area.y1 - area.y0 + 8, '#1f5a24');
-    c.globalAlpha = alfa * 0.9;
-    for (let y = area.y0 - 6; y < area.y1 + 2; y += 3) ret(c, area.x0 - 4, y, area.x1 - area.x0 + 8, 1, '#0e2e12');
-    for (let x = area.x0 - 4; x < area.x1 + 4; x += 3) ret(c, x, area.y0 - 6, 1, area.y1 - area.y0 + 8, '#0e2e12');
+    c.globalAlpha = alfa * 0.7;
+    for (let y = area.y0 - 6; y < area.y1 + 2; y += 4) ret(c, area.x0 - 4, y, area.x1 - area.x0 + 8, 1, '#0e2e12');
+    for (let x = area.x0 - 4; x < area.x1 + 4; x += 4) ret(c, x, area.y0 - 6, 1, area.y1 - area.y0 + 8, '#0e2e12');
     c.globalAlpha = 1;
     for (const [x, y] of [[area.x0 - 4, area.y0 - 6], [area.x1 + 3, area.y0 - 6], [area.x0 - 4, area.y1 + 1], [area.x1 + 3, area.y1 + 1]]) ret(c, x, y, 2, 2, '#8a6a3a');
   }

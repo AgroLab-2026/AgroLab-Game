@@ -14,7 +14,7 @@ export class HUDController {
     for (const img of raiz.querySelectorAll('img[data-icone]')) img.src = iconeUrl(img.dataset.icone);
 
     this.el = {
-      objetivo: $('txt-objetivo'), subtitulo: $('txt-subtitulo'),
+      objetivo: $('txt-objetivo'), subtitulo: $('txt-subtitulo'), tituloObjetivo: $('txt-titulo-objetivo'),
       agua: $('rec-agua'), energia: $('rec-energia'), nutrientes: $('rec-nutrientes'), mao: $('rec-mao'), automacao: $('rec-automacao'),
       icoClima: $('ico-clima'), condicao: $('txt-condicao'), tempExt: $('txt-temp-ext'), umidExt: $('txt-umid-ext'),
       icoPrev: $('ico-previsao'), previsao: $('txt-previsao'),
@@ -79,6 +79,7 @@ export class HUDController {
   atualizar(h) {
     const e = this.el;
     this.set(e.objetivo, 'text', h.objetivo);
+    if (h.tituloObjetivo) this.set(e.tituloObjetivo, 'text', h.tituloObjetivo);
     this.set(e.subtitulo, 'text', h.subtitulo);
 
     this.set(e.agua, 'text', `${h.recursos.agua}%`);
