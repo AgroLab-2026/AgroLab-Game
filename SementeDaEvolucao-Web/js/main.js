@@ -4,6 +4,7 @@
 import { GameManager, EstadoJogo } from './core/GameManager.js';
 import { FarmAction } from './core/EnvironmentState.js';
 import { criarProvedorIA } from './ai/IAProvider.js';
+import { GeradorFalasHttp } from './ai/provedores/falasHttp.js';
 import { AutonomousFarmAI } from './ai/AutonomousFarmAI.js';
 import { WorldRenderer } from './render/WorldRenderer.js';
 import { registrarMolduras } from './render/Molduras.js';
@@ -18,7 +19,7 @@ const carregar = async (f) => (await fetch(`data/${f}`)).json();
 const [culturas, balanceamento, progressao, falas, iaPadrao] = await Promise.all(
   ['culturas.json', 'balanceamento.json', 'progressao.json', 'falas.json', 'ia.json'].map(carregar));
 
-// Configuração pela URL: ?ia=mock|http|regras&iaUrl=&mockAcoes=&fase=&cultura=&semente=&debug=1
+// Configuração pela URL: ?ia=mock|http|regras&iaUrl=&mockAcoes=&falasUrl=&fase=&cultura=&semente=&debug=1&intro=0
 const url = new URLSearchParams(location.search);
 const configIA = {
   ia: url.get('ia') || iaPadrao.ia,
@@ -37,6 +38,7 @@ ajustar();
 const gm = new GameManager({ culturas, balanceamento, progressao, falas }, {
   provedorIA: criarProvedorIA(configIA),
   rng: semente ? criarRng(Number(semente)) : Math.random,
+  geradorFalas: (url.get('falasUrl') || iaPadrao.falasUrl) ? new GeradorFalasHttp(url.get('falasUrl') || iaPadrao.falasUrl) : null,
 });
 const mundo = new WorldRenderer(document.getElementById('mundo'));
 const hud = new HUDController();

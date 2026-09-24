@@ -4,8 +4,16 @@
 // com o mesmo formato de entrada (ver docs/contrato-ia.md).
 
 export class BrunoDialogue {
-  constructor(falas) {
+  /**
+   * @param {object} falas    roteiro (data/falas.json)
+   * @param {object} gerador  opcional: { gerarFala(contexto) → Promise<string> } (ver docs/contrato-ia.md)
+   */
+  constructor(falas, gerador = null) {
     this.falas = falas;
+    this.gerador = gerador;
+    this._gerada = null;
+    this._chaveGerada = '';
+    this._pedindo = false;
     this.crop = null;
     this.temMedidor = false;
     this.indice = 0;
@@ -42,7 +50,21 @@ export class BrunoDialogue {
     const cat = this.Categoria(env, planta);
     const lista = this.falas[cat];
     // Troca de variação a cada ~12 s para a fala não ficar repetitiva.
-    const i = (this.indice + Math.floor(agora / 12)) % lista.length;
-    return lista[i].replace('{cultura}', this.crop.cropName.toLowerCase());
+    const janela = this.indice + Math.floor(agora / 12);
+    const roteiro = lista[janela % lista.length].replace('{cultura}', this.crop.cropName.toLowerCase());
+    if (!this.gerador) return roteiro;
+
+    // Gerador externo: pede uma fala nova por categoria/janela; enquanto não
+    // chega (ou se falhar), vale o roteiro. O jogo nunca espera.
+    const chave = `${cat}|${janela}`;
+    if (chave !== this._chaveGerada && !this._pedindo) {
+      this._pedindo = true;
+      const pedido = chave;
+      this.gerador.gerarFala({ categoria: cat, cultura: this.crop.cropName, ambiente: env.toJSON(), saude: planta.health, falaRoteiro: roteiro })
+        .then((t) => { this._chaveGerada = pedido; this._gerada = typeof t === 'string' && t.trim() ? t.trim() : null; })
+        .catch(() => { this._chaveGerada = pedido; this._gerada = null; })
+        .finally(() => { this._pedindo = false; });
+    }
+    return chave === this._chaveGerada && this._gerada ? this._gerada : roteiro;
   }
 }

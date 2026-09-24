@@ -3,5 +3,6 @@
   "ia": "regras",
   "iaUrl": "",
   "timeoutMs": 800,
-  "mockAcoes": ""
+  "mockAcoes": "",
+  "falasUrl": ""
 }

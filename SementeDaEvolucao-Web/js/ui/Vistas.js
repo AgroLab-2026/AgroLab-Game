@@ -135,7 +135,8 @@ export function vistaHud(gm) {
         agua: 'Baixo', aguaClasse: 'bom', energia: 'Alta', energiaClasse: 'bom', estrelas: estrelas(ia.aiPlant.health),
         visual: crop.visual, estagio: ia.aiPlant.estagio, saude01: ia.aiPlant.health / 100,
       },
-      eficiencia: `${pontuacao.eficiencia}%`,
+      // No comecinho (quase nada crescido) a razão não diz nada: mostra um traço.
+      eficiencia: ia.aiPlant.progresso < 0.05 ? '—' : `${pontuacao.eficiencia}%`,
     },
     evento: eventoVista,
     bruno: { texto: gm.bruno.GetContextualTip(e, gm.playerPlant, gm.tempoReal) },

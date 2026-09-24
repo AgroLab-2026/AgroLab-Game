@@ -19,7 +19,7 @@ export const EstadoJogo = Object.freeze({ Jogando: 'jogando', FimDeFase: 'fimDeF
 export class GameManager {
   /**
    * @param {object} dados   { culturas, balanceamento, progressao, falas } (JSON de data/)
-   * @param {object} opcoes  { provedorIA, configIA, rng }
+   * @param {object} opcoes  { provedorIA, configIA, rng, geradorFalas }
    */
   constructor(dados, opcoes = {}) {
     const b = dados.balanceamento;
@@ -35,7 +35,7 @@ export class GameManager {
     this.weather = new WeatherEventSystem(b.clima, this.rng);
     this.clima = new ClimateModel(b.ambiente);
     this.progressao = new ProgressionSystem(dados.progressao);
-    this.bruno = new BrunoDialogue(dados.falas);
+    this.bruno = new BrunoDialogue(dados.falas, opcoes.geradorFalas ?? null);
     this.falas = dados.falas;
     const provedor = opcoes.provedorIA ?? criarProvedorIA({ ...(opcoes.configIA || {}), timeoutMs: b.ia.timeoutMs });
     this.provedorIA = provedor;
