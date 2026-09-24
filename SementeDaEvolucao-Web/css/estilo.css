@@ -1,0 +1,295 @@
+/* Semente da Evolução — HUD
+   Coordenadas em px do palco (1024 × 682 = a referência). O palco inteiro é
+   escalado por JS (fator inteiro no mundo, ver js/main.js). */
+
+:root {
+  /* Paleta amostrada da referência (docs/spec-visual.md) */
+  --madeira-escura: #633617;
+  --madeira: #b25e1e;
+  --madeira-clara: #e39a4a;
+  --pergaminho: #e2a452;
+  --pergaminho-2: #dd9f48;
+  --pergaminho-claro: #edc588;
+  --faixa: #6d380c;
+  --faixa-2: #5b2d09;
+  --faixa-verde: #3f6b2a;
+  --texto: #2a1204;
+  --texto-claro: #f6e3b4;
+  --lousa: #2b3d24;
+  --lousa-texto: #f0ead0;
+  --escuro: #22160a;
+  --celula: #2a1d0f;
+  --voce-fundo: #16261a;
+  --voce-titulo: #9ccf6a;
+  --ia-fundo: #132c44;
+  --ia-titulo: #7fc4f0;
+  --ruim: #e2553a;
+  --bom: #8fd14f;
+  --azul: #4f8fd0;
+  --amarelo: #f6c945;
+  --folhagem: #0c1f0d;
+
+  --fonte: 'Pixelify Sans', 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0; height: 100%; overflow: hidden;
+  background: var(--folhagem);
+  font-family: var(--fonte);
+  color: var(--texto);
+  -webkit-font-smoothing: none;
+}
+
+#fundo-tela {
+  position: fixed; inset: 0;
+  background:
+    radial-gradient(circle at 20% 30%, #1c3a17 0 8%, transparent 9%),
+    radial-gradient(circle at 80% 70%, #163a17 0 10%, transparent 11%),
+    radial-gradient(circle at 60% 15%, #24541f 0 5%, transparent 6%),
+    var(--folhagem);
+  background-size: 90px 90px, 120px 120px, 70px 70px;
+}
+
+#palco {
+  position: absolute; left: 0; top: 0;
+  width: 1024px; height: 682px;
+  transform-origin: 0 0;
+  overflow: hidden;
+  background: var(--folhagem);
+}
+
+#mundo {
+  position: absolute; left: 0; top: 0;
+  width: 1024px; height: 682px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+img, canvas { image-rendering: pixelated; }
+
+#hud { position: absolute; inset: 0; pointer-events: none; }
+#hud button, #hud .clicavel { pointer-events: auto; }
+
+/* ------------------------------------------------------------ molduras */
+.moldura {
+  position: absolute;
+  border-style: solid;
+  border-width: 8px;
+  border-image: var(--moldura-madeira) 4 / 8px / 0 round;
+  background-clip: padding-box;
+}
+.moldura-clara { border-image-source: var(--moldura-madeiraClara); }
+.moldura-lousa {
+  position: absolute;
+  border-style: solid;
+  border-width: 6px;
+  border-image: var(--moldura-lousa) 3 / 6px / 0 round;
+  background-clip: padding-box;
+}
+
+.painel { background-color: var(--pergaminho); }
+.painel-escuro { background-color: var(--escuro); border-image-source: var(--moldura-escura); }
+
+.faixa {
+  margin: -2px -4px 4px;
+  padding: 3px 8px 3px;
+  font-size: 12px; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px;
+  color: var(--texto-claro);
+  background: var(--faixa);
+  text-align: center;
+  box-shadow: inset 0 -2px 0 #3e1c04, inset 0 2px 0 #8a4a18, 0 2px 0 rgba(0,0,0,.35);
+  text-shadow: 1px 1px 0 #2a1204;
+}
+.faixa-verde { background: var(--faixa-verde); box-shadow: inset 0 -2px 0 #22421a, inset 0 2px 0 #5a8a3a, 0 2px 0 rgba(0,0,0,.35); text-align: left; padding-left: 26px; }
+.faixa-esquerda { text-align: left; padding-left: 12px; }
+
+/* ------------------------------------------------------------ título */
+#titulo {
+  left: 4px; top: 4px; width: 293px; height: 74px;
+  background: linear-gradient(#efc58a, #e0ac68);
+  padding: 2px 6px 0;
+  text-align: center;
+}
+.titulo-linha { display: flex; align-items: center; justify-content: space-between; }
+#titulo h1 {
+  margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; white-space: nowrap;
+  color: #2a0e02; text-shadow: 1px 1px 0 #f8dcaa;
+}
+.raminho { width: 18px; height: 12px; }
+.raminho.mini { width: 12px; height: 8px; }
+.espelhado { transform: scaleX(-1); }
+.subtitulo {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin: 0 22px; padding: 1px 0 2px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.5px; white-space: nowrap;
+  border-top: 2px solid #b8793a; background: #c9975f; color: #2a1204;
+}
+
+/* ------------------------------------------------------------ objetivo */
+#painel-objetivo { left: 5px; top: 88px; width: 178px; height: 88px; padding: 0 6px; }
+#painel-objetivo p { margin: 0; font-size: 10.5px; line-height: 13px; font-weight: 500; }
+
+/* ------------------------------------------------------------ recursos */
+#painel-recursos { left: 5px; top: 186px; width: 165px; height: 146px; padding: 0 6px; }
+.lista-recursos { list-style: none; margin: 0; padding: 0 2px; }
+.lista-recursos li { display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 3px; height: 21px; font-size: 10.5px; white-space: nowrap; font-weight: 500; }
+.lista-recursos img { width: 14px; height: 14px; object-fit: contain; }
+.lista-recursos b { font-weight: 600; }
+.lista-recursos b.ruim { color: #a8200a; }
+
+/* ------------------------------------------------------------ ferramentas */
+#painel-ferramentas { left: 5px; top: 342px; width: 165px; height: 170px; padding: 0 6px; }
+.lista-ferramentas { list-style: none; margin: 0; padding: 0; }
+.lista-ferramentas button {
+  display: grid; grid-template-columns: 18px 1fr auto; align-items: center; gap: 4px;
+  width: 100%; height: 23px; padding: 0 3px;
+  font: 500 10.5px var(--fonte); color: var(--texto); text-align: left; white-space: nowrap;
+  background: transparent; border: 1px solid transparent; cursor: pointer;
+}
+.lista-ferramentas button:hover, .lista-ferramentas button:focus-visible { background: rgba(255, 230, 170, .45); border-color: #9a5a20; outline: none; }
+.lista-ferramentas button.ativo { background: #f6d77a; border-color: #6d380c; }
+.lista-ferramentas button:disabled { opacity: .45; cursor: not-allowed; }
+.lista-ferramentas img { width: 15px; height: 14px; object-fit: contain; }
+kbd {
+  font: 600 9px var(--fonte); color: var(--texto-claro);
+  background: var(--faixa); border-radius: 2px; padding: 0 3px; min-width: 12px; text-align: center;
+  box-shadow: 0 1px 0 #2a1204;
+}
+
+/* ------------------------------------------------------------ lousas */
+.lousa { background: var(--lousa); color: var(--lousa-texto); padding: 2px 8px; }
+.lousa h3 { margin: 0 0 3px; font-size: 11px; font-weight: 600; text-align: center; letter-spacing: .5px; color: #f6e8c0; }
+#lousa-clima { left: 370px; top: 45px; width: 135px; height: 92px; }
+#lousa-previsao { left: 510px; top: 45px; width: 115px; height: 92px; }
+.clima-linha { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-bottom: 3px; }
+.clima-linha img { width: 16px; height: 16px; object-fit: contain; }
+.clima-dado { font-size: 11.5px; line-height: 16px; }
+.clima-dado b { font-weight: 500; color: #fff2c0; }
+.previsao { display: flex; align-items: center; gap: 5px; font-size: 10px; line-height: 12px; }
+.previsao img { width: 20px; height: 16px; object-fit: contain; flex: none; }
+
+/* ------------------------------------------------------------ controle */
+#painel-controle { left: 793px; top: 5px; width: 229px; height: 200px; padding: 0 8px; background-color: #e2a452; }
+.faixa-topo { margin-top: -2px; }
+.sub-legenda { text-align: center; font-size: 10.5px; font-weight: 500; margin: -2px 0 2px; }
+.marca-jogador, .marca-ia { display: inline-block; width: 6px; height: 8px; vertical-align: -1px; }
+.marca-jogador { background: #f4f4f0; border: 1px solid #2a1204; }
+.marca-ia { background: #4fe0f0; border: 1px solid #0a3a4a; }
+.lista-controle { list-style: none; margin: 0; padding: 0; }
+.lista-controle li { display: grid; grid-template-columns: 20px 1fr 40px; grid-template-rows: 12px 12px; column-gap: 3px; height: 28px; align-items: center; }
+.lista-controle img { grid-column: 1; grid-row: 1 / span 2; width: 13px; height: 16px; object-fit: contain; justify-self: center; }
+.lista-controle .rotulo { grid-column: 2; grid-row: 1; font-size: 10px; font-weight: 500; white-space: nowrap; overflow: hidden; }
+.lista-controle .valor { grid-column: 3; grid-row: 1 / span 2; font-size: 12px; font-weight: 600; text-align: right; }
+.barra { grid-column: 2; grid-row: 2; position: relative; height: 8px; background: #6a6448; border: 1px solid #3a2a10; box-shadow: inset 0 1px 0 #4a4430; }
+.barra .ideal { position: absolute; top: 0; bottom: 0; background: rgba(143, 209, 79, .35); border-left: 1px solid #5a8a2a; border-right: 1px solid #5a8a2a; }
+.barra .preenche { position: absolute; left: 0; top: 0; bottom: 0; }
+.barra .botao { position: absolute; top: -3px; width: 7px; height: 12px; margin-left: -3px; background: #9aa0a8; border: 1px solid #2a2a2a; box-shadow: inset 1px 1px 0 #e8eef2; }
+.barra .marcador-ia { position: absolute; top: -4px; width: 3px; height: 14px; margin-left: -1px; background: #4fe0f0; border: 1px solid #0a3a4a; }
+.valor.bom { color: #3f7a1a; }
+.valor.ruim { color: #c8321a; }
+.valor.azul { color: #1f5a9a; }
+.valor.oculto { color: #6a4a2a; }
+
+/* ------------------------------------------------------------ tecnologias */
+#painel-tecnologias { left: 793px; top: 203px; width: 229px; height: 147px; padding: 0 5px; }
+#painel-tecnologias .faixa, #painel-comparar .faixa { background: #6a360e; }
+.grade-tec { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; }
+.tec {
+  display: grid; grid-template-columns: 22px 1fr; align-items: center; gap: 2px;
+  height: 32px; padding: 0 4px; background: var(--celula);
+  border: 1px solid #5a3a1a; border-radius: 3px; box-shadow: inset 0 0 0 1px #1a1006;
+  color: #efe0c0; font-size: 10.5px; line-height: 11px; font-weight: 500;
+}
+.tec img { width: 16px; height: 16px; object-fit: contain; }
+.tec.bloqueada { color: #b8a888; }
+.tec.ativa { border-color: #4fe0f0; box-shadow: inset 0 0 0 1px #0a3a4a, 0 0 4px #4fe0f0; color: #dffaff; }
+.tec.nova { animation: brilho 1s ease-in-out 4; }
+@keyframes brilho { 50% { box-shadow: 0 0 10px #f6d84a; border-color: #f6d84a; } }
+
+/* ------------------------------------------------------------ comparar */
+#painel-comparar { left: 738px; top: 355px; width: 284px; height: 240px; padding: 0 5px; }
+.cards { display: grid; grid-template-columns: 1fr 18px 1fr; align-items: center; }
+.vs { text-align: center; font-weight: 700; font-size: 13px; color: #efe0c0; }
+.card { height: 172px; border-radius: 5px; padding: 2px 5px; }
+.card h3 { margin: 0; text-align: center; font-size: 12px; font-weight: 600; }
+.card-voce { background: var(--voce-fundo); border: 1px solid #4a6a3a; }
+.card-voce h3 { color: var(--voce-titulo); }
+.card-ia { background: var(--ia-fundo); border: 1px solid #3a6a9a; }
+.card-ia h3 { color: var(--ia-titulo); }
+.canteiro { display: block; width: 112px; height: 68px; margin: 0 auto; }
+.estrelas { display: flex; justify-content: center; gap: 2px; height: 12px; margin: 1px 0 3px; }
+.estrelas img { width: 12px; height: 11px; }
+.card dl { display: grid; grid-template-columns: 1fr auto; margin: 0; row-gap: 1px; font-size: 9px; white-space: nowrap; color: #e8e0c8; }
+.card dt { font-weight: 500; }
+.card dd { margin: 0; text-align: right; font-weight: 600; }
+.card dt.pequeno { font-size: 7.5px; letter-spacing: -0.2px; }
+.card dd.bom { color: var(--bom); } .card dd.ruim { color: var(--ruim); } .card dd.azul { color: #7fc4f0; } .card dd.medio { color: var(--amarelo); }
+.placar { margin-top: 2px; text-align: center; font-size: 10px; color: #efe0c0; }
+.placar b { color: var(--amarelo); font-size: 12px; }
+
+/* ------------------------------------------------------------ evento */
+#painel-evento { left: 718px; top: 596px; width: 304px; height: 86px; padding: 0 8px; border-bottom-width: 0; }
+.evento-corpo { display: grid; grid-template-columns: 48px 1fr; align-items: center; margin-top: -2px; }
+.evento-corpo img { width: 36px; height: 30px; object-fit: contain; justify-self: center; }
+.evento-corpo h4 { margin: 0; font-size: 11.5px; font-weight: 700; color: #3a1a04; }
+.evento-corpo p { margin: 0; font-size: 10px; line-height: 12px; font-weight: 500; }
+.evento-corpo .evento-tempo b { font-weight: 600; }
+#painel-evento.ativo .evento-corpo h4 { color: #a8200a; }
+
+/* ------------------------------------------------------------ Bruno */
+#bruno-retrato { left: 22px; top: 505px; width: 195px; height: 177px; background: #c67a26; border-bottom-width: 0; padding: 0; overflow: hidden; }
+#cv-bruno { position: absolute; left: 1px; bottom: 0; width: 176px; height: 160px; }
+#bruno-fala { left: 222px; top: 503px; width: 414px; height: 179px; padding: 0 12px; border-bottom-width: 0; background-color: #e2a452; }
+#bruno-fala .faixa { margin-right: 44px; background: #c4812e; color: #2a1204; text-shadow: none; box-shadow: inset 0 -2px 0 #8a5018, inset 0 2px 0 #eab060; font-size: 13px; }
+#txt-bruno { margin: 4px 0 0; font-size: 13.5px; line-height: 17px; font-weight: 500; min-height: 100px; }
+.btn-fechar { position: absolute; right: 6px; top: 4px; width: 22px; height: 22px; padding: 0; border: none; background: none; cursor: pointer; }
+.btn-fechar img { width: 20px; height: 20px; }
+.btn-seta { position: absolute; right: 8px; bottom: 6px; border: none; background: none; color: #6d380c; font-size: 14px; cursor: pointer; animation: pulo 1s steps(2) infinite; }
+@keyframes pulo { 50% { transform: translateX(2px); } }
+#bruno-fala.minimizado { height: 34px; top: 648px; }
+#bruno-fala.minimizado #txt-bruno, #bruno-fala.minimizado .btn-seta { display: none; }
+
+/* ------------------------------------------------------------ toast / overlays */
+#toast {
+  position: absolute; left: 50%; top: 150px; transform: translateX(-50%);
+  padding: 4px 10px; font-size: 13px; font-weight: 600; color: var(--texto-claro);
+  background: rgba(34, 22, 10, .88); border: 2px solid #b25e1e; border-radius: 3px;
+  opacity: 0; transition: opacity .25s; white-space: nowrap;
+}
+#toast.visivel { opacity: 1; }
+#toast.ruim { border-color: var(--ruim); }
+
+.escondido { display: none !important; }
+.overlay { position: absolute; inset: 0; background: rgba(8, 14, 6, .62); display: flex; align-items: center; justify-content: center; z-index: 10; }
+.overlay .janela { position: relative; width: 640px; max-height: 620px; background-color: var(--pergaminho); padding: 6px 16px 12px; overflow: auto; }
+.overlay h2.faixa { font-size: 16px; }
+.overlay p { font-size: 13px; line-height: 17px; margin: 6px 0; }
+.overlay .tabela { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 6px 0; }
+.overlay .tabela th, .overlay .tabela td { padding: 3px 6px; border-bottom: 1px solid #b8793a; text-align: right; }
+.overlay .tabela th:first-child, .overlay .tabela td:first-child { text-align: left; }
+.overlay .tabela .col-voce { color: #2f5a14; } .overlay .tabela .col-ia { color: #1a4a7a; }
+.overlay .grande { font-size: 30px; font-weight: 700; color: #6d380c; text-align: center; margin: 4px 0; }
+.overlay .barra-evolucao { display: flex; gap: 4px; align-items: flex-end; height: 60px; margin: 6px 0; }
+.overlay .barra-evolucao div { flex: 1; background: #6d380c; color: var(--texto-claro); font-size: 9px; text-align: center; min-height: 12px; }
+.overlay .barra-evolucao div.atual { background: #3f6b2a; }
+.overlay ul { margin: 4px 0; padding-left: 18px; font-size: 12.5px; }
+.overlay .botoes { display: flex; gap: 8px; justify-content: center; margin-top: 10px; flex-wrap: wrap; }
+.overlay .botoes button, .botao-madeira {
+  pointer-events: auto; cursor: pointer;
+  font: 600 13px var(--fonte); color: var(--texto-claro);
+  background: var(--faixa); border: 2px solid #2a1204; border-radius: 3px; padding: 5px 14px;
+  box-shadow: inset 0 2px 0 #8a4a18, inset 0 -2px 0 #3e1c04;
+}
+.overlay .botoes button:hover, .overlay .botoes button:focus-visible { background: #8a4a18; outline: none; }
+.overlay .botoes button.secundario { background: #3f6b2a; box-shadow: inset 0 2px 0 #5a8a3a, inset 0 -2px 0 #22421a; }
+.overlay .tec-liberada { display: flex; align-items: center; gap: 8px; background: var(--celula); color: #dffaff; padding: 6px 10px; border: 1px solid #4fe0f0; border-radius: 3px; font-size: 12.5px; }
+.overlay .tec-liberada img { width: 24px; height: 24px; }
+
+#debug {
+  position: absolute; left: 180px; top: 150px; z-index: 20;
+  background: rgba(0, 0, 0, .78); color: #9fef9f; font: 11px ui-monospace, monospace;
+  padding: 6px 8px; border: 1px solid #3a6a3a; pointer-events: auto; white-space: pre;
+}
+#debug button { font: 11px ui-monospace, monospace; }
+#sobreposicao-ref { position: absolute; inset: 0; width: 1024px; height: 682px; pointer-events: none; z-index: 15; opacity: 0; }

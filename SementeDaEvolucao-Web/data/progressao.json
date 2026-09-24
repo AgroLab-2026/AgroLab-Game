@@ -2,7 +2,7 @@
   "_comentario": "Decisão da conversa com a equipe: cada fase libera uma tecnologia. O fazendeiro nunca vence a IA sozinho, mas a distância diminui. A última fase é a parceria fazendeiro + IA.",
   "tecnologias": [
     { "id": "medidorPh",     "nome": "Medidor de pH e EC",   "icone": "medidor", "efeito": "Mostra os valores exatos de N, P, K e pH. Sem ele você só 'acha'." },
-    { "id": "timerIrrigacao","nome": "Timer de Irrigação",   "icone": "gota",    "efeito": "Irrigar custa metade da energia." },
+    { "id": "timerIrrigacao","nome": "Timer de Irrigação",   "icone": "gotaGrande",  "efeito": "Irrigar custa metade da energia." },
     { "id": "sensorUmidade", "nome": "Sensor de Umidade",    "icone": "sensor",  "efeito": "Trava a irrigação sozinho quando o substrato encharca." },
     { "id": "sombrite",      "nome": "Sombrite Automático",  "icone": "sombra",  "efeito": "Protege a planta sozinho quando o calor ou a luz passam do limite." },
     { "id": "painelDados",   "nome": "Painel de Dados",      "icone": "painel",  "efeito": "Previsão exata do próximo evento e ações da IA ao vivo." },
