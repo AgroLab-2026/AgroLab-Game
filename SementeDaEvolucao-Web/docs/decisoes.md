@@ -35,3 +35,9 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     tecnologias, em português.
 12. **Ferramentas iniciais.** Os itens da referência (Rake, Axe, Hoe, Seeds) viraram as ferramentas que o jogo usa de
     verdade: Irrigar, Travar irrigação, Proteger, Aguardar e Reabastecer água, com os mesmos ícones de ferramenta.
+13. **Clima base centrado na cultura.** Com o clima fixo em 22 °C e 65 % de luz, o tomate (21–27 °C, 70–90 % de luz)
+    ficava cronicamente fora da faixa, e nenhuma das 4 ações aquece ou ilumina. O teste headless mostrou o
+    tomate morrendo sem culpa do jogador. Agora o clima externo oscila ao redor do centro da faixa da cultura (a
+    estufa é montada para ela), e os eventos continuam empurrando as variáveis para fora.
+14. **Intervalo de decisão da IA** de 1 s de jogo. O fazendeiro "atento" do teste (reage a cada 4 s reais) fica em
+    ~69 % da IA; quem não faz nada perde a planta; na fase 7, com a IA assistente, sobe para ~88 %.
