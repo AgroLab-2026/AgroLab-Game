@@ -94,7 +94,7 @@ img, canvas { image-rendering: pixelated; }
 .faixa {
   margin: -2px -4px 4px;
   padding: 3px 8px 3px;
-  font-size: 12px; white-space: nowrap; font-weight: 600; letter-spacing: 0.5px;
+  font-size: 12px; white-space: nowrap; overflow: hidden; font-weight: 600; letter-spacing: 0.5px;
   color: var(--texto-claro);
   background: var(--faixa);
   text-align: center;
@@ -293,3 +293,6 @@ kbd {
 }
 #debug button { font: 11px ui-monospace, monospace; }
 #sobreposicao-ref { position: absolute; inset: 0; width: 1024px; height: 682px; pointer-events: none; z-index: 15; opacity: 0; }
+
+/* Cabeçalhos longos: cabem também com a fonte de reserva (sem internet). */
+#painel-ferramentas .faixa { font-size: 11px; letter-spacing: 0; padding-left: 4px; padding-right: 4px; }

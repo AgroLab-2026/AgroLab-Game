@@ -94,6 +94,11 @@ addEventListener('keydown', (e) => {
   else if (tecla === 'r') agir('Refill');
   else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
   else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
+  else if (tecla === 'f') {
+    // Tela cheia para o projetor (F11 fica livre para o navegador).
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen?.().catch(() => {});
+  }
 });
 
 for (const btn of document.querySelectorAll('.lista-ferramentas button')) {

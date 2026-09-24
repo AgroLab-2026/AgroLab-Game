@@ -52,7 +52,7 @@ export class TelasFase {
       <p><b>Objetivo:</b> ${esc(fase.objetivo)}</p>
       ${nova ? `<div class="tec-liberada"><img src="${iconeUrl(nova.icone)}" alt=""><div><b>Nova tecnologia: ${esc(nova.nome)}</b><br>${esc(nova.efeito)}</div></div>` : ''}
       <p>Ao lado, a <b>estufa autônoma</b> cultiva a mesma planta, sob o mesmo clima. No fim, você vê quanto chegou perto dela.</p>
-      <p><b>Controles:</b> 1 Aguardar · 2 Travar irrigação · 3 Irrigar · 4 Proteger · R Encher água · P Pausa · Enter Confirmar (ou clique nas ferramentas).</p>
+      <p><b>Controles:</b> 1 Aguardar · 2 Travar irrigação · 3 Irrigar · 4 Proteger · R Encher água · P Pausa · F Tela cheia · Enter Confirmar (ou clique nas ferramentas).</p>
       <p><b>Trocar cultura:</b> ${culturas.map((c) => `<button class="botao-madeira" data-cultura="${c.id}"${c.id === gm.crop.id ? ' disabled' : ''}>${esc(c.cropName)}</button>`).join(' ')}</p>`;
     this.abrir(html, [{ texto: 'Começar ▶', principal: true, acao: aoComecar }]);
     for (const b of this.conteudo.querySelectorAll('[data-cultura]')) {
