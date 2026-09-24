@@ -1,0 +1,45 @@
+{
+  "_comentario": "Faixas ideais por cultura (CropData). Morango: pH e temperatura do Guia_Implementacao_Unity.md; alface e tomate: Fase_3 Passo 5. Demais valores do morango reconstruídos — validar com a frente de IA.",
+  "Morango": {
+    "cropName": "Morango",
+    "descricaoEducativa": "O morango gosta de clima ameno (18–24 °C) e solução levemente ácida. Excesso de calor derruba a floração.",
+    "growthPointsToHarvest": 100,
+    "produtividadeKg": 4.5,
+    "nitrogenRange":   { "min": 120, "max": 170 },
+    "phosphorusRange": { "min": 40,  "max": 60 },
+    "potassiumRange":  { "min": 180, "max": 250 },
+    "phRange":         { "min": 5.5, "max": 6.5 },
+    "temperatureRange":{ "min": 18,  "max": 24 },
+    "moistureRange":   { "min": 60,  "max": 75 },
+    "luminosityRange": { "min": 55,  "max": 75 },
+    "visual": { "folha": "#4f9a3a", "folhaEscura": "#2f6b2a", "flor": "#fff6e0", "fruto": "#d9322b", "frutoEscuro": "#8e1c1c", "forma": "moita" }
+  },
+  "AlfaceCrespa": {
+    "cropName": "Alface Crespa",
+    "descricaoEducativa": "A alface crespa prefere clima fresco (15–22 °C). Com calor ela 'pendoa' e fica amarga.",
+    "growthPointsToHarvest": 100,
+    "produtividadeKg": 3.2,
+    "nitrogenRange":   { "min": 120, "max": 180 },
+    "phosphorusRange": { "min": 40,  "max": 55 },
+    "potassiumRange":  { "min": 180, "max": 230 },
+    "phRange":         { "min": 5.8, "max": 6.2 },
+    "temperatureRange":{ "min": 15,  "max": 22 },
+    "moistureRange":   { "min": 60,  "max": 80 },
+    "luminosityRange": { "min": 50,  "max": 70 },
+    "visual": { "folha": "#7fcf4a", "folhaEscura": "#3f8f2a", "flor": "#d8f08a", "fruto": "#9ee05a", "frutoEscuro": "#4f9a3a", "forma": "roseta" }
+  },
+  "Tomate": {
+    "cropName": "Tomate",
+    "descricaoEducativa": "O tomate gosta de calor (21–27 °C), muita luz e bastante potássio para encher os frutos.",
+    "growthPointsToHarvest": 100,
+    "produtividadeKg": 6.0,
+    "nitrogenRange":   { "min": 130, "max": 190 },
+    "phosphorusRange": { "min": 40,  "max": 60 },
+    "potassiumRange":  { "min": 250, "max": 320 },
+    "phRange":         { "min": 5.5, "max": 6.8 },
+    "temperatureRange":{ "min": 21,  "max": 27 },
+    "moistureRange":   { "min": 55,  "max": 70 },
+    "luminosityRange": { "min": 70,  "max": 90 },
+    "visual": { "folha": "#3f8a36", "folhaEscura": "#245a24", "flor": "#f4d23a", "fruto": "#e0402a", "frutoEscuro": "#9a2418", "forma": "haste" }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "_comentario": "Roteiro do Sr. Bruno (BrunoDialogue). Prioridade (Pilar 7): saúde crítica → calor/luz em excesso → substrato encharcado → substrato seco → pH fora da faixa → tudo ótimo. Acrescentamos nutrientes baixos entre substrato seco e pH, e falas de evento/abertura/fase.",
+  "saudeCritica": [
+    "Meu amigo, a planta está sofrendo! Olhe as barras vermelhas e aja agora.",
+    "Assim a gente perde a colheita! Descubra o que está fora da faixa e corrija."
+  ],
+  "calorLuz": [
+    "Está quente demais para {cultura}! Proteja a planta (tecla 4) antes que ela queime.",
+    "Esse sol está forte. Um sombrite agora vale ouro: proteja a planta."
+  ],
+  "encharcado": [
+    "Esse substrato está encharcado! Trave a irrigação (tecla 2) para a raiz respirar.",
+    "Água demais afoga a raiz. Trave a irrigação um pouco."
+  ],
+  "seco": [
+    "O substrato está secando. Irrigue (tecla 3), mas sem exagero, que água custa.",
+    "Terra seca, planta triste. Hora de irrigar."
+  ],
+  "nutrientes": [
+    "Faltam nutrientes. A irrigação leva a solução nutritiva junto: irrigue.",
+    "Folha amarelando é fome de nitrogênio. Irrigue com a solução."
+  ],
+  "ph": [
+    "O pH saiu da faixa. Travar a irrigação ajuda a corrigir a solução.",
+    "Com o pH errado a planta não absorve nada. Trave a irrigação para corrigir."
+  ],
+  "semMedidor": [
+    "Sem medidor eu só acho que o pH está bom... Na minha época era assim, no olho.",
+    "Eu nunca precisei de aparelho, mas confesso: às vezes erro a mão no adubo."
+  ],
+  "otimo": [
+    "Muito bem! Tudo na faixa. É isso: observar antes de agir.",
+    "Olha que beleza! Às vezes a melhor ação é não fazer nada.",
+    "Cada pequeno passo conta. A tecnologia é uma ferramenta para todos!"
+  ],
+  "abertura": "Olá, meu amigo! Eu cuido desta estufa há 40 anos, sem aparelho nenhum. Dizem que aquela estufa autônoma ali do lado é melhor... Vamos ver! Use as teclas 1 a 4 ou clique nas ferramentas.",
+  "eventos": {
+    "HeatWave": "Onda de calor! Isso pede proteção para a planta.",
+    "HeavyRain": "Chuva forte! Cuidado para não encharcar: talvez seja hora de travar a irrigação.",
+    "Pest": "Praga na estufa! O pH e o nitrogênio vão cair. Fique de olho.",
+    "PowerFailure": "Acabou a luz! Sem bomba o substrato seca e a sua energia não recupera."
+  },
+  "fimDeFase": [
+    "A estufa autônoma foi melhor de novo... Mas olhe quanto a distância diminuiu!",
+    "Eu desconfiava dessas máquinas. Mas os números não mentem, né?",
+    "Não é sobre vencer a máquina. É sobre aprender a trabalhar com ela."
+  ],
+  "parceria": "Agora a IA trabalha com a gente. Eu decido, ela ajuda. Juntos somos melhores que qualquer um sozinho!"
+}
