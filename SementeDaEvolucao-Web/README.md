@@ -12,8 +12,14 @@ HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
 ## Como rodar
 
-**Windows:** dois cliques em `iniciar.bat`. Ele sobe o servidor local (Node ou Python) e abre o navegador em
-`http://localhost:8080/`.
+**Windows:** extraia o ZIP e dê dois cliques em `iniciar.bat` (dentro da pasta `SementeDaEvolucao-Web`). Ele sobe um
+servidor local e abre o navegador em `http://localhost:8080/`. Usa o Node.js ou o Python, se estiverem instalados;
+se não, usa o **PowerShell**, que já vem no Windows, sem precisar instalar nada. **Deixe a janela preta aberta
+enquanto joga**: fechá-la desliga o jogo.
+
+> **"Não foi possível conectar a localhost:8080"?** O servidor não está rodando. Abra o `iniciar.bat` de novo (sem
+> fechar a janela preta) e aperte F5 no navegador. Se o Windows mostrar "O Windows protegeu o computador", clique em
+> **Mais informações → Executar assim mesmo** (o aviso aparece porque o arquivo veio da internet).
 
 **Linux/macOS:** `./iniciar.sh`
 
