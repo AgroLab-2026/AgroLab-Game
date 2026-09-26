@@ -1,0 +1,11 @@
+# A versão web não usa Git LFS: as imagens são pequenas e o jogo precisa
+# funcionar direto de um clone (sem git-lfs instalado).
+*.jpg  -filter -diff -merge binary
+*.png  -filter -diff -merge binary
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+*.css  text eol=lf
+*.html text eol=lf
+*.md   text eol=lf
+*.bat  text eol=crlf

@@ -1,0 +1,57 @@
+{
+  "_comentario": "Roteiro do Sr. Bruno (BrunoDialogue). Prioridade (Pilar 7): saúde crítica → calor/luz em excesso → substrato encharcado → substrato seco → pH fora da faixa → tudo ótimo. Também: nutrientes baixos, abertura, eventos, vitória, derrota e game over.",
+  "saudeCritica": [
+    "Meu amigo, a planta está sofrendo! Olhe as barras vermelhas e aja agora.",
+    "Assim a gente perde a colheita! Descubra o que está fora da faixa e corrija."
+  ],
+  "calorLuz": [
+    "Está quente demais para {cultura}! Proteja a planta (tecla 4) antes que ela queime.",
+    "Esse sol está forte. Um sombrite agora vale ouro: proteja a planta."
+  ],
+  "encharcado": [
+    "Esse substrato está encharcado! Trave a irrigação (tecla 2) para a raiz respirar.",
+    "Água demais afoga a raiz. Trave a irrigação um pouco."
+  ],
+  "seco": [
+    "O substrato está secando. Irrigue (tecla 3), mas sem exagero, que água custa.",
+    "Terra seca, planta triste. Hora de irrigar."
+  ],
+  "nutrientes": [
+    "Faltam nutrientes. A irrigação leva a solução nutritiva junto: irrigue.",
+    "Folha amarelando é fome de nitrogênio. Irrigue com a solução."
+  ],
+  "ph": [
+    "O pH saiu da faixa. Travar a irrigação ajuda a corrigir a solução.",
+    "Com o pH errado a planta não absorve nada. Trave a irrigação para corrigir."
+  ],
+  "semMedidor": [
+    "Sem medidor eu só acho que o pH está bom... Na minha época era assim, no olho.",
+    "Eu nunca precisei de aparelho, mas confesso: às vezes erro a mão no adubo."
+  ],
+  "otimo": [
+    "Muito bem! Tudo na faixa. É isso: observar antes de agir.",
+    "Olha que beleza! Às vezes a melhor ação é não fazer nada.",
+    "Cada pequeno passo conta. A tecnologia é uma ferramenta para todos!"
+  ],
+  "abertura": "Olá, meu amigo! Cuido desta estufa há 40 anos, sem aparelho nenhum. Temos 1 minuto e meio para colher. Irrigue quando secar (3), trave quando encharcar (2) e proteja do calor (4). Cada ação gasta água ou energia: olhe os números à esquerda!",
+  "eventos": {
+    "HeatWave": "Onda de calor! Isso pede proteção para a planta.",
+    "HeavyRain": "Chuva forte! Cuidado para não encharcar: talvez seja hora de travar a irrigação.",
+    "Pest": "Praga na estufa! O pH e o nitrogênio vão cair. Fique de olho.",
+    "PowerFailure": "Acabou a luz! Sem bomba o substrato seca e a sua energia não recupera."
+  },
+  "parceria": "Agora a IA trabalha com a gente: ela sugere, eu decido. Olhe o botão marcado 'IA sugere' e vamos colher juntos!",
+  "vitoria": [
+    "Colhemos! Viu como observar antes de agir faz diferença?",
+    "Que beleza de colheita! E com a ferramenta nova vai ficar ainda melhor.",
+    "Essa tecnologia está me convencendo... Vamos para a próxima!",
+    "Mais uma! A estufa ao lado que se cuide."
+  ],
+  "derrota": [
+    "Não foi dessa vez. Olhe o que ficou fora da faixa e tente de novo.",
+    "Calma, meu amigo. Na agricultura a gente aprende com cada safra.",
+    "Última chance nesta fase! Cuide da água e do calor com atenção."
+  ],
+  "gameOver": "A safra se perdeu... Mas todo agricultor recomeça. Vamos plantar de novo, agora sabendo mais!",
+  "vitoriaFinal": "Eu desconfiava dessas máquinas. Hoje vejo: com a tecnologia do nosso lado, a colheita é melhor para todo mundo!"
+}

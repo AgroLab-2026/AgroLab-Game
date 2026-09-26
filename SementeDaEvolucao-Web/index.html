@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Semente da Evolução — Estufa Inteligente</title>
+  <meta name="description" content="Serious game de agricultura de precisão: você contra a estufa autônoma.">
+  <!-- Nunito (OFL): arredondada e simples. Sem internet, cai na Trebuchet/Segoe (ver docs/decisoes.md #4). -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <div id="fundo-tela"></div>
+  <div id="palco" aria-label="Estufa Inteligente">
+    <canvas id="mundo" aria-hidden="true"></canvas>
+
+    <div id="hud">
+      <!-- Placa de título -->
+      <header id="titulo" class="moldura moldura-clara">
+        <div class="titulo-linha"><img class="raminho" data-icone="raminho" alt="">
+          <h1>ESTUFA INTELIGENTE</h1><img class="raminho espelhado" data-icone="raminho" alt=""></div>
+        <div class="subtitulo"><img class="raminho mini" data-icone="raminho" alt="">
+          <span id="txt-subtitulo">CULTIVE O FUTURO!</span><img class="raminho mini espelhado" data-icone="raminho" alt=""></div>
+      </header>
+
+      <!-- OBJETIVO -->
+      <section id="painel-objetivo" class="painel moldura">
+        <h2 class="faixa faixa-verde" id="txt-titulo-objetivo">OBJETIVO</h2>
+        <p id="txt-objetivo">Mantenha suas plantas saudáveis até o final do ciclo e aprenda a competir com a IA!</p>
+      </section>
+
+      <!-- RECURSOS -->
+      <section id="painel-recursos" class="painel moldura">
+        <h2 class="faixa">RECURSOS</h2>
+        <ul class="lista-recursos">
+          <li id="linha-agua"><img data-icone="agua" alt=""><span class="nome">Água</span><b id="rec-agua">30/30 L</b>
+            <div class="mini-barra"><i id="barra-agua" class="agua"></i></div></li>
+          <li id="linha-energia"><img data-icone="energia" alt=""><span class="nome">Energia <small id="rec-energia-regen">+3/s</small></span><b id="rec-energia">100/100</b>
+            <div class="mini-barra"><i id="barra-energia" class="energia"></i></div></li>
+          <li id="linha-fertilizante"><img data-icone="nutrientes" alt=""><span class="nome">Fertilizante</span><b id="rec-nutrientes">10/10</b>
+            <div class="mini-barra"><i id="barra-nutrientes" class="fertilizante"></i></div></li>
+          <li class="simples"><img data-icone="maoDeObra" alt=""><span class="nome">Mão de obra</span><b id="rec-mao">0 tarefas</b></li>
+          <li class="simples"><img data-icone="automacao" alt=""><span class="nome">Tecnologias</span><b id="rec-automacao">0/6</b></li>
+        </ul>
+      </section>
+
+      <!-- FERRAMENTAS -->
+      <section id="painel-ferramentas" class="painel moldura">
+        <h2 class="faixa">FERRAMENTAS INICIAIS</h2>
+        <ul class="lista-ferramentas">
+          <li><button data-acao="Irrigate"><img data-icone="regador" alt=""><span class="nome">Irrigar</span><kbd>3</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="LockIrrigation"><img data-icone="valvula" alt=""><span class="nome">Travar irrigação</span><kbd>2</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="ProtectPlant"><img data-icone="proteger" alt=""><span class="nome">Proteger</span><kbd>4</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="DoNothing"><img data-icone="aguardar" alt=""><span class="nome">Aguardar</span><kbd>1</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+          <li><button data-acao="Refill"><img data-icone="balde" alt=""><span class="nome">Encher água</span><kbd>R</kbd>
+            <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
+        </ul>
+      </section>
+
+      <!-- Lousas de clima -->
+      <div id="lousa-clima" class="lousa moldura-lousa">
+        <h3>CLIMA ATUAL</h3>
+        <div class="clima-linha"><img id="ico-clima" data-icone="sol" alt=""><span id="txt-condicao">Ensolarado</span></div>
+        <div class="clima-dado">Temp: <b id="txt-temp-ext">28°C</b></div>
+        <div class="clima-dado">Umidade: <b id="txt-umid-ext">65%</b></div>
+      </div>
+      <div id="lousa-previsao" class="lousa moldura-lousa">
+        <h3>PREVISÃO</h3>
+        <div class="previsao"><img id="ico-previsao" data-icone="nuvemChuva" alt=""><span id="txt-previsao">Chuva intensa esta tarde!</span></div>
+      </div>
+
+      <div id="lousa-fase" class="lousa moldura-lousa">
+        <h3 id="txt-fase">FASE 1 DE 5</h3>
+        <div class="cronometro"><img data-icone="relogio" alt=""><b id="txt-tempo">01:30</b></div>
+        <div class="tentativas" id="tentativas" title="Tentativas restantes nesta fase"></div>
+        <div class="colheita"><span>Colheita</span><div class="mini-barra"><i id="barra-colheita"></i></div><b id="txt-colheita">0%</b></div>
+      </div>
+
+      <!-- CONTROLE DA ESTUFA -->
+      <section id="painel-controle" class="painel moldura">
+        <h2 class="faixa faixa-topo">CONTROLE DA ESTUFA</h2>
+        <div class="sub-legenda">(Manual <i class="marca-jogador"></i> vs IA <i class="marca-ia"></i>)</div>
+        <ul id="lista-controle" class="lista-controle"></ul>
+      </section>
+
+      <!-- TECNOLOGIAS -->
+      <section id="painel-tecnologias" class="painel moldura painel-escuro">
+        <h2 class="faixa">TECNOLOGIAS IA</h2>
+        <div id="grade-tecnologias" class="grade-tec"></div>
+      </section>
+
+      <!-- COMPARE E APRENDA -->
+      <section id="painel-comparar" class="painel moldura painel-escuro">
+        <h2 class="faixa">COMPARE E APRENDA!</h2>
+        <div class="cards">
+          <article id="card-voce" class="card card-voce">
+            <h3>VOCÊ</h3>
+            <canvas class="canteiro" id="cv-voce" width="56" height="34"></canvas>
+            <div class="estrelas" id="estrelas-voce"></div>
+            <dl>
+              <dt>Saúde:</dt><dd id="voce-saude">100%</dd>
+              <dt>Crescimento:</dt><dd id="voce-prod">0%</dd>
+              <dt>Água usada:</dt><dd id="voce-agua">0 L</dd>
+              <dt>Energia usada:</dt><dd id="voce-energia">0</dd>
+            </dl>
+          </article>
+          <div class="vs">VS</div>
+          <article id="card-ia" class="card card-ia">
+            <h3>IA AUTÔNOMA</h3>
+            <canvas class="canteiro" id="cv-ia" width="56" height="34"></canvas>
+            <div class="estrelas" id="estrelas-ia"></div>
+            <dl>
+              <dt>Saúde:</dt><dd id="ia-saude">100%</dd>
+              <dt>Crescimento:</dt><dd id="ia-prod">0%</dd>
+              <dt>Água usada:</dt><dd id="ia-agua">0 L</dd>
+              <dt>Energia usada:</dt><dd id="ia-energia">0</dd>
+            </dl>
+          </article>
+        </div>
+        <div id="placar-eficiencia" class="placar">Você está em <b id="txt-eficiencia">—</b> da eficiência da IA</div>
+      </section>
+
+      <!-- EVENTO ATUAL -->
+      <section id="painel-evento" class="painel moldura">
+        <h2 class="faixa faixa-esquerda">EVENTO ATUAL</h2>
+        <div class="evento-corpo">
+          <img id="ico-evento" data-icone="nuvemChuva" alt="">
+          <div>
+            <h4 id="txt-evento-nome">TEMPO ESTÁVEL</h4>
+            <p id="txt-evento-desc">Nenhum evento no momento.</p>
+            <p class="evento-tempo"><span id="txt-evento-rotulo">Tempo para o evento</span>: <b id="txt-evento-tempo">--:--</b></p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sr. Bruno -->
+      <div id="bruno-retrato" class="moldura"><canvas id="cv-bruno" width="64" height="58"></canvas></div>
+      <section id="bruno-fala" class="painel moldura">
+        <h2 class="faixa faixa-esquerda">SENHOR BRUNO, O FAZENDEIRO</h2>
+        <button id="btn-fechar-bruno" class="btn-fechar" title="Minimizar (B)"><img data-icone="fechar" alt="Fechar"></button>
+        <p id="txt-bruno"></p>
+        <button id="btn-proxima-fala" class="btn-seta" title="Próxima dica">▶</button>
+      </section>
+
+      <div id="toast" role="status" aria-live="polite"></div>
+    </div>
+
+    <!-- Telas de fase (introdução e relatório "a derrota que ensina") -->
+    <div id="overlay-fase" class="overlay escondido">
+      <div class="janela moldura">
+        <div id="conteudo-fase"></div>
+      </div>
+    </div>
+
+    <!-- Modo debug (tecla `) -->
+    <div id="debug" class="escondido">
+      <div id="debug-info"></div>
+      <div class="debug-ctrl">
+        Velocidade: <button data-vel="1">1×</button><button data-vel="2">2×</button><button data-vel="4">4×</button>
+        | Referência <input id="debug-opacidade" type="range" min="0" max="100" value="0">
+      </div>
+    </div>
+    <img id="sobreposicao-ref" src="referencia/referencia.jpg" alt="" class="escondido">
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
