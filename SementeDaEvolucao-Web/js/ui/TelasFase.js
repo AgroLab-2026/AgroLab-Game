@@ -206,7 +206,7 @@ export class TelasFase {
     const html = `
       <h2 class="faixa faixa-verde-centro">VOCÊ CONCLUIU AS ${rel.ultimaFase} FASES!</h2>
       <div class="grande vitoria-txt">A tecnologia é aliada do agricultor</div>
-      <p class="centro">Na parceria com a IA você colheu em ${mmss(rel.tempoReal)} e chegou a <b>${rel.eficiencia}%</b> da eficiência da estufa autônoma.</p>
+      <p class="centro">Na última fase você colheu em ${mmss(rel.tempoReal)} e chegou a <b>${rel.eficiencia}%</b> da eficiência da estufa autônoma.</p>
       ${this.tabelaComparacao(rel)}
       ${this.evolucao(rel)}
       <p><i>Sr. Bruno: "${esc(gm.falas.vitoriaFinal)}"</i></p>`;

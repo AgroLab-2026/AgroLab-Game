@@ -64,19 +64,29 @@ function morango(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual,
     }
   }
   if (estagio >= 4) {
-    // Morangos: verdes na frutificação, vermelhos na colheita.
-    const fruto = estagio === 5 ? cor(visual.fruto) : cor('#b8d86a');
-    const frutoEsc = estagio === 5 ? cor(visual.frutoEscuro) : cor('#7aa03a');
-    const n = estagio === 5 ? 4 : 3;
-    for (let i = 0; i < n; i++) {
-      const fx = x - r + 1 + Math.round(rng() * (r * 2 - 2)), fy = y - 3 + Math.round(rng() * 2);
-      ret(ctx, fx, fy, 2, 2, fruto);
-      px(ctx, fx + 1, fy + 1, frutoEsc);
-      px(ctx, fx, fy + 2, frutoEsc);
-      px(ctx, fx, fy - 1, folhaEsc);
-      if (estagio === 5) px(ctx, fx, fy, clarear(fruto, 0.4));
-    }
+    // Morangos pendurados nas laterais: na frutificação alguns ainda verdes/rosados,
+    // na colheita todos vermelhos.
+    const posicoes = [[-r - 1, -3], [r - 1, -2], [-2, -1], [2, -4]];
+    posicoes.forEach(([dx, dy], i) => {
+      const maturacao = estagio === 5 ? 2 : i % 3 === 0 ? 0 : i % 3 === 1 ? 1 : 2;
+      frutoMorango(ctx, x + dx + (i === 2 ? b : 0), y + dy, maturacao, cor);
+    });
   }
+}
+
+/** Morango em "coração": cálice verde, corpo vermelho com sementinhas e ponta. */
+function frutoMorango(ctx, fx, fy, maturacao, cor) {
+  const corpo = cor(['#b8d86a', '#f08a8a', '#e0262a'][maturacao]);
+  const sombra = cor(['#7aa03a', '#c85a5a', '#9a1418'][maturacao]);
+  const brilho = cor(['#dff0a0', '#ffc0c0', '#ff7a6a'][maturacao]);
+  const semente = cor('#f6e070');
+  px(ctx, fx, fy - 1, cor('#2f7a2a')); px(ctx, fx + 2, fy - 1, cor('#2f7a2a')); px(ctx, fx + 1, fy - 1, cor('#4fae3a'));
+  ret(ctx, fx, fy, 3, 2, corpo);
+  ret(ctx, fx, fy + 2, 3, 1, corpo);
+  px(ctx, fx + 1, fy + 3, sombra);
+  px(ctx, fx + 2, fy + 2, sombra);
+  px(ctx, fx, fy, brilho);
+  if (maturacao === 2) { px(ctx, fx + 1, fy + 1, semente); px(ctx, fx + 2, fy, semente); px(ctx, fx, fy + 2, semente); }
 }
 
 function alface(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, rng, b }) {
@@ -110,16 +120,20 @@ function tomate(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, 
   }
   // Caule com leve curva do vento.
   for (let i = 0; i < alt; i++) px(ctx, x + (i > alt / 2 ? b : 0), y - i, folhaEsc);
-  // Pares de folhas alternados.
+  // Folhas compostas dos dois lados (folíolos recortados, como no tomateiro).
   for (let i = 2; i < alt; i += 3) {
     const lado = (i / 3) % 2 ? 1 : -1;
     const lx = x + (i > alt / 2 ? b : 0);
-    elipse(ctx, lx + lado * 3, y - i, 2, 1, folhaEsc);
-    ret(ctx, lx + lado * 2, y - i - 1, 3, 1, folha);
-    px(ctx, lx + lado * 3, y - i - 1, folhaClara);
-    elipse(ctx, lx - lado * 2, y - i + 1, 1, 1, folha);
+    elipse(ctx, lx + lado * 3, y - i, 3, 1, folhaEsc);
+    elipse(ctx, lx + lado * 3, y - i - 1, 2, 1, folha);
+    px(ctx, lx + lado * 5, y - i - 2, folha);
+    px(ctx, lx + lado * 2, y - i - 2, folhaClara);
+    elipse(ctx, lx - lado * 2, y - i + 1, 2, 1, folhaEsc);
+    px(ctx, lx - lado * 2, y - i, folha);
   }
-  elipse(ctx, x + b, y - alt, 2, 1, folha);
+  elipse(ctx, x + b, y - alt, 3, 2, folhaEsc);
+  elipse(ctx, x + b, y - alt - 1, 2, 1, folha);
+  px(ctx, x + b - 1, y - alt - 2, folhaClara);
   if (estagio === 3) {
     for (let i = 0; i < 3; i++) {
       const fx = x - 2 + Math.round(rng() * 4), fy = y - alt + 2 + Math.round(rng() * (alt - 6));
@@ -127,15 +141,25 @@ function tomate(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, 
     }
   }
   if (estagio >= 4) {
-    const fruto = estagio === 5 ? cor(visual.fruto) : cor('#8fc04a');
-    const frutoEsc = estagio === 5 ? cor(visual.frutoEscuro) : cor('#5a8a2a');
-    const n = estagio === 5 ? 4 : 3;
-    for (let i = 0; i < n; i++) {
-      const lado = i % 2 ? 1 : -1;
-      const fx = x + lado * (2 + Math.round(rng())), fy = y - 4 - i * 3;
-      elipse(ctx, fx, fy, 1, 1, fruto);
-      px(ctx, fx + 1, fy + 1, frutoEsc);
-      px(ctx, fx - 1, fy - 1, clarear(fruto, 0.45));
-    }
+    // Tomates redondos em pencas nas laterais: verdes → alaranjados → vermelhos.
+    const pencas = [[-4, 5], [4, 9], [-3, 13]];
+    pencas.forEach(([dx, dy], i) => {
+      if (dy > alt - 2) return;
+      const maturacao = estagio === 5 ? 2 : [0, 1, 2][i];
+      frutoTomate(ctx, x + dx + (dy > alt / 2 ? b : 0), y - dy, maturacao, cor);
+      if (estagio === 5 && i < 2) frutoTomate(ctx, x + dx + (dx < 0 ? -3 : 3), y - dy + 2, 2, cor);
+    });
   }
+}
+
+/** Tomate: bola vermelha com brilho, sombra embaixo e cálice verde em estrela. */
+function frutoTomate(ctx, fx, fy, maturacao, cor) {
+  const corpo = cor(['#8fc04a', '#f0962a', '#e0302a'][maturacao]);
+  const sombra = cor(['#5a8a2a', '#b8601a', '#9a1c14'][maturacao]);
+  const brilho = cor(['#c8e890', '#ffd08a', '#ff9a8a'][maturacao]);
+  elipse(ctx, fx, fy, 2, 2, corpo);
+  px(ctx, fx + 1, fy + 2, sombra); px(ctx, fx + 2, fy + 1, sombra); px(ctx, fx, fy + 2, sombra);
+  px(ctx, fx - 1, fy - 1, brilho);
+  const verde = cor('#2f7a2a');
+  px(ctx, fx, fy - 2, verde); px(ctx, fx - 1, fy - 2, verde); px(ctx, fx + 1, fy - 2, verde); px(ctx, fx, fy - 3, cor('#4fae3a'));
 }

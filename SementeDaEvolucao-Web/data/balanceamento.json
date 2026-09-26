@@ -5,7 +5,7 @@
     "passoFixoHz": 60
   },
   "planta": {
-    "baseGrowthRate": 0.78,
+    "baseGrowthRate": 1.05,
     "maxHealthDecay": 5,
     "healthRegenRate": 0.8,
     "limiarEstresse": 0.9,
@@ -19,7 +19,15 @@
       "Frutificação",
       "Colheita"
     ],
-    "expoenteCondicao": 3
+    "expoenteCondicao": 3,
+    "limiaresEstagios": [
+      0,
+      0.1,
+      0.25,
+      0.42,
+      0.6,
+      0.78
+    ]
   },
   "recursos": {
     "water": 30,
@@ -28,9 +36,9 @@
     "nutrientMax": 10,
     "energy": 100,
     "energyMax": 100,
-    "energyRegenPerSecondReal": 2.5,
+    "energyRegenPerSecondReal": 1.0,
     "refill": {
-      "energia": 15
+      "energia": 20
     }
   },
   "acoesJogador": {
@@ -38,7 +46,7 @@
       "custo": {
         "agua": 5,
         "fertilizante": 1,
-        "energia": 15
+        "energia": 20
       },
       "efeito": {
         "soilMoisture": 15,
@@ -51,7 +59,7 @@
       "custo": {
         "agua": 0,
         "fertilizante": 0,
-        "energia": 10
+        "energia": 12
       },
       "efeito": {
         "soilMoisture": -12,
@@ -62,7 +70,7 @@
       "custo": {
         "agua": 0,
         "fertilizante": 0,
-        "energia": 12
+        "energia": 18
       },
       "efeito": {
         "sombraSegundos": 30,
@@ -132,7 +140,7 @@
   },
   "ambiente": {
     "_comentario": "Deriva natural da bancada por segundo de jogo (clima externo + consumo da planta). Modelo do 'clima externo' da Fase 4, Passo 4.",
-    "evaporacaoBase": 0.46,
+    "evaporacaoBase": 0.56,
     "evaporacaoPorGrauAcima": 0.012,
     "temperaturaReferenciaEvaporacao": 22,
     "consumoNutrientes": {
@@ -152,9 +160,9 @@
     }
   },
   "clima": {
-    "_comentario": "Intervalo e duração em segundos REAIS (a corrotina do Unity não usa o timeScale do GameManager). Rebalanceado para fases de 1:30: 2 a 3 eventos por fase.",
-    "minIntervalReal": 15,
-    "maxIntervalReal": 28,
+    "_comentario": "Intervalo e duração em segundos REAIS (a corrotina do Unity não usa o timeScale do GameManager). Rebalanceado para fases de 1 minuto: 2 a 4 eventos por fase.",
+    "minIntervalReal": 11,
+    "maxIntervalReal": 20,
     "eventDurationReal": 12,
     "eventos": {
       "HeatWave": {
@@ -193,8 +201,8 @@
     }
   },
   "fase": {
-    "_comentario": "Regras da conversa com a equipe: fase de 1:30 (tempo real). Vitória = colher antes do tempo acabar. Derrota = planta morre ou o tempo acaba e custa 1 das 3 vidas do jogo (progressao.json).",
-    "tempoLimiteReal": 90,
+    "_comentario": "Regras da conversa com a equipe: fase de 1 minuto (tempo real). Vitória = colher antes do tempo acabar. Derrota = planta morre ou o tempo acaba e custa 1 das 3 vidas do jogo (progressao.json).",
+    "tempoLimiteReal": 60,
     "janelaReacao": 6,
     "pesos": {
       "produtividade": 0.5,

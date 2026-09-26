@@ -101,8 +101,7 @@ Outros exemplos:
 ## Onde a IA é usada
 
 1. **Estufa autônoma** (`AutonomousFarmAI`): pede uma decisão a cada 1 s de jogo (`ia.intervaloDecisao`).
-2. **IA assistente** (fase 5): pede decisões para a estufa **do jogador**, a cada 1 s de jogo, **só como sugestão**:
-   o botão da ação ganha a marca "IA sugere" e quem executa é o jogador.
+2. ~~IA assistente~~ (removida na v5 a pedido da equipe).
 
 ## Falas do Sr. Bruno (gerador externo, opcional)
 

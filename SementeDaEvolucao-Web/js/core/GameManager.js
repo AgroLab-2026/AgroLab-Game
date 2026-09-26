@@ -17,7 +17,7 @@ import { ClimateModel, novaEstufa } from '../systems/ClimateModel.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { AutonomousFarmAI } from '../ai/AutonomousFarmAI.js';
 import { BrunoDialogue } from '../ai/BrunoDialogue.js';
-import { criarProvedorIA, criarSnapshot } from '../ai/IAProvider.js';
+import { criarProvedorIA } from '../ai/IAProvider.js';
 
 export const EstadoJogo = Object.freeze({ Jogando: 'jogando', FimDeFase: 'fimDeFase', Pausado: 'pausado' });
 
@@ -110,14 +110,10 @@ export class GameManager {
     this.registroGastos = []; // { tempoReal, acao, agua, fertilizante, energia, aguaGanha }
     this.foraDaFaixa = Object.fromEntries(VARIAVEIS.map((v) => [v, 0])); // segundos reais fora da faixa
     this.relatorio = null;
-    this.sugestaoIA = null;
-    this._sugestaoAcum = 0;
-    this._sugestaoPendente = false;
     this._alertMsg = '';
     this.estado = EstadoJogo.Jogando;
 
-    const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura
-      : this.progressao.tem('iaAssistente') ? this.falas.parceria : fase.objetivo;
+    const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura : fase.objetivo;
     this.bruno.Anunciar(texto, 0, 10);
     this.OnFaseIniciada.emit(fase);
   }
@@ -138,7 +134,6 @@ export class GameManager {
 
     const ativa = !this.playerPlant.morta && !this.playerPlant.colhida;
     this.clima.aplicarDeriva(this.playerEnv, this.estufaJogador, ativa, evento, dt);
-    this.pedirSugestaoIA(dt);
 
     this.playerPlant.Tick(this.playerEnv, dt);   // planta do jogador
     this.aiAI.Tick(this.clima, evento, dt, this.tempo); // IA sente o mesmo clima e cultiva a dela
@@ -222,25 +217,6 @@ export class GameManager {
     if (e < f.min) return FarmAction.Irrigate;
     if (e > f.max) return FarmAction.LockIrrigation;
     return null;
-  }
-
-  /** IA Assistente: pede ao provedor a melhor ação para a estufa DO JOGADOR, só como sugestão. */
-  pedirSugestaoIA(dt) {
-    if (!this.progressao.tem('iaAssistente')) return;
-    this._sugestaoAcum += dt;
-    if (this._sugestaoPendente || this._sugestaoAcum < this.bal.ia.intervaloDecisao) return;
-    this._sugestaoAcum = 0;
-    this._sugestaoPendente = true;
-    const fase = this.progressao.faseAtual;
-    const snap = criarSnapshot({
-      crop: this.crop, env: this.playerEnv, planta: this.playerPlant, tempo: this.tempo, estufa: this.estufaJogador,
-      recursos: { agua: this.resources.water, fertilizante: this.resources.nutrientStock, energia: this.resources.energy },
-      clima: this.clima.ambienteExterno, evento: this.evento,
-    });
-    this.provedorIA.decidir(snap).then((r) => {
-      this._sugestaoPendente = false;
-      if (this.progressao.faseAtual === fase && this.estado === EstadoJogo.Jogando) this.sugestaoIA = r;
-    }, () => { this._sugestaoPendente = false; });
   }
 
   // ------------------------------------------------------------ fim de fase e pontuação

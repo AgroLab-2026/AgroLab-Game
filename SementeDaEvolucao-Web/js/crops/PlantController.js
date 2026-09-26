@@ -13,6 +13,9 @@ export class PlantController {
     this.limiarEstresse = cfg.limiarEstresse;
     this.limiarRecuperacao = cfg.limiarRecuperacao;
     this.estagios = cfg.estagios;
+    // Progresso em que cada estágio começa. O último (Colheita: frutos maduros)
+    // chega antes dos 100% para que o jogador VEJA a planta madura.
+    this.limiaresEstagios = cfg.limiaresEstagios ?? Array.from({ length: cfg.estagios }, (_, i) => i / (cfg.estagios - 1));
     // Quanto maior, mais o crescimento cai quando as condições pioram (q³: 0,9 → 73%).
     this.expoenteCondicao = cfg.expoenteCondicao ?? 1;
     this.Reset();
@@ -34,7 +37,9 @@ export class PlantController {
   /** Estágio 0..5 (Semente, Muda, Vegetativo, Floração, Frutificação, Colheita). */
   get estagio() {
     if (this.colhida) return this.estagios - 1;
-    return Math.min(this.estagios - 2, Math.floor(this.progresso * (this.estagios - 1)));
+    let e = 0;
+    for (let i = 0; i < this.limiaresEstagios.length; i++) if (this.progresso >= this.limiaresEstagios[i]) e = i;
+    return e;
   }
 
   get saudeMedia() { return this.tempoVivo > 0 ? this.somaSaude / this.tempoVivo : this.health; }

@@ -199,9 +199,8 @@ export class HUDController {
       const cl = b.btn.classList;
       if (cl.contains('sem-recurso') !== d.falta.length > 0) cl.toggle('sem-recurso', d.falta.length > 0);
       if (cl.contains('em-uso') !== !!d.emUso) cl.toggle('em-uso', !!d.emUso);
-      if (cl.contains('sugerido') !== d.sugerido) cl.toggle('sugerido', d.sugerido);
       if (cl.contains('alerta') !== d.alerta) cl.toggle('alerta', d.alerta);
-      const selo = d.sugerido ? 'IA sugere' : d.alerta ? 'sensor!' : '';
+      const selo = d.alerta ? 'sensor!' : '';
       this.set(b.selo, 'text', selo);
       if (d.emUso) b.uso.style.width = `${(d.emUso * 100).toFixed(1)}%`;
       const nome = b.btn.querySelector('.nome');

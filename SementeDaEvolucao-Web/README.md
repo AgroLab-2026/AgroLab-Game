@@ -2,9 +2,9 @@
 
 Serious game 2D top-down de agricultura de precisão (frente "Game" da iniciação científica AgroLab).
 Você é um fazendeiro que desconfia da tecnologia e cuida de uma estufa ao lado de uma **estufa autônoma**
-controlada por IA. São **5 fases de 1:30**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
-perde uma das **3 vidas do jogo** e repete a fase (sem vidas, game over e recomeço da fase 1). Cada vitória libera tecnologias que ajudam (medem,
-avisam, sugerem), e na última fase a IA sugere as ações e você decide.
+controlada por IA. São **5 fases de 1 minuto**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
+perde uma das **3 vidas do jogo** e repete a fase (sem vidas, game over e recomeço da fase 1). Cada fase traz uma tecnologia nova (medidor de pH,
+timer, sensor, sombrite, painel de dados), que ajuda, mas nunca age sozinha.
 
 HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 

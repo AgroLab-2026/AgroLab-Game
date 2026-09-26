@@ -1,5 +1,5 @@
 {
-  "_comentario": "5 fases. Cada VITÓRIA libera as tecnologias da fase seguinte. As tecnologias ajudam o jogador (medem, avisam, sugerem, economizam), mas NUNCA agem sozinhas na estufa dele. O jogador tem 3 VIDAS para o jogo inteiro: cada derrota gasta uma e repete a fase; sem vidas, game over e recomeça da fase 1.",
+  "_comentario": "5 fases de 1 minuto, uma tecnologia nova por fase (o medidor de pH já vem na fase 1). As tecnologias ajudam o jogador (medem, avisam, economizam), mas NUNCA agem sozinhas na estufa dele. O jogador tem 3 VIDAS para o jogo inteiro: cada derrota gasta uma e repete a fase; sem vidas, game over e recomeça da fase 1.",
   "vidas": 3,
   "tecnologias": [
     {
@@ -31,59 +31,53 @@
       "nome": "Painel de Dados",
       "icone": "painel",
       "efeito": "Previsão exata: qual evento vem e quando."
-    },
-    {
-      "id": "iaAssistente",
-      "nome": "IA Assistente",
-      "icone": "robo",
-      "efeito": "A IA sugere a melhor ação (o botão ganha a marca 'IA sugere'). Quem decide é você."
     }
   ],
   "fases": [
     {
       "numero": 1,
-      "titulo": "Do jeito antigo",
-      "cultura": "AlfaceCrespa",
-      "tecnologias": [],
-      "objetivo": "Colha a alface antes do tempo acabar. Irrigue quando secar e proteja do calor."
-    },
-    {
-      "numero": 2,
       "titulo": "Medindo de verdade",
-      "cultura": "Morango",
+      "cultura": "AlfaceCrespa",
       "tecnologias": [
         "medidorPh"
       ],
-      "objetivo": "Use o medidor: mantenha pH e nutrientes na faixa e colha o morango a tempo."
+      "objetivo": "Use o medidor de pH e colha a alface antes do tempo acabar. Irrigue quando secar."
     },
     {
-      "numero": 3,
+      "numero": 2,
       "titulo": "Tempo é dinheiro",
-      "cultura": "Tomate",
+      "cultura": "Morango",
       "tecnologias": [
         "timerIrrigacao"
       ],
-      "objetivo": "O timer economiza energia. Irrigue na hora certa e colha o tomate a tempo."
+      "objetivo": "O timer economiza energia na irrigação. Colha os morangos vermelhos a tempo!"
+    },
+    {
+      "numero": 3,
+      "titulo": "A estufa avisa",
+      "cultura": "Tomate",
+      "tecnologias": [
+        "sensorUmidade"
+      ],
+      "objetivo": "O sensor avisa quando secar ou encharcar. O tomate é exigente: colha a tempo."
     },
     {
       "numero": 4,
-      "titulo": "A estufa avisa",
+      "titulo": "Sombra na hora certa",
       "cultura": "Morango",
       "tecnologias": [
-        "sensorUmidade",
         "sombrite"
       ],
-      "objetivo": "O sensor avisa e o sombrite dura mais. Enfrente o clima e colha a tempo."
+      "objetivo": "O sombrite reforçado dura mais. Enfrente o calor e colha a tempo."
     },
     {
       "numero": 5,
-      "titulo": "Parceria",
+      "titulo": "Olhando os dados",
       "cultura": "Tomate",
       "tecnologias": [
-        "painelDados",
-        "iaAssistente"
+        "painelDados"
       ],
-      "objetivo": "A IA sugere, você decide. Colham juntos o tomate antes do tempo acabar!"
+      "objetivo": "Com o painel você sabe o próximo evento. Prepare-se e colha o tomate a tempo!"
     }
   ]
 }

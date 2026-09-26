@@ -176,13 +176,11 @@ img, canvas { image-rendering: pixelated; }
 .lista-ferramentas .custos .falta { color: #c8200a; text-decoration: line-through; }
 .lista-ferramentas .custos .gratis { color: #2f6a14; }
 .lista-ferramentas .selo { display: none; position: absolute; right: 22px; top: 1px; font-size: 8px; font-weight: 900; padding: 0 3px; border-radius: 2px; }
-.lista-ferramentas button.sugerido .selo { display: block; background: #0a3a4a; color: #bff8ff; }
 .lista-ferramentas button.alerta .selo { display: block; background: #f6d84a; color: #3a2a04; }
 .lista-ferramentas .uso { display: none; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: rgba(0,0,0,.15); }
 .lista-ferramentas .uso i { display: block; height: 100%; background: #3f8a36; }
 .lista-ferramentas button.em-uso { background: rgba(143, 209, 79, .28); border-color: #3f8a36; }
 .lista-ferramentas button.em-uso .uso { display: block; }
-.lista-ferramentas button.sugerido { border-color: #1f8aa8; box-shadow: 0 0 0 1px #4fe0f0 inset; }
 .lista-ferramentas button.alerta { animation: alerta 0.8s ease-in-out infinite; }
 @keyframes alerta { 50% { background: rgba(246, 216, 74, .55); border-color: #b8860a; } }
 .lista-ferramentas button:hover, .lista-ferramentas button:focus-visible { background: rgba(255, 230, 170, .55); border-color: #9a5a20; outline: none; }

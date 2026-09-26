@@ -92,3 +92,17 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     de notebook). Agora passam por um compressor com ganho final (picos entre 20 % e 75 %, sem distorcer). O áudio é
     liberado em qualquer clique, toque ou tecla, e a introdução tem o botão **Testar som**, que toca três notas e diz
     se o som está desligado no jogo, bloqueado pelo navegador ou funcionando.
+
+## v5 — 1 minuto, energia escassa, ferramentas reordenadas, frutos fiéis
+
+27. **Fase de 1 minuto** (`fase.tempoLimiteReal = 60`).
+28. **Energia escassa:** recarga caiu de 2,5 para **1 por segundo**; custos subiram: irrigar 20, travar 12, proteger 18,
+    encher água 20 (o timer e o sombrite continuam cortando pela metade).
+29. **Mais difícil** (varredura 8 partidas × 5 fases): reagindo a cada 6 s vence ~90 %; 9 s, ~70 %; 12 s, ~60 %;
+    15 s, ~35 %; 20 s, ~22 %; parado, nunca. Quem vence colhe em ~52 s. Números: crescimento 1,05, evaporação 0,56/s,
+    eventos a cada 11–20 s.
+30. **Ferramentas reordenadas, sem IA assistente:** uma por fase — 1 medidor de pH, 2 timer de irrigação, 3 sensor de
+    umidade, 4 sombrite reforçado, 5 painel de dados. A estufa autônoma (a rival) continua.
+31. **Frutos fiéis e visíveis:** o estágio "Colheita" (frutos maduros) passou a começar em 78 % do crescimento; antes só
+    aparecia no instante da colheita e o jogador nunca via morangos vermelhos. Morango redesenhado (vermelho, formato de
+    coração, sementes e cálice); tomate redondo com brilho e cálice em estrela, amadurecendo verde → laranja → vermelho.
