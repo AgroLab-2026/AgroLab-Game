@@ -14,6 +14,8 @@ import { TelasFase } from './ui/TelasFase.js';
 import { Debug } from './ui/Debug.js';
 import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
+import { Sons } from './audio/Sons.js';
+import { iconeUrl } from './render/Icones.js';
 
 const carregar = async (f) => (await fetch(`data/${f}`)).json();
 const [culturas, balanceamento, progressao, falas, iaPadrao] = await Promise.all(
@@ -44,6 +46,54 @@ const mundo = new WorldRenderer(document.getElementById('mundo'));
 const hud = new HUDController();
 const telas = new TelasFase();
 const debug = new Debug(gm);
+const sons = new Sons();
+
+// ------------------------------------------------------------ sons
+// O navegador só libera o áudio depois de um gesto (tecla ou clique).
+const liberarAudio = () => sons.iniciar();
+addEventListener('keydown', liberarAudio, { capture: true });
+addEventListener('pointerdown', liberarAudio, { capture: true });
+
+const btnSom = document.getElementById('btn-som');
+function atualizarBotaoSom() {
+  btnSom.classList.toggle('mudo', sons.mudo);
+  btnSom.querySelector('img').src = iconeUrl(sons.mudo ? 'somDesligado' : 'somLigado');
+  btnSom.title = sons.mudo ? 'Som desligado (tecla M)' : 'Som ligado (tecla M)';
+}
+function alternarSom() { sons.iniciar(); sons.alternarMudo(); atualizarBotaoSom(); if (!sons.mudo) sons.clique(); }
+btnSom.addEventListener('click', alternarSom);
+atualizarBotaoSom();
+
+const SOM_ACAO = {
+  Irrigate: () => sons.irrigar(), LockIrrigation: () => sons.travar(), ProtectPlant: () => sons.proteger(),
+  DoNothing: () => sons.aguardar(), Refill: () => sons.encher(),
+};
+gm.OnAcao.on((quem, acao, ok) => {
+  if (quem === 'ia') { if (ok) sons.robo(); return; }
+  if (!ok) sons.erro(); else SOM_ACAO[acao]?.();
+});
+gm.OnGasto.on((g) => {
+  if (g.energia) sons.energia();
+  const r = gm.resources;
+  if (r.energy / r.energyMax < 0.2 || r.water / r.waterMax < 0.2) sons.alertaRecurso();
+});
+gm.weather.OnEventStarted.on((evt) => {
+  if (evt === 'HeatWave') sons.calor();
+  else if (evt === 'HeavyRain') sons.iniciarChuva();
+  else if (evt === 'Pest') sons.praga();
+  else if (evt === 'PowerFailure') sons.faltaLuz();
+});
+gm.weather.OnEventEnded.on((evt) => {
+  if (evt === 'HeavyRain') sons.pararChuva();
+  else if (evt === 'PowerFailure') sons.voltaLuz();
+});
+gm.OnFaseIniciada.on(() => sons.pararChuva());
+gm.OnFaseTerminou.on((rel) => {
+  sons.pararChuva();
+  if (rel.motivo === 'tempo') sons.tempoAcabou();
+  const tocar = { vitoriaFinal: () => sons.vitoriaFinal(), gameOver: () => sons.gameOver(), proxima: () => sons.vitoria(), tentarDeNovo: () => sons.derrota() }[rel.proximoPasso];
+  setTimeout(() => tocar?.(), rel.motivo === 'tempo' ? 650 : 0);
+});
 if (url.get('debug') === '1') debug.alternar();
 
 // ------------------------------------------------------------ eventos do jogo → interface
@@ -104,8 +154,9 @@ addEventListener('keydown', (e) => {
   const tecla = e.key.toLowerCase();
   if (TECLAS[tecla]) { agir(TECLAS[tecla]); e.preventDefault(); }
   else if (tecla === 'r') agir('Refill');
-  else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
+  else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); sons.suspender(gm.estado === EstadoJogo.Pausado); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
   else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
+  else if (tecla === 'm') alternarSom();
   else if (tecla === 'f') {
     // Tela cheia para o projetor (F11 fica livre para o navegador).
     if (document.fullscreenElement) document.exitFullscreen();
@@ -126,7 +177,10 @@ let anterior = performance.now();
 let tempoAnimacao = 0;
 
 // Aba oculta: não acumula tempo (o jogo "pausa" e não dá um salto ao voltar).
-document.addEventListener('visibilitychange', () => { anterior = performance.now(); acumulado = 0; });
+document.addEventListener('visibilitychange', () => { anterior = performance.now(); acumulado = 0; sons.suspender(document.hidden); });
+
+// Cronômetro: tique nos últimos 10 segundos.
+let ultimoSegundo = null;
 
 function quadro(agora) {
   const dt = Math.min(0.25, (agora - anterior) / 1000);
@@ -139,6 +193,9 @@ function quadro(agora) {
     tempoAnimacao += gm.estado === EstadoJogo.Pausado ? 0 : dt;
     mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
     hud.atualizar(vistaHud(gm));
+    const seg = Math.ceil(gm.tempoRestante);
+    if (gm.estado === EstadoJogo.Jogando && seg !== ultimoSegundo && seg <= 10 && seg > 0) sons.relogio(seg);
+    ultimoSegundo = seg;
     debug.quadro();
   }
   requestAnimationFrame(quadro);
@@ -146,4 +203,4 @@ function quadro(agora) {
 requestAnimationFrame(quadro);
 
 // Acesso pelo console para testes e apresentações: window.jogo.gm
-window.jogo = { gm, mundo, hud, telas };
+window.jogo = { gm, mundo, hud, telas, sons };

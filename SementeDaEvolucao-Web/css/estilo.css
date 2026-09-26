@@ -372,3 +372,13 @@ kbd {
 .overlay .barra-evolucao div.atual { outline: 2px solid #f6d84a; }
 .botao-madeira.mini { font-size: 11px; padding: 2px 8px; }
 .botao-madeira:disabled { opacity: .5; cursor: default; }
+
+/* ------------------------------------------------------------ botão de som */
+.btn-som {
+  position: absolute; left: 301px; top: 6px; width: 26px; height: 24px; padding: 3px;
+  background: var(--pergaminho); border: 2px solid #633617; border-radius: 3px; cursor: pointer;
+  box-shadow: inset 0 1px 0 #f6d7a0, 0 2px 0 rgba(0,0,0,.35);
+}
+.btn-som:hover { background: #f6d77a; }
+.btn-som img { width: 18px; height: 14px; display: block; }
+.btn-som.mudo { background: #c8906a; }

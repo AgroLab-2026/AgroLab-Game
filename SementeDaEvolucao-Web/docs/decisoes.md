@@ -77,3 +77,14 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
 24. **Mais pressão** (varredura com 8 partidas × 5 fases por perfil): evaporação 0,46/s, eventos a cada 15–28 s,
     energia recarrega 2,5/s, crescimento 0,78. Resultado: parado nunca vence; reagindo a cada 20 s, ~37 %; 15 s,
     ~65 %; 12 s, ~78 %; 9 s, ~93 %; 6 s, 100 %. Quem vence colhe em ~70–74 s (pouca folga no 1:30).
+
+## v4 — efeitos sonoros
+
+25. **Sons sintetizados por código** (`js/audio/Sons.js`, Web Audio API), sem nenhum arquivo de áudio: funcionam offline
+    e não têm problema de direitos autorais. Irrigar (jato de água e gotas), travar (registro metálico), proteger
+    (tecido do sombrite), encher água (balde borbulhando), gasto de energia (faísca), alerta de água/energia baixa,
+    ação negada, bipe dos robôs da IA, onda de calor (zumbido e cigarras), chuva contínua com trovão, praga (insetos),
+    falta de luz e volta da energia, tique do cronômetro nos últimos 10 s (mais agudo nos 5 finais), alarme de tempo
+    esgotado, e músicas curtas de vitória, derrota, game over e vitória final. Tecla **M** ou o botão ao lado do
+    título liga/desliga (a escolha fica salva no navegador). O áudio começa no primeiro clique ou tecla, porque o
+    navegador bloqueia som antes disso, e pausa junto com o jogo.

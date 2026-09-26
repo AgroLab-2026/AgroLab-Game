@@ -40,6 +40,7 @@ enquanto joga**: fechá-la desliga o jogo.
 | P / Espaço | Pausa |
 | Enter | Confirmar (telas de fase) |
 | F | Tela cheia (projetor) |
+| M | Liga/desliga o som (também há o botão ao lado do título) |
 | B | Minimizar a fala do Sr. Bruno |
 | ` (crase, ao lado do 1) | Modo debug: FPS, variáveis, velocidade 1×/2×/4×, disparar eventos, sobrepor a referência |
 
