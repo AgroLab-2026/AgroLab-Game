@@ -3,8 +3,8 @@
 import { spriteDeTexto, comContorno, espelhar, criarCanvas, elipse, ret, px, linha } from './Pixel.js';
 
 const PAL_FAZENDEIRO = {
-  h: '#e8b64c', H: '#b8862a', l: '#f6d77a', // chapéu de palha
-  f: '#7a3e1a',                              // fita do chapéu
+  h: '#eec85a', H: '#c0943a', l: '#fbe594', // chapéu de palha (estilo Chico Bento)
+  d: '#9a7430',                              // fiapos e trama da palha
   s: '#f1c27d', S: '#d49a5a',                // pele
   e: '#2a1a10',                              // olhos
   c: '#4f8a3a', C: '#356a2a',                // camisa verde
@@ -15,14 +15,14 @@ const PAL_FAZENDEIRO = {
 
 // Frente, parado. 16 × 23.
 const FAZ_FRENTE = [
-  '.....hhhhhh.....',
-  '....hlhhhhhH....',
-  '...hlhhhhhhhH...',
-  '...hhffffffhH...',
-  '.hhhhhhhhhhhhHH.',
-  'HhhlhhhhhhhhhhhH',
-  '.HHHSSSSSSSSHHH.',
-  '....SsssssssS...',
+  '.....d.hhhh.d.....',
+  '.....hlhhhhhhH....',
+  '....hlhhdhhhdhH...',
+  '....hhdhhhdhhhH...',
+  '..hhlhhhhhhhhhhH..',
+  'hhlhhdhhhhdhhhhhhH',
+  'dHhdHSSSSSSSSHdHhd',
+  'd.d..SsssssssS.d.d',
   '....sseesseess..',
   '....ssssssssss..',
   '.....sssSSsss...',
@@ -40,6 +40,9 @@ const FAZ_FRENTE = [
   '.....PPP..PPP...',
 ];
 
+// O chapéu (8 primeiras linhas) tem 18 px de largura; o corpo, 16: centraliza o corpo.
+const LINHAS_CHAPEU = 8;
+
 function fazendeiroQuadro(passo) {
   const linhas = FAZ_FRENTE.slice();
   if (passo === 1) {
@@ -53,7 +56,7 @@ function fazendeiroQuadro(passo) {
     linhas[21] = '....ppp...ppp...';
     linhas[22] = '....PPP...PPP...';
   }
-  return linhas;
+  return linhas.map((l, i) => (i >= LINHAS_CHAPEU ? `.${l}` : l));
 }
 
 /** Fazendeiro segurando a pá (quadro da referência). */
@@ -165,15 +168,22 @@ export function desenharRetratoBruno(falando = false, piscar = false) {
   if (falando) ret(c, 30, 37, 4, 2, '#7a3020');
   else ret(c, 30, 37, 4, 1, '#9a5040');
 
-  // Chapéu de palha: aba larga e copa com fita.
-  elipse(c, 32, 18, 30, 6, '#8a5a1a');
-  elipse(c, 32, 17, 29, 5, '#e8b64c');
-  for (let x = 6; x < 58; x += 3) px(c, x, 17 + ((x / 3) % 2), '#c8943a');
-  elipse(c, 32, 9, 15, 9, '#c8943a');
-  elipse(c, 31, 8, 14, 8, '#e8b64c');
-  ret(c, 17, 13, 30, 3, '#7a3e1a');
-  ret(c, 17, 13, 30, 1, '#9a5a2a');
-  for (let y = 2; y < 12; y += 2) for (let x = 20; x < 44; x += 4) px(c, x + (y % 4 ? 2 : 0), y, '#f6d77a');
-  px(c, 25, 3, '#fff0b0'); px(c, 26, 3, '#fff0b0');
+  // Chapéu de palha no estilo Chico Bento: aba larga e desfiada, copa redonda, sem fita.
+  elipse(c, 32, 18, 31, 6, '#9a7430');
+  elipse(c, 32, 17, 30, 5, '#eec85a');
+  for (let x = 4; x < 61; x += 3) px(c, x, 17 + ((x / 3) % 2), '#c8a048');
+  // Fiapos pendurados na borda da aba.
+  for (let x = 3; x < 62; x += 2) {
+    if (x > 17 && x < 47) continue; // não cobre o rosto
+    const comp = 1 + ((x * 7) % 3);
+    for (let k = 0; k < comp; k++) px(c, x, 22 + k - (Math.abs(x - 32) > 24 ? 2 : 0), k === comp - 1 ? '#9a7430' : '#d8b050');
+  }
+  elipse(c, 32, 9, 14, 9, '#c0943a');
+  elipse(c, 31, 8, 13, 8, '#eec85a');
+  // Trama da palha na copa e alguns fiapos soltos no topo.
+  for (let y = 2; y < 15; y += 2) for (let x = 20; x < 44; x += 4) px(c, x + (y % 4 ? 2 : 0), y, '#c8a048');
+  px(c, 25, 3, '#fbe594'); px(c, 26, 3, '#fbe594'); px(c, 27, 4, '#fbe594');
+  for (const [x, y] of [[22, 0], [23, 1], [38, 0], [37, 1], [30, 0]]) px(c, x, y, '#9a7430');
+  ret(c, 18, 14, 28, 1, '#c0943a');
   return cv;
 }
