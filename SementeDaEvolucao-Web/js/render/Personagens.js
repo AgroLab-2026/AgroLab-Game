@@ -3,8 +3,8 @@
 import { spriteDeTexto, comContorno, espelhar, criarCanvas, elipse, ret, px, linha } from './Pixel.js';
 
 const PAL_FAZENDEIRO = {
-  h: '#eec85a', H: '#c0943a', l: '#fbe594', // chapéu de palha (estilo Chico Bento)
-  d: '#9a7430',                              // fiapos e trama da palha
+  h: '#e9dcb8', H: '#c4b186', l: '#f7f0da', // chapéu de palha clara trançada
+  d: '#ab9868',                              // trama da palha
   s: '#f1c27d', S: '#d49a5a',                // pele
   e: '#2a1a10',                              // olhos
   c: '#4f8a3a', C: '#356a2a',                // camisa verde
@@ -15,14 +15,14 @@ const PAL_FAZENDEIRO = {
 
 // Frente, parado. 16 × 23.
 const FAZ_FRENTE = [
-  '.....d.hhhh.d.....',
-  '.....hlhhhhhhH....',
-  '....hlhhdhhhdhH...',
-  '....hhdhhhdhhhH...',
-  '..hhlhhhhhhhhhhH..',
-  'hhlhhdhhhhdhhhhhhH',
-  'dHhdHSSSSSSSSHdHhd',
-  'd.d..SsssssssS.d.d',
+  '......hhdhhh......',
+  '.....hlhdhhdhH....',
+  '.....hldhhdhhH....',
+  '.....hhhdhhdhH....',
+  'H....hhdhhdhhH...H',
+  'hh...HHHHHHHHH..hH',
+  'hlhhhdhhdhhdhhhhhH',
+  '.HHHHSSSSSSSSHHHH.',
   '....sseesseess..',
   '....ssssssssss..',
   '.....sssSSsss...',
@@ -168,22 +168,37 @@ export function desenharRetratoBruno(falando = false, piscar = false) {
   if (falando) ret(c, 30, 37, 4, 2, '#7a3020');
   else ret(c, 30, 37, 4, 1, '#9a5040');
 
-  // Chapéu de palha no estilo Chico Bento: aba larga e desfiada, copa redonda, sem fita.
-  elipse(c, 32, 18, 31, 6, '#9a7430');
-  elipse(c, 32, 17, 30, 5, '#eec85a');
-  for (let x = 4; x < 61; x += 3) px(c, x, 17 + ((x / 3) % 2), '#c8a048');
-  // Fiapos pendurados na borda da aba.
-  for (let x = 3; x < 62; x += 2) {
-    if (x > 17 && x < 47) continue; // não cobre o rosto
-    const comp = 1 + ((x * 7) % 3);
-    for (let k = 0; k < comp; k++) px(c, x, 22 + k - (Math.abs(x - 32) > 24 ? 2 : 0), k === comp - 1 ? '#9a7430' : '#d8b050');
+  // Chapéu de palha clara trançada: copa alta com vinco no topo e aba com as laterais viradas para cima.
+  const palha = '#e9dcb8', clara = '#f7f0da', sombra = '#c4b186', trama = '#ab9868', contorno = '#8a7a52';
+  const tramar = (x0, y0, x1, y1) => {
+    // Trama em "espinha de peixe", como a palha trançada da foto.
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const k = (x + ((y >> 1) % 2 ? y : -y) + 64) % 4;
+      if (k === 0) px(c, x, y, trama);
+    }
+  };
+  // Aba: elipse larga, com as pontas subindo nas laterais.
+  elipse(c, 32, 19, 30, 5, contorno);
+  elipse(c, 32, 18, 29, 4, palha);
+  for (const lado of [-1, 1]) {
+    for (let i = 0; i < 7; i++) {
+      const x = 32 + lado * (23 + i), y = 17 - Math.round((i * i) / 12);
+      ret(c, x - 1, y - 1, 3, 4, palha);
+      px(c, x + lado, y - 2, contorno);
+    }
   }
-  elipse(c, 32, 9, 14, 9, '#c0943a');
-  elipse(c, 31, 8, 13, 8, '#eec85a');
-  // Trama da palha na copa e alguns fiapos soltos no topo.
-  for (let y = 2; y < 15; y += 2) for (let x = 20; x < 44; x += 4) px(c, x + (y % 4 ? 2 : 0), y, '#c8a048');
-  px(c, 25, 3, '#fbe594'); px(c, 26, 3, '#fbe594'); px(c, 27, 4, '#fbe594');
-  for (const [x, y] of [[22, 0], [23, 1], [38, 0], [37, 1], [30, 0]]) px(c, x, y, '#9a7430');
-  ret(c, 18, 14, 28, 1, '#c0943a');
+  tramar(4, 15, 60, 21);
+  ret(c, 6, 21, 52, 1, sombra);
+  // Copa alta, levemente afunilada, com o vinco no topo.
+  for (let y = 1; y <= 15; y++) {
+    const meia = 11 + Math.round((y - 1) / 5);
+    ret(c, 32 - meia - 1, y, meia * 2 + 3, 1, contorno);
+    ret(c, 32 - meia, y, meia * 2 + 1, 1, palha);
+  }
+  ret(c, 29, 1, 7, 2, sombra); px(c, 32, 3, sombra);           // vinco (amassado) do topo
+  ret(c, 21, 2, 2, 12, clara);                                 // luz na lateral esquerda
+  ret(c, 42, 2, 2, 13, sombra);                                // sombra na lateral direita
+  tramar(21, 3, 43, 14);
+  ret(c, 19, 14, 27, 2, sombra);                               // base da copa encontrando a aba
   return cv;
 }
