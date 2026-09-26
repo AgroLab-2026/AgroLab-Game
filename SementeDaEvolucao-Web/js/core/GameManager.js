@@ -4,7 +4,7 @@
 //
 // Regras de fase (conversa com a equipe): cada fase dura 1:30 (tempo real).
 // VITÓRIA = colher antes do tempo acabar. DERROTA = a planta morre ou o tempo
-// acaba. Só avança quem vence; 3 tentativas por fase, depois game over.
+// acaba. Só avança quem vence; 3 vidas no jogo inteiro, depois game over.
 // Nada age sozinho na estufa do jogador: as tecnologias medem, avisam e sugerem.
 import { EnvironmentState, FarmAction, VARIAVEIS } from './EnvironmentState.js';
 import { Evento } from './Eventos.js';
@@ -85,7 +85,7 @@ export class GameManager {
 
     // Distribui a MESMA instância de ambiente e a cultura para todo mundo.
     this.playerEnv = EnvironmentState.paraCultura(crop);
-    this.estufaJogador = novaEstufa();
+    this.estufaJogador = novaEstufa(crop);
     this.resources.Reset();
     this.playerActions.resources = this.resources;
     this.playerActions.playerEnv = this.playerEnv;
@@ -306,7 +306,8 @@ export class GameManager {
       titulo: this.progressao.dadosFase.titulo,
       cultura: this.crop.cropName,
       tentativa: this.progressao.tentativa,
-      tentativasPorFase: this.progressao.tentativasPorFase,
+      vidas: this.progressao.vidas,
+      vidasMax: this.progressao.vidasMax,
       tempoReal: this.tempoReal,
       eficiencia: p.eficiencia,
       pontuacao: p,
@@ -338,13 +339,13 @@ export class GameManager {
     this.IniciarFase(this.progressao.faseAtual);
   }
 
-  /** Nova tentativa da mesma fase (gasta uma das 3). */
+  /** Repete a mesma fase depois de uma derrota (a vida já foi gasta no resultado). */
   TentarDeNovo(idCultura) {
     this.progressao.novaTentativa();
     this.IniciarFase(this.progressao.faseAtual, idCultura);
   }
 
-  /** Troca a cultura antes de começar, sem gastar tentativa. */
+  /** Troca a cultura antes de começar, sem gastar vida. */
   TrocarCultura(idCultura) { this.IniciarFase(this.progressao.faseAtual, idCultura); }
 
   /** Recomeça o jogo do zero (depois do game over ou da vitória final). */

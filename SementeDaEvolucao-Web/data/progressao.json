@@ -1,6 +1,6 @@
 {
-  "_comentario": "5 fases. Cada VITÓRIA libera as tecnologias da fase seguinte. As tecnologias ajudam o jogador (medem, avisam, sugerem, economizam), mas NUNCA agem sozinhas na estufa dele. 3 tentativas por fase; ao esgotar, game over.",
-  "tentativasPorFase": 3,
+  "_comentario": "5 fases. Cada VITÓRIA libera as tecnologias da fase seguinte. As tecnologias ajudam o jogador (medem, avisam, sugerem, economizam), mas NUNCA agem sozinhas na estufa dele. O jogador tem 3 VIDAS para o jogo inteiro: cada derrota gasta uma e repete a fase; sem vidas, game over e recomeça da fase 1.",
+  "vidas": 3,
   "tecnologias": [
     {
       "id": "medidorPh",

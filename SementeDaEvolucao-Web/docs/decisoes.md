@@ -48,7 +48,7 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     de dados + IA assistente (`data/progressao.json`).
 16. **1:30 por fase** (tempo real, `fase.tempoLimiteReal`), com cronômetro na lousa "FASE N DE 5".
 17. **Dá para vencer.** Vitória = colher antes do tempo acabar. Derrota = a planta morre ou o tempo acaba. Só avança
-    quem vence; **3 tentativas por fase** (corações na lousa) e, depois, **game over** → recomeça da fase 1. A
+    quem vence; ~~3 tentativas por fase~~ (*v3: 3 vidas para o jogo inteiro, ver #22*) e, depois, **game over** → recomeça da fase 1. A
     comparação com a IA continua (% da eficiência), mas como aprendizado, não como condição de derrota.
 18. **Nada age sozinho na estufa do jogador.** Antes, o sensor de umidade, o sombrite e a IA assistente agiam por
     conta própria (e o fazendeiro andava sozinho). Agora as tecnologias só **medem, avisam, sugerem ou barateiam**:
@@ -65,3 +65,15 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     sempre, colhendo em ~65 s.
 21. **Regras da IA com sombra ativa.** Quando a sombra já está ativa, o provedor `regras` passa para a próxima
     prioridade (ex.: irrigar) em vez de responder "aguardar".
+
+## v3 — mais pressão e vidas para o jogo inteiro
+
+22. **3 vidas para o jogo inteiro** (antes eram 3 tentativas por fase). Cada derrota gasta uma vida e repete a mesma
+    fase; vencer não devolve vida; sem vidas, game over e recomeço da fase 1 (`progressao.json → vidas`). Pensado para
+    o evento: cada visitante joga com 3 vidas.
+23. **Sombrite não gela a estufa.** A sombra corta o excesso de calor e de luz, mas não leva a temperatura nem a luz
+    abaixo do centro da faixa da cultura. Antes, o Sombrite Reforçado (duração dobrada) deixava o morango frio e
+    escuro depois da onda de calor, e até o jogador atento perdia na fase 4.
+24. **Mais pressão** (varredura com 8 partidas × 5 fases por perfil): evaporação 0,46/s, eventos a cada 15–28 s,
+    energia recarrega 2,5/s, crescimento 0,78. Resultado: parado nunca vence; reagindo a cada 20 s, ~37 %; 15 s,
+    ~65 %; 12 s, ~78 %; 9 s, ~93 %; 6 s, 100 %. Quem vence colhe em ~70–74 s (pouca folga no 1:30).

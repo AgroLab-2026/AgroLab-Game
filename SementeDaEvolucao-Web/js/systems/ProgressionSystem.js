@@ -1,26 +1,27 @@
-// Fases, tecnologias e tentativas (regras da conversa com a equipe):
-// 5 fases; só avança quem VENCE a fase; cada fase tem 3 tentativas e, se todas
-// falharem, é game over. Cada fase traz as tecnologias das fases anteriores
-// mais as suas (progressao.json → fases[].tecnologias).
+// Fases, tecnologias e vidas (regras da conversa com a equipe):
+// 5 fases; só avança quem VENCE a fase. O jogador tem 3 VIDAS para o jogo
+// inteiro (não por fase): cada derrota gasta uma e repete a mesma fase; sem
+// vidas, é game over e o jogo recomeça da fase 1. Cada fase traz as tecnologias
+// das fases anteriores mais as suas (progressao.json → fases[].tecnologias).
 
 export class ProgressionSystem {
   constructor(progressao) {
     this.tecnologias = progressao.tecnologias;
     this.fases = progressao.fases;
-    this.tentativasPorFase = progressao.tentativasPorFase ?? 3;
+    this.vidasMax = progressao.vidas ?? 3;
     this.Reset();
   }
 
   /** Volta ao começo do jogo (novo jogo ou depois do game over). */
   Reset() {
     this.faseAtual = 1;
-    this.tentativa = 1;
+    this.vidas = this.vidasMax;
+    this.tentativa = 1;  // tentativa atual DESTA fase (só para o histórico)
     this.historico = []; // { fase, cultura, venceu, eficiencia, tentativa }
   }
 
   get dadosFase() { return this.fases[this.faseAtual - 1]; }
   get ultimaFase() { return this.fases.length; }
-  get tentativasRestantes() { return this.tentativasPorFase - this.tentativa; }
 
   /** Tecnologias em uso na fase atual (as desta fase e das anteriores). */
   get liberadas() {
@@ -48,12 +49,13 @@ export class ProgressionSystem {
   registrar(resultado) { this.historico.push({ ...resultado, tentativa: this.tentativa }); }
 
   /**
-   * Registra o resultado e decide o que vem depois:
+   * Aplica o resultado da fase (derrota gasta uma vida) e diz o que vem depois:
    * 'proxima' (venceu), 'vitoriaFinal' (venceu a última), 'tentarDeNovo' ou 'gameOver'.
    */
   resultado(venceu) {
     if (venceu) return this.faseAtual >= this.ultimaFase ? 'vitoriaFinal' : 'proxima';
-    return this.tentativa >= this.tentativasPorFase ? 'gameOver' : 'tentarDeNovo';
+    this.vidas = Math.max(0, this.vidas - 1);
+    return this.vidas > 0 ? 'tentarDeNovo' : 'gameOver';
   }
 
   avancar() {
@@ -61,7 +63,7 @@ export class ProgressionSystem {
     this.tentativa = 1;
   }
 
-  novaTentativa() { this.tentativa = Math.min(this.tentativasPorFase, this.tentativa + 1); }
+  novaTentativa() { this.tentativa++; }
 
   irPara(fase) { this.faseAtual = Math.max(1, Math.min(this.ultimaFase, fase)); }
 }

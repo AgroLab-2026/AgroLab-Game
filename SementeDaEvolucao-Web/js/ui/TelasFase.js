@@ -1,5 +1,5 @@
 // Telas entre fases: introdução, vitória, derrota ("a derrota que ensina"),
-// game over (3 tentativas esgotadas) e vitória final (5 fases concluídas).
+// game over (as 3 vidas do jogo acabaram) e vitória final (5 fases concluídas).
 import { iconeUrl } from '../render/Icones.js';
 import { AutonomousFarmAI } from '../ai/AutonomousFarmAI.js';
 import { mmss } from './Vistas.js';
@@ -92,11 +92,12 @@ export class TelasFase {
     const html = `
       <h2 class="faixa">FASE ${p.faseAtual} DE ${p.ultimaFase} · ${esc(fase.titulo.toUpperCase())}</h2>
       <div class="intro-topo">
-        <div><b>Tentativa ${p.tentativa} de ${p.tentativasPorFase}</b> ${this.coracoes(p.tentativasPorFase - p.tentativa + 1, p.tentativasPorFase)}</div>
+        <div><b>Vidas:</b> ${this.coracoes(p.vidas, p.vidasMax)} <b>${p.vidas} de ${p.vidasMax}</b> <span class="pequeno">(para o jogo todo)</span></div>
         <div>${ico('relogio')} <b>Tempo: ${mmss(gm.tempoLimite)}</b></div>
       </div>
       <p><b>Cultura:</b> ${esc(gm.crop.cropName)}. ${esc(gm.crop.descricaoEducativa)}</p>
-      <p class="meta"><b>Para vencer:</b> colha antes do tempo acabar. <b>Você perde</b> se a planta morrer ou o tempo acabar.
+      <p class="meta"><b>Para vencer:</b> colha antes do tempo acabar. <b>Você perde uma vida</b> se a planta morrer ou o tempo acabar
+      e repete a fase. Sem vidas, é game over e o jogo recomeça da fase 1.
       Mantenha as barras do CONTROLE DA ESTUFA na faixa verde: planta bem cuidada cresce mais rápido.</p>
       ${novas.map((t) => `<div class="tec-liberada">${ico(t.icone)}<div><b>Nova tecnologia: ${esc(t.nome)}</b><br>${esc(t.efeito)}</div></div>`).join('')}
       <p><b>Quanto custa cada ação</b> (a energia recarrega sozinha, +${gm.resources.energyRegenPerSecond} por segundo):</p>
@@ -172,23 +173,23 @@ export class TelasFase {
 
   derrota(gm, rel, acoes) {
     const titulo = rel.motivo === 'morreu' ? 'SUA PLANTA MORREU' : 'O TEMPO ACABOU';
-    const restantes = rel.tentativasPorFase - rel.tentativa;
+    const restantes = rel.vidas;
     const html = `
       <h2 class="faixa">${titulo} · FASE ${rel.fase}</h2>
       <div class="grande derrota-txt">A colheita chegou a ${Math.floor(rel.jogador.crescimento * 100)}%</div>
-      <p class="centro">Tentativas restantes nesta fase: ${this.coracoes(restantes, rel.tentativasPorFase)} <b>${restantes}</b></p>
+      <p class="centro">Você perdeu uma vida. Vidas restantes: ${this.coracoes(restantes, rel.vidasMax)} <b>${restantes}</b></p>
       ${this.oQueDeuErrado(rel, gm)}
       ${this.tabelaComparacao(rel)}
       ${this.tabelaGastos(rel)}
-      <p><i>Sr. Bruno: "${esc(gm.falas.derrota[(rel.tentativa - 1) % gm.falas.derrota.length])}"</i></p>`;
-    this.abrir(html, [{ texto: `Tentar de novo (tentativa ${rel.tentativa + 1} de ${rel.tentativasPorFase}) ▶`, principal: true, acao: acoes.tentarDeNovo }], 'tela-derrota');
+      <p><i>Sr. Bruno: "${esc(gm.falas.derrota[Math.max(0, rel.vidasMax - 1 - restantes) % gm.falas.derrota.length])}"</i></p>`;
+    this.abrir(html, [{ texto: `Tentar a fase ${rel.fase} de novo (${restantes} ${restantes === 1 ? 'vida' : 'vidas'}) ▶`, principal: true, acao: acoes.tentarDeNovo }], 'tela-derrota');
   }
 
   gameOver(gm, rel, acoes) {
     const html = `
       <h2 class="faixa">GAME OVER</h2>
       <div class="grande gameover-txt">GAME OVER</div>
-      <p class="centro">Você usou as ${rel.tentativasPorFase} tentativas da fase ${rel.fase} (${esc(rel.titulo)}).</p>
+      <p class="centro">Acabaram as ${rel.vidasMax} vidas. Você chegou até a fase ${rel.fase} de ${rel.ultimaFase} (${esc(rel.titulo)}).</p>
       ${this.oQueDeuErrado(rel, gm)}
       ${this.evolucao(rel)}
       <p><i>Sr. Bruno: "${esc(gm.falas.gameOver)}"</i></p>`;

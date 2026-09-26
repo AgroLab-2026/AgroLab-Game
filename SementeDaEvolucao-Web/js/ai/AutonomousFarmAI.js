@@ -38,7 +38,7 @@ export class AutonomousFarmAI {
     this.aiPlant.crop = crop;
     this.aiPlant.Reset();
     this.aiEnv = envInicial ? envInicial.Clone() : null;
-    this.estufa = novaEstufa();
+    this.estufa = novaEstufa(crop);
     this.waterUsed = 0;
     this.energyUsed = 0;
     this.fertilizerUsed = 0;
