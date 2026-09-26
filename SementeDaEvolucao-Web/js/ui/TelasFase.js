@@ -102,9 +102,15 @@ export class TelasFase {
       ${novas.map((t) => `<div class="tec-liberada">${ico(t.icone)}<div><b>Nova tecnologia: ${esc(t.nome)}</b><br>${esc(t.efeito)}</div></div>`).join('')}
       <p><b>Quanto custa cada ação</b> (a energia recarrega sozinha, +${gm.resources.energyRegenPerSecond} por segundo):</p>
       ${this.custosHtml(gm)}
+      <p class="pequeno"><button class="botao-madeira mini" id="btn-testar-som">🔊 Testar som</button> <span id="txt-som"></span></p>
       <p class="pequeno">Controles: teclas 1–4 e R, ou clique nas ferramentas · P pausa · M som · F tela cheia · Enter confirma.
       Trocar cultura: ${culturas.map((c) => `<button class="botao-madeira mini" data-cultura="${c.id}"${c.id === gm.crop.id ? ' disabled' : ''}>${esc(c.cropName)}</button>`).join(' ')}</p>`;
     this.abrir(html, [{ texto: 'Começar ▶', principal: true, acao: aoComecar }]);
+    const btnSom = this.conteudo.querySelector('#btn-testar-som');
+    btnSom?.addEventListener('click', async () => {
+      const txt = this.conteudo.querySelector('#txt-som');
+      txt.textContent = this.aoTestarSom ? await this.aoTestarSom() : '';
+    });
     for (const b of this.conteudo.querySelectorAll('[data-cultura]')) {
       b.addEventListener('click', () => { this.fechar(); aoTrocarCultura(b.dataset.cultura); });
     }

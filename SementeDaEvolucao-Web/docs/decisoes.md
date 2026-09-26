@@ -88,3 +88,7 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     esgotado, e músicas curtas de vitória, derrota, game over e vitória final. Tecla **M** ou o botão ao lado do
     título liga/desliga (a escolha fica salva no navegador). O áudio começa no primeiro clique ou tecla, porque o
     navegador bloqueia som antes disso, e pausa junto com o jogo.
+26. **Som mais alto e diagnóstico.** Os sons sintetizados saíam em ~10 % do volume máximo (baixo demais em alto-falante
+    de notebook). Agora passam por um compressor com ganho final (picos entre 20 % e 75 %, sem distorcer). O áudio é
+    liberado em qualquer clique, toque ou tecla, e a introdução tem o botão **Testar som**, que toca três notas e diz
+    se o som está desligado no jogo, bloqueado pelo navegador ou funcionando.

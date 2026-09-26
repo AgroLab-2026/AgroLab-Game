@@ -8,7 +8,7 @@ const CHAVE_MUDO = 'semente.mudo';
 export class Sons {
   constructor() {
     this.ctx = null;
-    this.volume = 0.55;
+    this.volume = 1;
     this.mudo = false;
     try { this.mudo = localStorage.getItem(CHAVE_MUDO) === '1'; } catch { /* sem localStorage */ }
     this._chuva = null;
@@ -23,14 +23,38 @@ export class Sons {
       this.ctx = new AC();
       this.mestre = this.ctx.createGain();
       this.mestre.gain.value = this.mudo ? 0 : this.volume;
-      this.mestre.connect(this.ctx.destination);
+      // Compressor + ganho final: sons bem mais altos sem distorcer (os sons
+      // sintetizados saíam em ~10% do volume máximo, baixo demais em notebook).
+      this.compressor = this.ctx.createDynamicsCompressor();
+      this.compressor.threshold.value = -24;
+      this.compressor.knee.value = 12;
+      this.compressor.ratio.value = 4;
+      this.compressor.attack.value = 0.003;
+      this.compressor.release.value = 0.2;
+      this.saida = this.ctx.createGain();
+      this.saida.gain.value = 1.6;
+      this.mestre.connect(this.compressor).connect(this.saida).connect(this.ctx.destination);
       // 2 s de ruído branco, reaproveitado por todos os sons de ruído.
       const n = this.ctx.sampleRate * 2;
       this.bufRuido = this.ctx.createBuffer(1, n, this.ctx.sampleRate);
       const d = this.bufRuido.getChannelData(0);
       for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume();
+    if (this.ctx.state !== 'running') this.ctx.resume().catch(() => {});
+  }
+
+  /** Situação do áudio, para o botão "Testar som" e o modo debug. */
+  get situacao() {
+    if (!(window.AudioContext || window.webkitAudioContext)) return 'Este navegador não tem suporte a áudio.';
+    if (this.mudo) return 'O som está DESLIGADO no jogo (tecla M ou botão ao lado do título).';
+    if (!this.ctx) return 'O som ainda não foi liberado: clique na tela ou aperte uma tecla.';
+    if (this.ctx.state !== 'running') return `O navegador bloqueou o áudio (${this.ctx.state}). Clique na tela e confira o ícone de som na barra de endereço.`;
+    return 'Som funcionando. Se não ouviu nada, confira o volume do computador e a saída de áudio.';
+  }
+
+  /** Som de teste: três notas bem audíveis. */
+  teste() {
+    [523, 659, 784].forEach((f, i) => this.tom({ freq: f, tipo: 'triangle', dur: 0.3, vol: 0.3, atraso: i * 0.18 }));
   }
 
   get ativo() { return !!this.ctx && !this.mudo; }

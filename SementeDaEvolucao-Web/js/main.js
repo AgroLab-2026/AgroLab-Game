@@ -51,8 +51,7 @@ const sons = new Sons();
 // ------------------------------------------------------------ sons
 // O navegador só libera o áudio depois de um gesto (tecla ou clique).
 const liberarAudio = () => sons.iniciar();
-addEventListener('keydown', liberarAudio, { capture: true });
-addEventListener('pointerdown', liberarAudio, { capture: true });
+for (const ev of ['keydown', 'keyup', 'pointerdown', 'click', 'touchend']) addEventListener(ev, liberarAudio, { capture: true });
 
 const btnSom = document.getElementById('btn-som');
 function atualizarBotaoSom() {
@@ -123,11 +122,18 @@ gm.OnFaseTerminou.on((rel) => {
   });
 });
 
+// Botão "Testar som" da introdução: toca três notas e diz o que está acontecendo.
+telas.aoTestarSom = () => {
+  sons.iniciar();
+  sons.teste();
+  return new Promise((r) => setTimeout(() => r(sons.situacao), 250));
+};
+
 let emIntroducao = false;
 function abrirIntroducao() {
   emIntroducao = true;
   telas.introducao(gm,
-    () => { emIntroducao = false; },
+    () => { emIntroducao = false; sons.clique(); },
     (idCultura) => { gm.TrocarCultura(idCultura); abrirIntroducao(); });
 }
 
