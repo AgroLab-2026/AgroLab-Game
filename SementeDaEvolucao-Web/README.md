@@ -65,7 +65,7 @@ node tests/simular.mjs
 ```
 
 Roda partidas completas das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, fases de no
-máximo 1:30, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
+máximo 1 minuto, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
 age sozinho na estufa do jogador, as 3 vidas e o game over, e o fallback dos provedores de IA.
 
 ## Estrutura
