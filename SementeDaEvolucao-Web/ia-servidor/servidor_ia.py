@@ -3,7 +3,8 @@
 O jogo manda o estado da estufa autônoma em JSON (POST /decidir) e este servidor
 responde {"acao", "motivo"} usando o modelo. Contrato completo em docs/contrato-ia.md.
 
-Uso:  python ia-servidor/servidor_ia.py
+Uso:  python ia-servidor/servidor_ia.py [config.json]
+      (padrão: config_modelo.json, o Random Forest de alface NFT do grupo)
 Depois abra o jogo com ?ia=http&iaUrl=http://localhost:5000/decidir
 (o iniciar_com_ia.bat já faz tudo isso).
 
@@ -21,7 +22,13 @@ import joblib
 import numpy as np
 
 PASTA = Path(__file__).parent
-CONFIG = json.loads((PASTA / "config_modelo.json").read_text(encoding="utf-8"))
+ARQUIVO_CONFIG = Path(sys.argv[1]) if len(sys.argv) > 1 else PASTA / "config_modelo.json"
+if not ARQUIVO_CONFIG.is_absolute() and not ARQUIVO_CONFIG.exists():
+    ARQUIVO_CONFIG = PASTA / ARQUIVO_CONFIG.name
+CONFIG = json.loads(ARQUIVO_CONFIG.read_text(encoding="utf-8"))
+# "direto": as colunas do modelo são as 7 variáveis do jogo (config "colunas").
+# "nft": o modelo de alface NFT do grupo, com o tradutor de adaptador_nft.py.
+ADAPTADOR = CONFIG.get("adaptador", "direto")
 
 ACOES = ["DoNothing", "LockIrrigation", "Irrigate", "ProtectPlant"]
 NOMES_ACOES = {
@@ -74,35 +81,67 @@ def traduzir_rotulo(rotulo):
 # ---------------------------------------------------------------- carrega o modelo
 arquivo = PASTA / CONFIG["arquivo"]
 if not arquivo.exists():
-    sys.exit(f"Modelo não encontrado: {arquivo}\nRode: python ia-servidor/treinar_modelo_exemplo.py (modelo provisório)\n"
-             f"ou coloque o modelo do grupo na pasta ia-servidor e ajuste 'arquivo' em config_modelo.json.")
+    treino = "treinar_modelo_equipe.py" if ADAPTADOR == "nft" else "treinar_modelo_exemplo.py"
+    sys.exit(f"Modelo não encontrado: {arquivo}\nRode: python ia-servidor/{treino}\n"
+             f"ou coloque o modelo na pasta ia-servidor e ajuste 'arquivo' em {ARQUIVO_CONFIG.name}.")
 modelo = joblib.load(arquivo)
 
-if hasattr(modelo, "feature_names_in_"):
-    COLUNAS = list(modelo.feature_names_in_)
+if ADAPTADOR == "nft":
+    import adaptador_nft
+    COLUNAS = list(getattr(modelo, "feature_names_in_", adaptador_nft.COLUNAS))
+    faltando = set(COLUNAS) - set(adaptador_nft.COLUNAS)
+    if faltando:
+        sys.exit(f"O modelo usa colunas que o tradutor NFT não gera: {sorted(faltando)}")
+    VARIAVEIS = ["(traduzidas por adaptador_nft.py)"]
 else:
-    COLUNAS = [c["coluna"] for c in CONFIG["colunas"]]
-VARIAVEIS = [variavel_da_coluna(c) for c in COLUNAS]
+    if hasattr(modelo, "feature_names_in_"):
+        COLUNAS = list(modelo.feature_names_in_)
+    else:
+        COLUNAS = [c["coluna"] for c in CONFIG["colunas"]]
+    VARIAVEIS = [variavel_da_coluna(c) for c in COLUNAS]
 CULTURAS = set(CONFIG.get("culturas") or [])
+
+
+def prever(linha):
+    """Classe prevista e confiança (0-1) para uma linha na ordem de COLUNAS."""
+    entrada = linha
+    if hasattr(modelo, "feature_names_in_"):
+        import pandas as pd  # só quando o modelo foi treinado com DataFrame
+        entrada = pd.DataFrame(linha, columns=COLUNAS)
+    previsto = modelo.predict(entrada)[0]
+    confianca = float(np.max(modelo.predict_proba(entrada)[0])) if hasattr(modelo, "predict_proba") else None
+    return previsto, confianca
+
+
+def com_confianca(texto, confianca):
+    return texto if confianca is None else f"{texto} ({confianca:.0%} de confiança)"
+
+
+def decidir_nft(snapshot):
+    x = adaptador_nft.traduzir_entrada(snapshot)
+    previsto, confianca = prever([[x[c] for c in COLUNAS]])
+    classe = int(previsto)
+    causa = adaptador_nft.causa_provavel(x, classe)
+    acao, nota = adaptador_nft.escolher_ferramenta(classe, causa, snapshot.get("clima", {}).get("sombraAtiva", False))
+    texto = f"{CONFIG['nome']}: {adaptador_nft.CLASSES[classe]}"
+    if classe:
+        texto += f" — {causa}"
+    if nota:
+        texto += f"; {nota}"
+    return 200, {"acao": acao, "motivo": com_confianca(texto, confianca), "classe": classe, "entrada": {
+        c: x[c] for c in COLUNAS if not c.startswith(("fase_", "tolerancia_"))} | {"fase": x["_fase"]}}
 
 
 def decidir(snapshot):
     cultura = snapshot["cultura"]["id"]
     if CULTURAS and cultura not in CULTURAS:
         return 422, {"erro": f"O modelo não foi treinado para {cultura}; o jogo usa as regras."}
+    if ADAPTADOR == "nft":
+        return decidir_nft(snapshot)
     amb = snapshot["ambiente"]
-    linha = [[float(amb[v]) for v in VARIAVEIS]]
-    entrada = linha
-    if hasattr(modelo, "feature_names_in_"):
-        import pandas as pd  # só quando o modelo foi treinado com DataFrame
-        entrada = pd.DataFrame(linha, columns=COLUNAS)
-    previsto = modelo.predict(entrada)[0]
+    previsto, confianca = prever([[float(amb[v]) for v in VARIAVEIS]])
     acao = traduzir_rotulo(previsto)
-    motivo = f"{CONFIG['nome']}: {NOMES_ACOES[acao]}"
-    if hasattr(modelo, "predict_proba"):
-        confianca = float(np.max(modelo.predict_proba(entrada)[0]))
-        motivo += f" ({confianca:.0%} de confiança)"
-    return 200, {"acao": acao, "motivo": motivo}
+    return 200, {"acao": acao, "motivo": com_confianca(f"{CONFIG['nome']}: {NOMES_ACOES[acao]}", confianca)}
 
 
 class Tratador(BaseHTTPRequestHandler):
@@ -122,7 +161,7 @@ class Tratador(BaseHTTPRequestHandler):
 
     def do_GET(self):  # teste rápido: abra http://localhost:5000/ no navegador
         self._responder(200, {"ok": True, "modelo": CONFIG["nome"], "arquivo": CONFIG["arquivo"],
-                              "colunas": COLUNAS, "variaveis_do_jogo": VARIAVEIS, "culturas": sorted(CULTURAS)})
+                              "adaptador": ADAPTADOR, "colunas": COLUNAS, "variaveis_do_jogo": VARIAVEIS, "culturas": sorted(CULTURAS)})
 
     def do_POST(self):
         if self.path.rstrip("/") != "/decidir":
@@ -145,4 +184,9 @@ if __name__ == "__main__":
     print(f"Modelo: {CONFIG['nome']} ({arquivo.name}) · culturas: {', '.join(sorted(CULTURAS)) or 'todas'}")
     print(f"Colunas do modelo: {', '.join(COLUNAS)}")
     print("Deixe esta janela aberta enquanto joga.")
-    ThreadingHTTPServer(("127.0.0.1", porta), Tratador).serve_forever()
+    try:
+        servidor = ThreadingHTTPServer(("127.0.0.1", porta), Tratador)
+    except OSError:
+        sys.exit(f"A porta {porta} já está em uso: provavelmente outra janela 'IA do AgroLab' já está aberta. "
+                 "Use essa janela ou feche-a antes de abrir outra.")
+    servidor.serve_forever()

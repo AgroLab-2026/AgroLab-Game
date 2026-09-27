@@ -115,3 +115,11 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     cobre respondem 422 e o jogo usa as regras. Modelo **provisório** de alface treinado com dados do simulador
     (`gerar_dados.mjs`) até a equipe colocar o modelo real. `iniciar_com_ia.bat` sobe tudo. O HUD e o relatório
     mostram quando a decisão veio do modelo.
+33. **O Random Forest do grupo no jogo.** O repositório AgroLab-IA não tem o modelo salvo, então
+    `treinar_modelo_equipe.py` refaz o treino da Parte 11 do `EDA_Alface.ipynb` (dataset NFT, mesmas colunas,
+    separação e hiperparâmetros; acurácia 0,985 como no notebook). Ele é treinado no PC do jogo, e não vai para o Git,
+    porque o arquivo depende da versão do scikit-learn. O `adaptador_nft.py` traduz as 7 variáveis do jogo para as 17
+    colunas do modelo, pela posição dentro das faixas, e a classe 0–3 para a ferramenta certa do jogo. Com CE alta, o
+    modelo manda aguardar sem fertirrigar, porque o "Travar" do jogo drena o substrato. Com pH baixo, manda travar,
+    que é a ferramenta que corrige o pH. No simulador, o modelo cuida da alface tão bem quanto as regras: saúde 98 %
+    contra 97 %, com um pouco menos de água e energia. O modelo provisório virou o plano B (`config_provisorio.json`).

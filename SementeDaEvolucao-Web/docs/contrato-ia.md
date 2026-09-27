@@ -123,7 +123,7 @@ e espera `{ "fala": "texto até 280 caracteres" }`. As categorias são `saudeCri
 
 ## Servidor pronto com Random Forest
 
-A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`), que carrega um modelo scikit-learn, traduz o snapshot para as colunas do modelo (`config_modelo.json`) e responde com a ação e a confiança. Veja `ia-servidor/LEIA-ME.md`.
+A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`) com o Random Forest de alface NFT do grupo. Ele traduz o snapshot para as 17 colunas do modelo (`adaptador_nft.py`), traduz a classe 0–3 para a ferramenta do jogo e responde com a ação e a confiança. Veja `ia-servidor/LEIA-ME.md`.
 
 ## Exemplo mínimo de servidor (Python, para testar)
 

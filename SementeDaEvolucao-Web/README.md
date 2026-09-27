@@ -30,9 +30,11 @@ enquanto joga**: fechá-la desliga o jogo.
 
 ## Com a IA do grupo (Random Forest)
 
-Dois cliques em **`iniciar_com_ia.bat`**: ele sobe o servidor da IA (`ia-servidor/`) e abre o jogo já ligado a ela.
-A estufa autônoma passa a ser guiada pelo modelo; o painel COMPARE E APRENDA! mostra quem decidiu. Como trocar o
-modelo provisório pelo de vocês: `ia-servidor/LEIA-ME.md`.
+Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de alface NFT** do
+[AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
+IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
+modelo; o painel COMPARE E APRENDA! mostra quem decidiu. Como o jogo traduz a estufa para as colunas do modelo:
+`ia-servidor/LEIA-ME.md`.
 
 ## Controles
 

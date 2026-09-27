@@ -1,26 +1,8 @@
 {
-  "_comentario": "Liga o modelo da frente de IA ao jogo. Troque 'arquivo' pelo modelo de vocês (Random Forest salvo com joblib ou pickle). 'colunas' é a ordem das entradas do modelo e a variável do jogo que vai em cada uma; se o modelo tiver sido treinado com um DataFrame, a ordem é lida do próprio modelo. 'rotulos' traduz o que o modelo devolve para as 4 ações do jogo (aceita números ou textos).",
-  "nome": "Random Forest provisório (alface)",
-  "arquivo": "modelo_provisorio_alface.joblib",
+  "_comentario": "O Random Forest da frente de IA (AgroLab-IA/alface/EDA_Alface.ipynb, Parte 11), treinado com alface/nft/dataset_nft.csv por treinar_modelo_equipe.py. O adaptador 'nft' traduz a estufa do jogo para as 17 colunas do modelo e as classes 0-3 para as ferramentas do jogo (ver adaptador_nft.py).",
+  "nome": "Random Forest do AgroLab",
+  "arquivo": "modelo_equipe_alface_nft.joblib",
+  "adaptador": "nft",
   "culturas": ["AlfaceCrespa"],
-  "colunas": [
-    { "coluna": "N",            "variavel": "nitrogen" },
-    { "coluna": "P",            "variavel": "phosphorus" },
-    { "coluna": "K",            "variavel": "potassium" },
-    { "coluna": "pH",           "variavel": "ph" },
-    { "coluna": "temperatura",  "variavel": "airTemperature" },
-    { "coluna": "umidade",      "variavel": "soilMoisture" },
-    { "coluna": "luminosidade", "variavel": "luminosity" }
-  ],
-  "rotulos": {
-    "0": "DoNothing",
-    "1": "LockIrrigation",
-    "2": "Irrigate",
-    "3": "ProtectPlant",
-    "nao_fazer_nada": "DoNothing",
-    "travar_irrigacao": "LockIrrigation",
-    "irrigar": "Irrigate",
-    "proteger": "ProtectPlant"
-  },
   "porta": 5000
 }

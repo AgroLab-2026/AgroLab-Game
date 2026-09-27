@@ -1,3 +1,6 @@
-# Modelo provisório: é gerado pelo treinar_modelo_exemplo.py (não versionar).
+# Modelos gerados pelos scripts de treino (não versionar: dependem da versão do scikit-learn).
 modelo_provisorio_*.joblib
+modelo_equipe_*.joblib
+# Dataset do grupo baixado pelo treinar_modelo_equipe.py (fica no repositório AgroLab-IA).
+dados/
 __pycache__/
