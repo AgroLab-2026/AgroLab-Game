@@ -12,6 +12,7 @@ import { criarRng } from './render/Pixel.js';
 import { HUDController } from './ui/HUDController.js';
 import { TelasFase } from './ui/TelasFase.js';
 import { Debug } from './ui/Debug.js';
+import { PainelIA } from './ui/PainelIA.js';
 import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
 import { Sons } from './audio/Sons.js';
@@ -46,6 +47,7 @@ const mundo = new WorldRenderer(document.getElementById('mundo'));
 const hud = new HUDController();
 const telas = new TelasFase();
 const debug = new Debug(gm);
+const painelIA = new PainelIA(gm);
 const sons = new Sons();
 
 // ------------------------------------------------------------ sons
@@ -163,6 +165,7 @@ addEventListener('keydown', (e) => {
   else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); sons.suspender(gm.estado === EstadoJogo.Pausado); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
   else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
   else if (tecla === 'm') alternarSom();
+  else if (tecla === 'i') painelIA.alternar();
   else if (tecla === 'f') {
     // Tela cheia para o projetor (F11 fica livre para o navegador).
     if (document.fullscreenElement) document.exitFullscreen();
@@ -199,6 +202,7 @@ function quadro(agora) {
     tempoAnimacao += gm.estado === EstadoJogo.Pausado ? 0 : dt;
     mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
     hud.atualizar(vistaHud(gm));
+    painelIA.atualizar();
     const seg = Math.ceil(gm.tempoRestante);
     if (gm.estado === EstadoJogo.Jogando && seg !== ultimoSegundo && seg <= 10 && seg > 0) sons.relogio(seg);
     ultimoSegundo = seg;
@@ -209,4 +213,4 @@ function quadro(agora) {
 requestAnimationFrame(quadro);
 
 // Acesso pelo console para testes e apresentações: window.jogo.gm
-window.jogo = { gm, mundo, hud, telas, sons };
+window.jogo = { gm, mundo, hud, telas, sons, painelIA };

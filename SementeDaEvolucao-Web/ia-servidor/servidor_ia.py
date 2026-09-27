@@ -14,6 +14,8 @@ estiver desligado ou demorar mais de 800 ms.
 """
 import json
 import sys
+import threading
+import time
 import unicodedata
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -141,7 +143,44 @@ def decidir(snapshot):
     amb = snapshot["ambiente"]
     previsto, confianca = prever([[float(amb[v]) for v in VARIAVEIS]])
     acao = traduzir_rotulo(previsto)
-    return 200, {"acao": acao, "motivo": com_confianca(f"{CONFIG['nome']}: {NOMES_ACOES[acao]}", confianca)}
+    return 200, {"acao": acao, "motivo": com_confianca(f"{CONFIG['nome']}: {NOMES_ACOES[acao]}", confianca),
+                 "entrada": {c: float(amb[v]) for c, v in zip(COLUNAS, VARIAVEIS)}}
+
+
+# ---------------------------------------------------------------- registro na janela
+# Uma linha por pedido do jogo: o que chegou, o que o modelo recebeu e o que respondeu.
+# É a prova de que a IA está rodando e recebendo os dados do jogo.
+CONTADOR = {"pedidos": 0, "ultima_cultura_fora": None}
+TRAVA_LOG = threading.Lock()
+
+
+def registrar(snapshot, status, corpo):
+    with TRAVA_LOG:
+        CONTADOR["pedidos"] += 1
+        n = CONTADOR["pedidos"]
+        hora = time.strftime("%H:%M:%S")
+        if n == 1:
+            print(f"\n[{hora}] Primeiro contato do jogo! Recebendo os dados da estufa da IA.\n", flush=True)
+        if status == 422:
+            cultura = snapshot.get("cultura", {}).get("nome", "?")
+            if CONTADOR["ultima_cultura_fora"] != cultura:
+                CONTADOR["ultima_cultura_fora"] = cultura
+                print(f"[{hora}] #{n} {cultura}: o modelo não foi treinado para ela -> o jogo usa as regras", flush=True)
+            return
+        CONTADOR["ultima_cultura_fora"] = None
+        if status != 200:
+            print(f"[{hora}] #{n} ERRO: {corpo.get('erro')}", flush=True)
+            return
+        a = snapshot["ambiente"]
+        jogo = (f"T {a['airTemperature']:.1f}°C  subst. {a['soilMoisture']:.0f}%  pH {a['ph']:.2f}  "
+                f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f}  luz {a['luminosity']:.0f}%")
+        e = corpo.get("entrada") or {}
+        modelo = ""
+        if "ce_ms_cm" in e:
+            modelo = (f"  | modelo recebeu: CE {e['ce_ms_cm']:.2f}  reserv. {e['nivel_reservatorio_pct']:.0f}%  "
+                      f"pH {e['ph']:.2f}  ar {e['temp_ar_c']:.1f}°C  fase {e.get('fase', '?')}")
+        print(f"[{hora}] #{n} jogo enviou: {jogo}{modelo}\n           -> {corpo['motivo']}  => {NOMES_ACOES[corpo['acao']]}",
+              flush=True)
 
 
 class Tratador(BaseHTTPRequestHandler):
@@ -171,8 +210,13 @@ class Tratador(BaseHTTPRequestHandler):
             snapshot = json.loads(self.rfile.read(tamanho) or b"{}")
             status, corpo = decidir(snapshot)
         except Exception as erro:  # o jogo cai nas regras se algo der errado aqui
+            snapshot = snapshot if "snapshot" in locals() else {}
             status, corpo = 500, {"erro": str(erro)}
         self._responder(status, corpo)
+        try:
+            registrar(snapshot, status, corpo)
+        except Exception as erro:  # o registro nunca derruba a resposta
+            print(f"(falha ao registrar: {erro})", flush=True)
 
     def log_message(self, formato, *args):  # silencia o log de cada requisição
         pass
@@ -183,7 +227,7 @@ if __name__ == "__main__":
     print(f"IA do AgroLab rodando em http://localhost:{porta}/decidir")
     print(f"Modelo: {CONFIG['nome']} ({arquivo.name}) · culturas: {', '.join(sorted(CULTURAS)) or 'todas'}")
     print(f"Colunas do modelo: {', '.join(COLUNAS)}")
-    print("Deixe esta janela aberta enquanto joga.")
+    print("Deixe esta janela aberta enquanto joga. Cada decisão pedida pelo jogo aparece abaixo.")
     try:
         servidor = ThreadingHTTPServer(("127.0.0.1", porta), Tratador)
     except OSError:

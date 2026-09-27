@@ -20,7 +20,7 @@ export class HUDController {
       icoPrev: $('ico-previsao'), previsao: $('txt-previsao'),
       controle: $('lista-controle'), tecs: $('grade-tecnologias'),
       cvVoce: $('cv-voce'), cvIa: $('cv-ia'), estrelasVoce: $('estrelas-voce'), estrelasIa: $('estrelas-ia'),
-      eficiencia: $('txt-eficiencia'), cerebro: $('txt-cerebro-ia'),
+      eficiencia: $('txt-eficiencia'),
       painelEvento: $('painel-evento'), icoEvento: $('ico-evento'), eventoNome: $('txt-evento-nome'), eventoDesc: $('txt-evento-desc'),
       eventoRotulo: $('txt-evento-rotulo'), eventoTempo: $('txt-evento-tempo'),
       bruno: $('txt-bruno'), cvBruno: $('cv-bruno'), falaBox: $('bruno-fala'),
@@ -245,8 +245,6 @@ export class HUDController {
     this.estrelas(this.el.estrelasVoce, cmp.voce.estrelas, true);
     this.estrelas(this.el.estrelasIa, cmp.ia.estrelas, false);
     this.set(this.el.eficiencia, 'text', cmp.eficiencia);
-    this.set(this.el.cerebro, 'text', cmp.cerebro.texto);
-    this.set(this.el.cerebro, 'class', `cerebro-ia${cmp.cerebro.modelo ? ' modelo' : ''}`);
     const chaveV = `${cmp.voce.estagio}|${Math.round(cmp.voce.saude01 * 20)}|${cmp.voce.visual.forma}`;
     const chaveI = `${cmp.ia.estagio}|${Math.round(cmp.ia.saude01 * 20)}|${cmp.ia.visual.forma}`;
     if (this._canteiroV !== chaveV) { this._canteiroV = chaveV; this.canteiro(this.el.cvVoce, cmp.voce); }

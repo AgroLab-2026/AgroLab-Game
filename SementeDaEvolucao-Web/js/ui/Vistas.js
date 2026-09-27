@@ -129,9 +129,6 @@ export function vistaHud(gm) {
       },
       // No comecinho (quase nada crescido) a razão não diz nada: mostra um traço.
       eficiencia: ia.aiPlant.progresso < 0.05 ? '—' : `${pontuacao.eficiencia}%`,
-      cerebro: AutonomousFarmAI.doModelo(ia.lastSource)
-        ? { texto: `IA: ${ia.lastReason.replace(' de confiança', '').replace(': ', ' · ')}`, modelo: true }
-        : { texto: 'Cérebro da IA: regras do jogo', modelo: false },
     },
     evento: eventoVista,
     bruno: { texto: gm.bruno.GetContextualTip(e, gm.playerPlant, gm.tempoReal) },

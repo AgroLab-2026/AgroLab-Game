@@ -33,7 +33,8 @@ enquanto joga**: fechá-la desliga o jogo.
 Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de alface NFT** do
 [AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
 IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
-modelo; o painel COMPARE E APRENDA! mostra quem decidiu. Como o jogo traduz a estufa para as colunas do modelo:
+modelo. O selo no painel COMPARE E APRENDA! fica verde e pisca a cada resposta ("IA ONLINE"); a tecla **I**
+abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma linha por decisão. Como o jogo traduz a estufa para as colunas do modelo:
 `ia-servidor/LEIA-ME.md`.
 
 ## Controles
@@ -50,6 +51,7 @@ modelo; o painel COMPARE E APRENDA! mostra quem decidiu. Como o jogo traduz a es
 | F | Tela cheia (projetor) |
 | M | Liga/desliga o som (também há o botão ao lado do título) |
 | B | Minimizar a fala do Sr. Bruno |
+| I | Painel **IA AO VIVO**: o que o jogo enviou para a IA, o que o modelo recebeu e o que respondeu |
 | ` (crase, ao lado do 1) | Modo debug: FPS, variáveis, velocidade 1×/2×/4×, disparar eventos, sobrepor a referência |
 
 Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emular as teclas 1–4 como teclado USB.

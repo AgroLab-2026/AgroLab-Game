@@ -123,3 +123,7 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     modelo manda aguardar sem fertirrigar, porque o "Travar" do jogo drena o substrato. Com pH baixo, manda travar,
     que é a ferramenta que corrige o pH. No simulador, o modelo cuida da alface tão bem quanto as regras: saúde 98 %
     contra 97 %, com um pouco menos de água e energia. O modelo provisório virou o plano B (`config_provisorio.json`).
+34. **Prova de que a IA está funcionando.** Selo com luz no painel COMPARE E APRENDA!: verde e piscando a cada
+    resposta, amarelo quando o modelo não cobre a cultura, vermelho quando o servidor está desligado. A tecla **I**
+    abre o painel IA AO VIVO: o que o jogo enviou, o que o modelo recebeu depois da tradução e a resposta, com a
+    latência. A janela do servidor escreve uma linha por decisão.

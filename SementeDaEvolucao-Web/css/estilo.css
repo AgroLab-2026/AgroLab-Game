@@ -382,5 +382,47 @@ kbd {
 .btn-som.mudo { background: #c8906a; }
 
 /* ------------------------------------------------------------ quem decide pela IA */
-.cerebro-ia { text-align: center; font-size: 9px; font-weight: 700; color: #9aa4b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.cerebro-ia.modelo { color: #4fe0f0; }
+.cerebro-ia {
+  display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; margin: 1px 0 0; padding: 1px 4px;
+  font: inherit; font-size: 9px; font-weight: 800; color: #9aa4b0; background: rgba(0,0,0,.25); border: 1px solid #3a4450;
+  border-radius: 3px; cursor: pointer; white-space: nowrap; overflow: hidden;
+}
+.cerebro-ia span { overflow: hidden; text-overflow: ellipsis; }
+.led { flex: none; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #6a737d; }
+.cerebro-ia.online { color: #5ff0a0; border-color: #2f8a5a; }
+.cerebro-ia.online .led, .ia-status.online .led { background: #5ff0a0; box-shadow: 0 0 5px #5ff0a0; transition: opacity .15s; }
+.cerebro-ia.online.par .led { opacity: .35; }
+.cerebro-ia.offline { color: #ff8a7a; border-color: #8a3a30; }
+.cerebro-ia.offline .led, .ia-status.offline .led { background: #ff5a4a; animation: piscar-led .6s steps(2) infinite; }
+.cerebro-ia.naocobre, .cerebro-ia.conectando { color: #f0c860; border-color: #7a6030; }
+.cerebro-ia.naocobre .led, .cerebro-ia.conectando .led, .ia-status.naocobre .led { background: #f0c860; }
+@keyframes piscar-led { 50% { opacity: .2; } }
+
+/* ------------------------------------------------------------ painel IA AO VIVO (tecla I) */
+#painel-ia-vivo {
+  position: absolute; left: 190px; top: 118px; width: 640px; z-index: 12; padding: 0 10px 8px;
+  color: #e8e0c8; font-size: 10.5px; cursor: pointer;
+}
+#painel-ia-vivo[hidden] { display: none; }
+#painel-ia-vivo .faixa { background: #1f5a86; }
+#painel-ia-vivo .faixa small { font-size: 9px; opacity: .8; }
+#painel-ia-vivo h3 { margin: 2px 0 0; font-size: 11.5px; color: var(--ia-titulo); }
+#painel-ia-vivo table { width: 100%; border-collapse: collapse; }
+#painel-ia-vivo td, #painel-ia-vivo th { padding: 0 3px; text-align: left; white-space: nowrap; }
+#painel-ia-vivo th { font-size: 9px; color: #9aa4b0; font-weight: 600; }
+#painel-ia-vivo td:nth-child(2) { text-align: right; font-weight: 700; }
+#painel-ia-vivo td:nth-child(3) { color: #9aa4b0; font-size: 9px; }
+#painel-ia-vivo tr.fora td { color: #ff9a7a; }
+#painel-ia-vivo p { margin: 2px 0; }
+.ia-colunas { display: grid; grid-template-columns: 1.15fr 1fr 0.9fr; gap: 10px; }
+.ia-colunas > div { background: rgba(0,0,0,.22); border: 1px solid #2c4a66; border-radius: 4px; padding: 3px 6px 5px; }
+.ia-sub { color: #9aa4b0; font-size: 9.5px; }
+.ia-aviso { color: #f0c860; }
+.ia-grande { font-size: 15px; font-weight: 800; line-height: 1.15; color: #fff; }
+.ia-grande small { font-size: 10px; font-weight: 600; color: #b8c4d0; }
+.ia-grande.acao { color: #5ff0a0; }
+.ia-status { display: flex; align-items: center; gap: 5px; font-weight: 800; color: #9aa4b0; margin: 4px 0 !important; }
+.ia-status.online { color: #5ff0a0; }
+.ia-status.offline { color: #ff8a7a; }
+.ia-status.naocobre { color: #f0c860; }
+.ia-status span { margin-left: auto; font-weight: 600; color: #9aa4b0; font-size: 9.5px; }

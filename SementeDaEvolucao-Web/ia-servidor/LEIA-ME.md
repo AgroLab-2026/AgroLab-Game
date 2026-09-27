@@ -19,9 +19,23 @@ Dois cliques em **`iniciar_com_ia.bat`** (na pasta `SementeDaEvolucao-Web`). Ele
 Sem o dataset e sem internet, ele usa o **modelo provisório** (`config_provisorio.json`), treinado com dados do
 simulador do jogo.
 
-No jogo, o painel **COMPARE E APRENDA!** mostra quem decide: em azul, "IA: Random Forest do AgroLab · repor/corrigir
-falta — água baixa (97%)" quando é o modelo; em cinza, "regras do jogo" quando é o fallback. O relatório de fim de
-fase conta quantas decisões vieram do modelo. Em http://localhost:5000/ dá para ver o modelo carregado e as colunas.
+## Como saber se a IA está rodando e recebendo os dados
+
+1. **No jogo, o selo embaixo do painel COMPARE E APRENDA!**
+   - 🟢 `IA ONLINE · Irrigar 97% · 40 ms · #52`: o modelo está respondendo. A luz pisca a cada resposta, e o
+     número (#52) conta as respostas;
+   - 🟡 `IA online · não treinada para Tomate: regras`: o servidor está ligado, mas o modelo não cobre essa cultura;
+   - 🔴 `IA DESLIGADA (servidor desligado) · usando regras`: o jogo não conseguiu falar com o servidor;
+   - ⚪ `Cérebro da IA: regras do jogo`: o jogo foi aberto sem a IA (pelo `iniciar.bat` comum).
+2. **Tecla I (ou clique no selo): painel IA AO VIVO.** Três colunas atualizadas a cada decisão: **1. o que o jogo
+   enviou** (a estufa da IA, com o que está fora da faixa em vermelho), **2. o que o modelo recebeu** (as colunas
+   depois da tradução: CE, nível do reservatório, fase…) e **3. o que ele respondeu** (classe, ação, confiança e
+   tempo de resposta). Mexa na estufa ou espere um evento e veja os números mudarem.
+3. **Na janela "IA do AgroLab"**: uma linha por decisão, com o que chegou do jogo, o que o modelo recebeu e a
+   resposta. Se as linhas param de aparecer, o jogo não está mais pedindo decisões.
+4. **No relatório de fim de fase**: quantas decisões vieram do modelo.
+
+Em http://localhost:5000/ dá para ver o modelo carregado e as colunas.
 
 ## Por que retreinar em vez de usar o arquivo do notebook
 

@@ -2,7 +2,7 @@
 // jogador e a da IA crescerem, executa as 4 ações e conecta todos os sistemas.
 // Não toca DOM nem Canvas: a interface lê o estado e chama DoAction/UI_*.
 //
-// Regras de fase (conversa com a equipe): cada fase dura 1:30 (tempo real).
+// Regras de fase (conversa com a equipe): cada fase dura 1 minuto (tempo real, fase.tempoLimiteReal).
 // VITÓRIA = colher antes do tempo acabar. DERROTA = a planta morre ou o tempo
 // acaba. Só avança quem vence; 3 vidas no jogo inteiro, depois game over.
 // Nada age sozinho na estufa do jogador: as tecnologias medem, avisam e sugerem.

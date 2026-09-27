@@ -33,7 +33,7 @@
     "Olha que beleza! Às vezes a melhor ação é não fazer nada.",
     "Cada pequeno passo conta. A tecnologia é uma ferramenta para todos!"
   ],
-  "abertura": "Olá, meu amigo! Cuido desta estufa há 40 anos, sem aparelho nenhum. Temos 1 minuto e meio para colher. Irrigue quando secar (3), trave quando encharcar (2) e proteja do calor (4). Cada ação gasta água ou energia: olhe os números à esquerda!",
+  "abertura": "Olá, meu amigo! Cuido desta estufa há 40 anos, sem aparelho nenhum. Temos só 1 minuto para colher. Irrigue quando secar (3), trave quando encharcar (2) e proteja do calor (4). Cada ação gasta água ou energia: olhe os números à esquerda!",
   "eventos": {
     "HeatWave": "Onda de calor! Isso pede proteção para a planta.",
     "HeavyRain": "Chuva forte! Cuidado para não encharcar: talvez seja hora de travar a irrigação.",
