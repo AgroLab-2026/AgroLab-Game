@@ -2,9 +2,9 @@
 
 Serious game 2D top-down de agricultura de precisão (frente "Game" da iniciação científica AgroLab).
 Você é um fazendeiro que desconfia da tecnologia e cuida de uma estufa ao lado de uma **estufa autônoma**
-controlada por IA. São **5 fases de 1:30**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
-tenta de novo (**3 tentativas por fase**, depois game over). Cada vitória libera tecnologias que ajudam (medem,
-avisam, sugerem), e na última fase a IA sugere as ações e você decide.
+controlada por IA. São **5 fases de 1 minuto**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
+perde uma das **3 vidas do jogo** e repete a fase (sem vidas, game over e recomeço da fase 1). Cada fase traz uma tecnologia nova (medidor de pH,
+timer, sensor, sombrite, painel de dados), que ajuda, mas nunca age sozinha.
 
 HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
@@ -12,8 +12,14 @@ HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
 ## Como rodar
 
-**Windows:** dois cliques em `iniciar.bat`. Ele sobe o servidor local (Node ou Python) e abre o navegador em
-`http://localhost:8080/`.
+**Windows:** extraia o ZIP e dê dois cliques em `iniciar.bat` (dentro da pasta `SementeDaEvolucao-Web`). Ele sobe um
+servidor local e abre o navegador em `http://localhost:8080/`. Usa o Node.js ou o Python, se estiverem instalados;
+se não, usa o **PowerShell**, que já vem no Windows, sem precisar instalar nada. **Deixe a janela preta aberta
+enquanto joga**: fechá-la desliga o jogo.
+
+> **"Não foi possível conectar a localhost:8080"?** O servidor não está rodando. Abra o `iniciar.bat` de novo (sem
+> fechar a janela preta) e aperte F5 no navegador. Se o Windows mostrar "O Windows protegeu o computador", clique em
+> **Mais informações → Executar assim mesmo** (o aviso aparece porque o arquivo veio da internet).
 
 **Linux/macOS:** `./iniciar.sh`
 
@@ -21,6 +27,15 @@ HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
 > Abrir o `index.html` direto (duplo clique, `file://`) **não funciona**: navegadores bloqueiam ES modules fora de
 > um servidor.
+
+## Com a IA do grupo (Random Forest)
+
+Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de alface NFT** do
+[AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
+IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
+modelo. O selo no painel COMPARE E APRENDA! fica verde e pisca a cada resposta ("IA ONLINE"); a tecla **I**
+abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma linha por decisão. Como o jogo traduz a estufa para as colunas do modelo:
+`ia-servidor/LEIA-ME.md`.
 
 ## Controles
 
@@ -34,7 +49,9 @@ HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 | P / Espaço | Pausa |
 | Enter | Confirmar (telas de fase) |
 | F | Tela cheia (projetor) |
+| M | Liga/desliga o som (também há o botão ao lado do título) |
 | B | Minimizar a fala do Sr. Bruno |
+| I | Painel **IA AO VIVO**: o que o jogo enviou para a IA, o que o modelo recebeu e o que respondeu |
 | ` (crase, ao lado do 1) | Modo debug: FPS, variáveis, velocidade 1×/2×/4×, disparar eventos, sobrepor a referência |
 
 Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emular as teclas 1–4 como teclado USB.
@@ -58,8 +75,8 @@ node tests/simular.mjs
 ```
 
 Roda partidas completas das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, fases de no
-máximo 1:30, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
-age sozinho na estufa do jogador, as tentativas e o game over, e o fallback dos provedores de IA.
+máximo 1 minuto, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
+age sozinho na estufa do jogador, as 3 vidas e o game over, e o fallback dos provedores de IA.
 
 ## Estrutura
 

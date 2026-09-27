@@ -48,7 +48,7 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     de dados + IA assistente (`data/progressao.json`).
 16. **1:30 por fase** (tempo real, `fase.tempoLimiteReal`), com cronômetro na lousa "FASE N DE 5".
 17. **Dá para vencer.** Vitória = colher antes do tempo acabar. Derrota = a planta morre ou o tempo acaba. Só avança
-    quem vence; **3 tentativas por fase** (corações na lousa) e, depois, **game over** → recomeça da fase 1. A
+    quem vence; ~~3 tentativas por fase~~ (*v3: 3 vidas para o jogo inteiro, ver #22*) e, depois, **game over** → recomeça da fase 1. A
     comparação com a IA continua (% da eficiência), mas como aprendizado, não como condição de derrota.
 18. **Nada age sozinho na estufa do jogador.** Antes, o sensor de umidade, o sombrite e a IA assistente agiam por
     conta própria (e o fazendeiro andava sozinho). Agora as tecnologias só **medem, avisam, sugerem ou barateiam**:
@@ -65,3 +65,65 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     sempre, colhendo em ~65 s.
 21. **Regras da IA com sombra ativa.** Quando a sombra já está ativa, o provedor `regras` passa para a próxima
     prioridade (ex.: irrigar) em vez de responder "aguardar".
+
+## v3 — mais pressão e vidas para o jogo inteiro
+
+22. **3 vidas para o jogo inteiro** (antes eram 3 tentativas por fase). Cada derrota gasta uma vida e repete a mesma
+    fase; vencer não devolve vida; sem vidas, game over e recomeço da fase 1 (`progressao.json → vidas`). Pensado para
+    o evento: cada visitante joga com 3 vidas.
+23. **Sombrite não gela a estufa.** A sombra corta o excesso de calor e de luz, mas não leva a temperatura nem a luz
+    abaixo do centro da faixa da cultura. Antes, o Sombrite Reforçado (duração dobrada) deixava o morango frio e
+    escuro depois da onda de calor, e até o jogador atento perdia na fase 4.
+24. **Mais pressão** (varredura com 8 partidas × 5 fases por perfil): evaporação 0,46/s, eventos a cada 15–28 s,
+    energia recarrega 2,5/s, crescimento 0,78. Resultado: parado nunca vence; reagindo a cada 20 s, ~37 %; 15 s,
+    ~65 %; 12 s, ~78 %; 9 s, ~93 %; 6 s, 100 %. Quem vence colhe em ~70–74 s (pouca folga no 1:30).
+
+## v4 — efeitos sonoros
+
+25. **Sons sintetizados por código** (`js/audio/Sons.js`, Web Audio API), sem nenhum arquivo de áudio: funcionam offline
+    e não têm problema de direitos autorais. Irrigar (jato de água e gotas), travar (registro metálico), proteger
+    (tecido do sombrite), encher água (balde borbulhando), gasto de energia (faísca), alerta de água/energia baixa,
+    ação negada, bipe dos robôs da IA, onda de calor (zumbido e cigarras), chuva contínua com trovão, praga (insetos),
+    falta de luz e volta da energia, tique do cronômetro nos últimos 10 s (mais agudo nos 5 finais), alarme de tempo
+    esgotado, e músicas curtas de vitória, derrota, game over e vitória final. Tecla **M** ou o botão ao lado do
+    título liga/desliga (a escolha fica salva no navegador). O áudio começa no primeiro clique ou tecla, porque o
+    navegador bloqueia som antes disso, e pausa junto com o jogo.
+26. **Som mais alto e diagnóstico.** Os sons sintetizados saíam em ~10 % do volume máximo (baixo demais em alto-falante
+    de notebook). Agora passam por um compressor com ganho final (picos entre 20 % e 75 %, sem distorcer). O áudio é
+    liberado em qualquer clique, toque ou tecla, e a introdução tem o botão **Testar som**, que toca três notas e diz
+    se o som está desligado no jogo, bloqueado pelo navegador ou funcionando.
+
+## v5 — 1 minuto, energia escassa, ferramentas reordenadas, frutos fiéis
+
+27. **Fase de 1 minuto** (`fase.tempoLimiteReal = 60`).
+28. **Energia escassa:** recarga caiu de 2,5 para **1 por segundo**; custos subiram: irrigar 20, travar 12, proteger 18,
+    encher água 20 (o timer e o sombrite continuam cortando pela metade).
+29. **Mais difícil** (varredura 8 partidas × 5 fases): reagindo a cada 6 s vence ~90 %; 9 s, ~70 %; 12 s, ~60 %;
+    15 s, ~35 %; 20 s, ~22 %; parado, nunca. Quem vence colhe em ~52 s. Números: crescimento 1,05, evaporação 0,56/s,
+    eventos a cada 11–20 s.
+30. **Ferramentas reordenadas, sem IA assistente:** uma por fase — 1 medidor de pH, 2 timer de irrigação, 3 sensor de
+    umidade, 4 sombrite reforçado, 5 painel de dados. A estufa autônoma (a rival) continua.
+31. **Frutos fiéis e visíveis:** o estágio "Colheita" (frutos maduros) passou a começar em 78 % do crescimento; antes só
+    aparecia no instante da colheita e o jogador nunca via morangos vermelhos. Morango redesenhado (vermelho, formato de
+    coração, sementes e cálice); tomate redondo com brilho e cálice em estrela, amadurecendo verde → laranja → vermelho.
+
+## v6 — integração com a IA do grupo
+
+32. **Ponte Python para o Random Forest** (`ia-servidor/`): servidor só com a biblioteca padrão + scikit-learn/joblib,
+    com CORS, que traduz o snapshot do jogo para as colunas do modelo (`config_modelo.json`, com reconhecimento de
+    nomes como `N`, `temperatura`, `umidade_solo`) e os rótulos do modelo para as 4 ações. Culturas que o modelo não
+    cobre respondem 422 e o jogo usa as regras. Modelo **provisório** de alface treinado com dados do simulador
+    (`gerar_dados.mjs`) até a equipe colocar o modelo real. `iniciar_com_ia.bat` sobe tudo. O HUD e o relatório
+    mostram quando a decisão veio do modelo.
+33. **O Random Forest do grupo no jogo.** O repositório AgroLab-IA não tem o modelo salvo, então
+    `treinar_modelo_equipe.py` refaz o treino da Parte 11 do `EDA_Alface.ipynb` (dataset NFT, mesmas colunas,
+    separação e hiperparâmetros; acurácia 0,985 como no notebook). Ele é treinado no PC do jogo, e não vai para o Git,
+    porque o arquivo depende da versão do scikit-learn. O `adaptador_nft.py` traduz as 7 variáveis do jogo para as 17
+    colunas do modelo, pela posição dentro das faixas, e a classe 0–3 para a ferramenta certa do jogo. Com CE alta, o
+    modelo manda aguardar sem fertirrigar, porque o "Travar" do jogo drena o substrato. Com pH baixo, manda travar,
+    que é a ferramenta que corrige o pH. No simulador, o modelo cuida da alface tão bem quanto as regras: saúde 98 %
+    contra 97 %, com um pouco menos de água e energia. O modelo provisório virou o plano B (`config_provisorio.json`).
+34. **Prova de que a IA está funcionando.** Selo com luz no painel COMPARE E APRENDA!: verde e piscando a cada
+    resposta, amarelo quando o modelo não cobre a cultura, vermelho quando o servidor está desligado. A tecla **I**
+    abre o painel IA AO VIVO: o que o jogo enviou, o que o modelo recebeu depois da tradução e a resposta, com a
+    latência. A janela do servidor escreve uma linha por decisão.

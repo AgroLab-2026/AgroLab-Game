@@ -11,6 +11,7 @@
 | `v2-jogando.png` | v2: lousa da fase (tempo, tentativas, colheita), custos nas ferramentas, "Protegendo · 14 s" |
 | `v2-ia-sugere.png` | v2, fase 5: todas as tecnologias e o botão marcado "IA sugere" |
 | `v2-vitoria.png` / `v2-derrota.png` / `v2-game-over.png` | v2: telas de vitória, derrota ("o que deu errado") e game over |
+| `v5-morango-maduro.png` / `v5-tomate-maduro.png` | v5: morangos vermelhos e tomates redondos maduros nas duas estufas |
 | `v2-chapeu-chico-bento.png` | Chapéu de palha clara trançada (copa com vinco, aba virada nas laterais), no fazendeiro e no Sr. Bruno |
 
 Nas capturas `final-*`, a fonte Pixelify Sans não carregou (falha de rede deste ambiente), então aparece a fonte

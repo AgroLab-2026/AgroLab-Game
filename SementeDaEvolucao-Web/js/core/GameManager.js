@@ -2,9 +2,9 @@
 // jogador e a da IA crescerem, executa as 4 ações e conecta todos os sistemas.
 // Não toca DOM nem Canvas: a interface lê o estado e chama DoAction/UI_*.
 //
-// Regras de fase (conversa com a equipe): cada fase dura 1:30 (tempo real).
+// Regras de fase (conversa com a equipe): cada fase dura 1 minuto (tempo real, fase.tempoLimiteReal).
 // VITÓRIA = colher antes do tempo acabar. DERROTA = a planta morre ou o tempo
-// acaba. Só avança quem vence; 3 tentativas por fase, depois game over.
+// acaba. Só avança quem vence; 3 vidas no jogo inteiro, depois game over.
 // Nada age sozinho na estufa do jogador: as tecnologias medem, avisam e sugerem.
 import { EnvironmentState, FarmAction, VARIAVEIS } from './EnvironmentState.js';
 import { Evento } from './Eventos.js';
@@ -17,7 +17,7 @@ import { ClimateModel, novaEstufa } from '../systems/ClimateModel.js';
 import { ProgressionSystem } from '../systems/ProgressionSystem.js';
 import { AutonomousFarmAI } from '../ai/AutonomousFarmAI.js';
 import { BrunoDialogue } from '../ai/BrunoDialogue.js';
-import { criarProvedorIA, criarSnapshot } from '../ai/IAProvider.js';
+import { criarProvedorIA } from '../ai/IAProvider.js';
 
 export const EstadoJogo = Object.freeze({ Jogando: 'jogando', FimDeFase: 'fimDeFase', Pausado: 'pausado' });
 
@@ -85,7 +85,7 @@ export class GameManager {
 
     // Distribui a MESMA instância de ambiente e a cultura para todo mundo.
     this.playerEnv = EnvironmentState.paraCultura(crop);
-    this.estufaJogador = novaEstufa();
+    this.estufaJogador = novaEstufa(crop);
     this.resources.Reset();
     this.playerActions.resources = this.resources;
     this.playerActions.playerEnv = this.playerEnv;
@@ -110,14 +110,10 @@ export class GameManager {
     this.registroGastos = []; // { tempoReal, acao, agua, fertilizante, energia, aguaGanha }
     this.foraDaFaixa = Object.fromEntries(VARIAVEIS.map((v) => [v, 0])); // segundos reais fora da faixa
     this.relatorio = null;
-    this.sugestaoIA = null;
-    this._sugestaoAcum = 0;
-    this._sugestaoPendente = false;
     this._alertMsg = '';
     this.estado = EstadoJogo.Jogando;
 
-    const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura
-      : this.progressao.tem('iaAssistente') ? this.falas.parceria : fase.objetivo;
+    const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura : fase.objetivo;
     this.bruno.Anunciar(texto, 0, 10);
     this.OnFaseIniciada.emit(fase);
   }
@@ -138,7 +134,6 @@ export class GameManager {
 
     const ativa = !this.playerPlant.morta && !this.playerPlant.colhida;
     this.clima.aplicarDeriva(this.playerEnv, this.estufaJogador, ativa, evento, dt);
-    this.pedirSugestaoIA(dt);
 
     this.playerPlant.Tick(this.playerEnv, dt);   // planta do jogador
     this.aiAI.Tick(this.clima, evento, dt, this.tempo); // IA sente o mesmo clima e cultiva a dela
@@ -224,25 +219,6 @@ export class GameManager {
     return null;
   }
 
-  /** IA Assistente: pede ao provedor a melhor ação para a estufa DO JOGADOR, só como sugestão. */
-  pedirSugestaoIA(dt) {
-    if (!this.progressao.tem('iaAssistente')) return;
-    this._sugestaoAcum += dt;
-    if (this._sugestaoPendente || this._sugestaoAcum < this.bal.ia.intervaloDecisao) return;
-    this._sugestaoAcum = 0;
-    this._sugestaoPendente = true;
-    const fase = this.progressao.faseAtual;
-    const snap = criarSnapshot({
-      crop: this.crop, env: this.playerEnv, planta: this.playerPlant, tempo: this.tempo, estufa: this.estufaJogador,
-      recursos: { agua: this.resources.water, fertilizante: this.resources.nutrientStock, energia: this.resources.energy },
-      clima: this.clima.ambienteExterno, evento: this.evento,
-    });
-    this.provedorIA.decidir(snap).then((r) => {
-      this._sugestaoPendente = false;
-      if (this.progressao.faseAtual === fase && this.estado === EstadoJogo.Jogando) this.sugestaoIA = r;
-    }, () => { this._sugestaoPendente = false; });
-  }
-
   // ------------------------------------------------------------ fim de fase e pontuação
   verificarFimDeFase() {
     let motivo = null;
@@ -306,7 +282,8 @@ export class GameManager {
       titulo: this.progressao.dadosFase.titulo,
       cultura: this.crop.cropName,
       tentativa: this.progressao.tentativa,
-      tentativasPorFase: this.progressao.tentativasPorFase,
+      vidas: this.progressao.vidas,
+      vidasMax: this.progressao.vidasMax,
       tempoReal: this.tempoReal,
       eficiencia: p.eficiencia,
       pontuacao: p,
@@ -318,7 +295,7 @@ export class GameManager {
       ia: {
         saude: this.aiAI.aiPlant.health, saudeMedia: this.aiAI.aiPlant.saudeMedia, crescimento: this.aiAI.aiPlant.progresso,
         produtividade: p.prodIA, agua: this.aiAI.waterUsed, energia: this.aiAI.energyUsed,
-        fertilizante: this.aiAI.fertilizerUsed, acoes: this.aiAI.actionsTaken,
+        fertilizante: this.aiAI.fertilizerUsed, acoes: this.aiAI.actionsTaken, decisoes: { ...this.aiAI.decisoes },
       },
       gastos: this.gastosPorAcao(),
       foraDaFaixa: { ...this.foraDaFaixa },
@@ -338,13 +315,13 @@ export class GameManager {
     this.IniciarFase(this.progressao.faseAtual);
   }
 
-  /** Nova tentativa da mesma fase (gasta uma das 3). */
+  /** Repete a mesma fase depois de uma derrota (a vida já foi gasta no resultado). */
   TentarDeNovo(idCultura) {
     this.progressao.novaTentativa();
     this.IniciarFase(this.progressao.faseAtual, idCultura);
   }
 
-  /** Troca a cultura antes de começar, sem gastar tentativa. */
+  /** Troca a cultura antes de começar, sem gastar vida. */
   TrocarCultura(idCultura) { this.IniciarFase(this.progressao.faseAtual, idCultura); }
 
   /** Recomeça o jogo do zero (depois do game over ou da vitória final). */

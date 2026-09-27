@@ -33,12 +33,15 @@ export class AutonomousFarmAI {
 
   static Translate(action) { return TRADUCAO[action] ?? action; }
 
+  /** A decisão veio de um modelo externo (http) e não das regras/fallback? */
+  static doModelo(fonte) { return typeof fonte === 'string' && fonte.startsWith('http'); }
+
   Reset(crop, envInicial) {
     this.crop = crop;
     this.aiPlant.crop = crop;
     this.aiPlant.Reset();
     this.aiEnv = envInicial ? envInicial.Clone() : null;
-    this.estufa = novaEstufa();
+    this.estufa = novaEstufa(crop);
     this.waterUsed = 0;
     this.energyUsed = 0;
     this.fertilizerUsed = 0;
@@ -47,6 +50,8 @@ export class AutonomousFarmAI {
     this.lastReason = 'Aguardando a primeira leitura dos sensores.';
     this.lastSource = this.provedor?.nome ?? 'regras';
     this.historico = [];
+    // Quem decidiu: o modelo externo (ex.: Random Forest do grupo) ou as regras.
+    this.decisoes = { modelo: 0, regras: 0 };
     this._acumulado = 0;
     this._pendente = false;
     this._resposta = null;
@@ -87,6 +92,7 @@ export class AutonomousFarmAI {
     this.lastAction = r.acao;
     this.lastReason = r.motivo || '';
     this.lastSource = r.fonte || this.provedor?.nome;
+    this.decisoes[AutonomousFarmAI.doModelo(this.lastSource) ? 'modelo' : 'regras']++;
     if (r.acao === FarmAction.DoNothing) return;
     aplicarEfeito(this.aiEnv, this.crop, tabela.efeito, this.estufa);
     this.waterUsed += tabela.custo.agua;

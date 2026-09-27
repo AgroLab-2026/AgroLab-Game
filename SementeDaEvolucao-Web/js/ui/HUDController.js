@@ -103,20 +103,20 @@ export class HUDController {
     this.set(e.mao, 'text', h.recursos.mao);
     this.set(e.automacao, 'text', h.recursos.automacao);
 
-    // Lousa da fase: tempo, tentativas e colheita.
+    // Lousa da fase: tempo, vidas (do jogo inteiro) e colheita.
     this.set(e.faseTitulo, 'text', h.fase.titulo);
     this.set(e.faseTempo, 'text', h.fase.tempo);
     this.set(e.lousaFase, 'class', `lousa moldura-lousa ${h.fase.urgencia}`);
     this.set(e.barraColheita, 'width', `${(h.fase.colheita * 100).toFixed(1)}%`);
     this.set(e.txtColheita, 'text', `${Math.floor(h.fase.colheita * 100)}%`);
-    const chaveT = `${h.fase.tentativasRestantes}/${h.fase.tentativasPorFase}`;
+    const chaveT = `${h.fase.vidas}/${h.fase.vidasMax}`;
     if (e.tentativas.dataset.chave !== chaveT) {
       e.tentativas.dataset.chave = chaveT;
-      e.tentativas.title = `Tentativas restantes nesta fase: ${chaveT}`;
+      e.tentativas.title = `Vidas restantes no jogo: ${chaveT}`;
       e.tentativas.innerHTML = '';
-      for (let i = 0; i < h.fase.tentativasPorFase; i++) {
+      for (let i = 0; i < h.fase.vidasMax; i++) {
         const img = document.createElement('img');
-        img.src = iconeUrl(i < h.fase.tentativasRestantes ? 'coracao' : 'coracaoVazio');
+        img.src = iconeUrl(i < h.fase.vidas ? 'coracao' : 'coracaoVazio');
         e.tentativas.appendChild(img);
       }
     }
@@ -199,9 +199,8 @@ export class HUDController {
       const cl = b.btn.classList;
       if (cl.contains('sem-recurso') !== d.falta.length > 0) cl.toggle('sem-recurso', d.falta.length > 0);
       if (cl.contains('em-uso') !== !!d.emUso) cl.toggle('em-uso', !!d.emUso);
-      if (cl.contains('sugerido') !== d.sugerido) cl.toggle('sugerido', d.sugerido);
       if (cl.contains('alerta') !== d.alerta) cl.toggle('alerta', d.alerta);
-      const selo = d.sugerido ? 'IA sugere' : d.alerta ? 'sensor!' : '';
+      const selo = d.alerta ? 'sensor!' : '';
       this.set(b.selo, 'text', selo);
       if (d.emUso) b.uso.style.width = `${(d.emUso * 100).toFixed(1)}%`;
       const nome = b.btn.querySelector('.nome');

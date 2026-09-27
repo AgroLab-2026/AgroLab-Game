@@ -1,8 +1,8 @@
 // Teste headless da simulação: node tests/simular.mjs
 // Roda partidas completas sem navegador e confere as invariantes (nada de NaN,
-// recursos dentro dos limites, fases de até 1:30, os 6 estágios) e o
+// recursos dentro dos limites, fases de até 1 minuto, os 6 estágios) e o
 // balanceamento: quem joga atento vence, quem fica parado perde, nada age
-// sozinho na estufa do jogador, 3 tentativas e game over, fallback da IA.
+// sozinho na estufa do jogador, 3 vidas no jogo e game over, fallback da IA.
 import { readFileSync } from 'node:fs';
 import { GameManager, EstadoJogo } from '../js/core/GameManager.js';
 import { FarmAction, VARIAVEIS } from '../js/core/EnvironmentState.js';
@@ -70,14 +70,14 @@ const CULTURAS = ['AlfaceCrespa', 'Morango', 'Tomate'];
 const resumo = (r) => `${r.rel.venceu ? 'VENCEU' : 'perdeu'} (${r.rel.motivo}) em ${r.segundos.toFixed(0)} s · saúde média ${r.rel.jogador.saudeMedia.toFixed(0)}% · ` +
   `crescimento ${(r.rel.jogador.crescimento * 100).toFixed(0)}% · ${r.rel.jogador.agua.toFixed(0)} L · ${r.rel.jogador.energia.toFixed(0)} energia · ${r.rel.eficiencia}% da IA`;
 
-console.log('Semente da Evolução — teste headless (fases de 1:30)\n');
+console.log('Semente da Evolução — teste headless (fases de 1 minuto)\n');
 
 for (const cultura of CULTURAS) {
   console.log(`▶ ${cultura}`);
   const r = await jogarFase({ cultura, estrategia: atento, reacao: 4 });
   console.log(`  atento (4 s):      ${resumo(r)}`);
   checar(r.rel.venceu, `${cultura}: o jogador atento deveria vencer`);
-  checar(r.segundos <= 90.1, `${cultura}: a fase deveria durar no máximo 1:30 (${r.segundos} s)`);
+  checar(r.segundos <= 60.1, `${cultura}: a fase deveria durar no máximo 1 minuto (${r.segundos} s)`);
   checar(r.estagiosJogador.size === 6, `${cultura}: o jogador atento passou por ${r.estagiosJogador.size} estágios (esperado 6)`);
   checar(r.estagiosIA.size >= 5, `${cultura}: a IA passou por só ${r.estagiosIA.size} estágios`);
   checar(r.rel.eficiencia < 100, `${cultura}: o fazendeiro sozinho não deveria superar a IA (${r.rel.eficiencia}%)`);
@@ -90,7 +90,7 @@ for (const cultura of CULTURAS) {
     if (semente === 1) console.log(`  calmo (9 s):       ${resumo(c)}`);
   }
   console.log(`  calmo venceu ${vitoriasCalmo}/5`);
-  checar(vitoriasCalmo >= 4, `${cultura}: quem reage a cada 9 s deveria vencer quase sempre (${vitoriasCalmo}/5)`);
+  checar(vitoriasCalmo >= 2, `${cultura}: quem reage a cada 9 s deveria vencer boa parte das vezes (${vitoriasCalmo}/5)`);
 
   let vitoriasParado = 0;
   for (const semente of [1, 2, 3, 4, 5]) {
@@ -106,43 +106,49 @@ for (const cultura of CULTURAS) {
   checar(!a.rel.venceu, `${cultura}: irrigar sem parar deveria perder`);
 }
 
-console.log('\n▶ Fase 5 (IA assistente só sugere)');
+console.log('\n▶ Fase 5 (todas as tecnologias; nada age sozinho)');
 {
   const r = await jogarFase({ fase: 5, cultura: 'Tomate', estrategia: nada });
-  checar(r.gm.acoesJogador.length === 0 && r.gm.resources.energiaGasta === 0, 'a IA assistente não pode agir sozinha na estufa do jogador');
-  checar(r.gm.sugestaoIA !== null || r.gm.estado === EstadoJogo.FimDeFase, 'a IA assistente deveria sugerir ações');
-  const segue = (gm) => { const s = gm.sugestaoIA; if (s && s.acao !== FarmAction.DoNothing) gm.DoAction(s.acao); if (gm.resources.water < 6) gm.Refill(); };
-  const r2 = await jogarFase({ fase: 5, cultura: 'Tomate', estrategia: segue, reacao: 4 });
-  console.log(`  seguindo a IA:     ${resumo(r2)}`);
-  checar(r2.rel.venceu, 'seguir as sugestões da IA deveria vencer');
-  checar(r2.gm.progressao.liberadas.size === 6, 'a fase 5 deveria ter as 6 tecnologias');
+  checar(r.gm.acoesJogador.length === 0 && r.gm.resources.energiaGasta === 0, 'nada pode agir sozinho na estufa do jogador');
+  checar(r.gm.progressao.liberadas.size === 5, `a fase 5 deveria ter as 5 tecnologias (${r.gm.progressao.liberadas.size})`);
+  checar(!r.gm.progressao.liberadas.has('iaAssistente'), 'a IA assistente foi removida');
+  const f1 = new GameManager(dados, { rng: criarRng(2) });
+  checar(f1.progressao.tem('medidorPh'), 'o medidor de pH já vem na fase 1');
 }
 
-console.log('\n▶ Tentativas e game over');
+console.log('\n▶ Vidas (3 para o jogo inteiro) e game over');
 {
   const gm = new GameManager(dados, { rng: criarRng(9) });
   checar(gm.progressao.ultimaFase === 5, 'o jogo deveria ter 5 fases');
+  checar(gm.progressao.vidas === 3, 'o jogo começa com 3 vidas');
   const perder = () => { while (gm.estado === EstadoJogo.Jogando) gm.Step(1 / 60); return gm.relatorio; };
+  const vencer = () => { gm.playerPlant.growthPoints = gm.crop.growthPointsToHarvest; gm.Step(1 / 60); return gm.relatorio; };
   let rel = perder();
-  checar(!rel.venceu && rel.proximoPasso === 'tentarDeNovo' && rel.tentativa === 1, `1ª derrota → tentar de novo (${rel.proximoPasso})`);
+  checar(!rel.venceu && rel.proximoPasso === 'tentarDeNovo' && rel.vidas === 2, `1ª derrota → perde 1 vida e repete (${rel.proximoPasso}, vidas ${rel.vidas})`);
   gm.ProximaFase();
   checar(gm.progressao.faseAtual === 1, 'não pode avançar de fase sem vencer');
-  gm.TentarDeNovo(); rel = perder();
-  checar(rel.proximoPasso === 'tentarDeNovo' && rel.tentativa === 2, '2ª derrota → tentar de novo');
-  gm.TentarDeNovo(); rel = perder();
-  checar(rel.proximoPasso === 'gameOver' && rel.tentativa === 3, `3ª derrota → game over (${rel.proximoPasso})`);
-  gm.NovoJogo();
-  checar(gm.progressao.faseAtual === 1 && gm.progressao.tentativa === 1 && gm.progressao.historico.length === 0, 'novo jogo zera fase, tentativas e histórico');
-
-  // Vencer avança e zera as tentativas; vencer a última fase é a vitória final.
-  gm.progressao.tentativa = 2;
-  gm.playerPlant.growthPoints = gm.crop.growthPointsToHarvest; gm.Step(1 / 60);
-  checar(gm.relatorio.venceu && gm.relatorio.proximoPasso === 'proxima', 'colher → vitória e próxima fase');
+  gm.TentarDeNovo(); rel = vencer();
+  checar(rel.venceu && rel.proximoPasso === 'proxima' && rel.vidas === 2, 'vencer não devolve nem gasta vida');
   gm.ProximaFase();
-  checar(gm.progressao.faseAtual === 2 && gm.progressao.tentativa === 1, 'vencer avança e zera as tentativas');
-  gm.IniciarFase(5);
-  gm.playerPlant.growthPoints = gm.crop.growthPointsToHarvest; gm.Step(1 / 60);
-  checar(gm.relatorio.proximoPasso === 'vitoriaFinal', 'vencer a fase 5 é a vitória final');
+  checar(gm.progressao.faseAtual === 2 && gm.progressao.vidas === 2, 'as vidas continuam na fase seguinte (são do jogo, não da fase)');
+  rel = perder();
+  checar(rel.proximoPasso === 'tentarDeNovo' && rel.vidas === 1, '2ª derrota (em outra fase) → última vida');
+  gm.TentarDeNovo(); rel = perder();
+  checar(rel.proximoPasso === 'gameOver' && rel.vidas === 0, `3ª derrota → game over (${rel.proximoPasso})`);
+  gm.NovoJogo();
+  checar(gm.progressao.faseAtual === 1 && gm.progressao.vidas === 3 && gm.progressao.historico.length === 0, 'novo jogo volta à fase 1 com 3 vidas');
+  gm.IniciarFase(5); rel = vencer();
+  checar(rel.proximoPasso === 'vitoriaFinal', 'vencer a fase 5 é a vitória final');
+}
+
+console.log('\n▶ Sombrite não gela a estufa depois do calor');
+{
+  const gm = new GameManager(dados, { rng: criarRng(4) });
+  gm.IniciarFase(4, 'Morango');
+  gm.DoAction(FarmAction.ProtectPlant);
+  for (let i = 0; i < 60 * 25; i++) gm.Step(1 / 60);
+  checar(gm.playerEnv.airTemperature >= gm.crop.temperatureRange.min - 0.5, `com sombra e sem calor, a temperatura não deveria cair abaixo da faixa (${gm.playerEnv.airTemperature.toFixed(1)} °C)`);
+  checar(gm.playerEnv.luminosity >= gm.crop.luminosityRange.min - 1, `com sombra e sem calor, a luz não deveria cair abaixo da faixa (${gm.playerEnv.luminosity.toFixed(0)}%)`);
 }
 
 console.log('\n▶ Provedores de IA e fallback');

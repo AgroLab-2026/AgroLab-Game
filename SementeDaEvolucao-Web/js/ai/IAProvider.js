@@ -55,20 +55,32 @@ export class ProvedorComFallback {
     this.fallback = fallback;
     this.timeoutMs = timeoutMs;
     this.nome = provedor.nome;
+    this.url = provedor.url || '';
     this.falhas = 0;
+    this.respostas = 0; // respostas válidas do provedor externo
+    // Última troca com a IA (para o painel IA AO VIVO): o que foi enviado, o que voltou,
+    // quanto demorou e, se caiu nas regras, por quê.
+    this.ultima = null;
   }
 
+  /** O provedor é externo (a IA de vocês), e não as próprias regras do jogo? */
+  get externo() { return this.provedor !== this.fallback; }
+
   async decidir(snapshot) {
-    if (this.provedor === this.fallback) return { ...(await this.fallback.decidir(snapshot)), fonte: this.nome };
+    if (!this.externo) return { ...(await this.fallback.decidir(snapshot)), fonte: this.nome };
     let timer;
     const tempoEsgotado = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('timeout')), this.timeoutMs); });
+    const inicio = Date.now();
     try {
       const r = await Promise.race([this.provedor.decidir(snapshot), tempoEsgotado]);
       if (!respostaValida(r)) throw new Error('resposta inválida');
+      this.respostas++;
+      this.ultima = { snapshot, resposta: r, erro: null, latenciaMs: Date.now() - inicio, quando: Date.now() };
       return { acao: r.acao, motivo: r.motivo || '', fonte: this.nome };
     } catch (erro) {
       this.falhas++;
       const r = await this.fallback.decidir(snapshot);
+      this.ultima = { snapshot, resposta: null, erro: erro.message, latenciaMs: Date.now() - inicio, quando: Date.now() };
       return { ...r, fonte: `${this.fallback.nome} (fallback: ${erro.message})` };
     } finally {
       clearTimeout(timer);

@@ -104,8 +104,8 @@ export function vistaHud(gm) {
       titulo: `FASE ${prog.faseAtual} DE ${prog.ultimaFase}`,
       tempo: mmss(gm.tempoRestante),
       urgencia: gm.tempoRestante <= 10 ? 'urgente' : gm.tempoRestante <= 25 ? 'pouco-tempo' : '',
-      tentativasRestantes: prog.tentativasPorFase - prog.tentativa + 1,
-      tentativasPorFase: prog.tentativasPorFase,
+      vidas: prog.vidas,
+      vidasMax: prog.vidasMax,
       colheita: gm.playerPlant.progresso,
     },
     ferramentas: ferramentas(gm),
@@ -142,7 +142,6 @@ export function vistaHud(gm) {
  */
 function ferramentas(gm) {
   const jogando = gm.estado === 'jogando';
-  const sugestao = gm.progressao.tem('iaAssistente') ? gm.sugestaoIA?.acao : null;
   const alerta = gm.alertaSensor;
   const sombra = gm.estufaJogador.sombra, total = gm.estufaJogador.sombraTotal || 1;
   const r = {};
@@ -154,7 +153,6 @@ function ferramentas(gm) {
       aguaGanha: acao === 'Refill' ? Math.round(gm.resources.waterMax - gm.resources.water) : 0,
       emUso: acao === 'ProtectPlant' && sombra > 0 ? sombra / total : 0,
       emUsoTxt: acao === 'ProtectPlant' && sombra > 0 ? `${Math.ceil(sombra / gm.timeScale)} s` : '',
-      sugerido: jogando && sugestao === acao && acao !== 'DoNothing',
       alerta: jogando && alerta === acao,
     };
   }

@@ -101,8 +101,7 @@ Outros exemplos:
 ## Onde a IA é usada
 
 1. **Estufa autônoma** (`AutonomousFarmAI`): pede uma decisão a cada 1 s de jogo (`ia.intervaloDecisao`).
-2. **IA assistente** (fase 5): pede decisões para a estufa **do jogador**, a cada 1 s de jogo, **só como sugestão**:
-   o botão da ação ganha a marca "IA sugere" e quem executa é o jogador.
+2. ~~IA assistente~~ (removida na v5 a pedido da equipe).
 
 ## Falas do Sr. Bruno (gerador externo, opcional)
 
@@ -121,6 +120,10 @@ gerador externo, configure `falasUrl` em `data/ia.json` (ou `?falasUrl=`). O jog
 
 e espera `{ "fala": "texto até 280 caracteres" }`. As categorias são `saudeCritica`, `calorLuz`, `encharcado`,
 `seco`, `nutrientes`, `ph`, `semMedidor` e `otimo`. Enquanto a resposta não chega, ou se falhar, vale o roteiro.
+
+## Servidor pronto com Random Forest
+
+A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`) com o Random Forest de alface NFT do grupo. Ele traduz o snapshot para as 17 colunas do modelo (`adaptador_nft.py`), traduz a classe 0–3 para a ferramenta do jogo e responde com a ação e a confiança. Veja `ia-servidor/LEIA-ME.md`.
 
 ## Exemplo mínimo de servidor (Python, para testar)
 

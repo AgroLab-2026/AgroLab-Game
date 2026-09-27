@@ -26,6 +26,10 @@ createServer(async (req, res) => {
   } catch {
     res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Não encontrado');
   }
+}).on('error', (erro) => {
+  if (erro.code === 'EADDRINUSE') console.error(`A porta ${PORTA} já está em uso (o jogo já está aberto em outra janela?). Feche a outra janela ou use: node servidor.mjs 8081`);
+  else console.error(erro);
+  process.exit(1);
 }).listen(PORTA, '127.0.0.1', () => {
-  console.log(`Semente da Evolução rodando em http://localhost:${PORTA}`);
+  console.log(`Semente da Evolução rodando em http://localhost:${PORTA}  (deixe esta janela aberta enquanto joga)`);
 });

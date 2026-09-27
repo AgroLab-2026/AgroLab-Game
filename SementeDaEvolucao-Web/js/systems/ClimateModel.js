@@ -49,8 +49,10 @@ export class ClimateModel {
     const c = this.cfg;
     const ext = this.ambienteExterno;
     const sombra = estufa.sombra > 0;
-    const alvoT = ext.airTemperature + (sombra ? estufa.sombraTemperatura : 0);
-    const alvoL = ext.luminosity + (sombra ? estufa.sombraLuz : 0);
+    // A sombra corta o excesso de calor e de luz, mas não esfria nem escurece a
+    // estufa abaixo do centro da faixa da cultura (pisoTemperatura/pisoLuz).
+    const alvoT = sombra ? Math.max(ext.airTemperature + estufa.sombraTemperatura, Math.min(ext.airTemperature, estufa.pisoTemperatura ?? -Infinity)) : ext.airTemperature;
+    const alvoL = sombra ? Math.max(ext.luminosity + estufa.sombraLuz, Math.min(ext.luminosity, estufa.pisoLuz ?? -Infinity)) : ext.luminosity;
     const k = Math.min(1, c.relaxamentoClima * dt);
     env.airTemperature += (alvoT - env.airTemperature) * k;
     env.luminosity += (alvoL - env.luminosity) * k;
@@ -76,6 +78,10 @@ export class ClimateModel {
 }
 
 /** Estado físico de uma estufa além das 7 variáveis (a sombra ativa). */
-export function novaEstufa() {
-  return { sombra: 0, sombraTemperatura: 0, sombraLuz: 0 };
+export function novaEstufa(crop = null) {
+  return {
+    sombra: 0, sombraTemperatura: 0, sombraLuz: 0,
+    pisoTemperatura: crop ? crop.temperatureRange.centro : -Infinity,
+    pisoLuz: crop ? crop.luminosityRange.centro : -Infinity,
+  };
 }

@@ -375,6 +375,28 @@ const MAPAS = {
     '...kkkk...',
   ], { k: '#2a1a0a', w: '#f4ead0' }],
 
+  somLigado: [[
+    '....k.....k.',
+    '...kk..k...k',
+    'kkkwk...k..k',
+    'kwwwk.k.k..k',
+    'kwwwk.k.k..k',
+    'kkkwk...k..k',
+    '...kk..k...k',
+    '....k.....k.',
+  ], { k: '#2a160a', w: '#f6e3b4' }],
+
+  somDesligado: [[
+    '....k.......',
+    '...kk..r...r',
+    'kkkwk...r.r.',
+    'kwwwk....r..',
+    'kwwwk...r.r.',
+    'kkkwk..r...r',
+    '...kk.......',
+    '....k.......',
+  ], { k: '#2a160a', w: '#f6e3b4', r: '#c8321a' }],
+
   raminho: [[
     '......kk',
     '....kkgk',

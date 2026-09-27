@@ -45,6 +45,7 @@ export class Debug {
       `FPS ${this.fps.toFixed(0)} · estado ${gm.estado} · velocidade ${gm.velocidade}× · timeScale ${gm.timeScale}`,
       `fase ${gm.progressao.faseAtual} · ${gm.crop.cropName} · tempo de jogo ${gm.tempo.toFixed(0)} s`,
       `provedor IA: ${gm.aiAI.lastSource} · falhas ${gm.provedorIA.falhas}`,
+      `som: ${window.jogo?.sons?.ctx?.state ?? 'não iniciado'}${window.jogo?.sons?.mudo ? ' (MUDO)' : ''}`,
       `IA: ${gm.aiAI.ScoreboardLine()}`,
       `evento: ${gm.weather.eventoAtual ?? '-'} · próximo ${gm.weather.proximo} em ${gm.weather.tempoParaProximo.toFixed(0)} s`,
       '',

@@ -1,0 +1,8 @@
+{
+  "_comentario": "O Random Forest da frente de IA (AgroLab-IA/alface/EDA_Alface.ipynb, Parte 11), treinado com alface/nft/dataset_nft.csv por treinar_modelo_equipe.py. O adaptador 'nft' traduz a estufa do jogo para as 17 colunas do modelo e as classes 0-3 para as ferramentas do jogo (ver adaptador_nft.py).",
+  "nome": "Random Forest do AgroLab",
+  "arquivo": "modelo_equipe_alface_nft.joblib",
+  "adaptador": "nft",
+  "culturas": ["AlfaceCrespa"],
+  "porta": 5000
+}
