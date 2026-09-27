@@ -262,7 +262,7 @@ kbd {
 #painel-comparar { left: 738px; top: 355px; width: 284px; height: 240px; padding: 0 5px; }
 .cards { display: grid; grid-template-columns: 1fr 18px 1fr; align-items: center; }
 .vs { text-align: center; font-weight: 700; font-size: 13px; color: #efe0c0; }
-.card { height: 172px; border-radius: 5px; padding: 2px 5px; }
+.card { height: 164px; border-radius: 5px; padding: 2px 5px; }
 .card h3 { margin: 0; text-align: center; font-size: 12px; font-weight: 600; }
 .card-voce { background: var(--voce-fundo); border: 1px solid #4a6a3a; }
 .card-voce h3 { color: var(--voce-titulo); }
@@ -380,3 +380,7 @@ kbd {
 .btn-som:hover { background: #f6d77a; }
 .btn-som img { width: 18px; height: 14px; display: block; }
 .btn-som.mudo { background: #c8906a; }
+
+/* ------------------------------------------------------------ quem decide pela IA */
+.cerebro-ia { text-align: center; font-size: 9px; font-weight: 700; color: #9aa4b0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cerebro-ia.modelo { color: #4fe0f0; }

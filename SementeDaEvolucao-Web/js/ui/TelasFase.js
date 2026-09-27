@@ -128,7 +128,8 @@ export class TelasFase {
       ${linha('Energia gasta', j.energia, ia.energia, un(''))}
       ${linha('Fertilizante gasto', j.fertilizante, ia.fertilizante, (v) => `${+v.toFixed(1)} doses`)}
       ${linha('Ações realizadas', j.acoes, ia.acoes, un(''))}
-    </table>`;
+    </table>
+    ${ia.decisoes && ia.decisoes.modelo ? `<p class="pequeno">A estufa autônoma foi guiada pelo <b>modelo de IA do grupo</b> em ${ia.decisoes.modelo} de ${ia.decisoes.modelo + ia.decisoes.regras} decisões.</p>` : ''}`;
   }
 
   tabelaGastos(rel) {

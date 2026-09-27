@@ -1,0 +1,3 @@
+# Modelo provisório: é gerado pelo treinar_modelo_exemplo.py (não versionar).
+modelo_provisorio_*.joblib
+__pycache__/

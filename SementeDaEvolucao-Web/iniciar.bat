@@ -38,7 +38,7 @@ goto fim
 
 :abrir_navegador
 REM Espera 2 segundos o servidor subir antes de abrir o navegador.
-start "" /min powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 2; Start-Process 'http://localhost:%PORTA%/'"
+start "" /min powershell -NoProfile -WindowStyle Hidden -Command "Start-Sleep -Seconds 2; Start-Process 'http://localhost:%PORTA%/%JOGO_QUERY%'"
 exit /b
 
 :fim

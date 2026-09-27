@@ -121,6 +121,10 @@ gerador externo, configure `falasUrl` em `data/ia.json` (ou `?falasUrl=`). O jog
 e espera `{ "fala": "texto até 280 caracteres" }`. As categorias são `saudeCritica`, `calorLuz`, `encharcado`,
 `seco`, `nutrientes`, `ph`, `semMedidor` e `otimo`. Enquanto a resposta não chega, ou se falhar, vale o roteiro.
 
+## Servidor pronto com Random Forest
+
+A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`), que carrega um modelo scikit-learn, traduz o snapshot para as colunas do modelo (`config_modelo.json`) e responde com a ação e a confiança. Veja `ia-servidor/LEIA-ME.md`.
+
 ## Exemplo mínimo de servidor (Python, para testar)
 
 ```python

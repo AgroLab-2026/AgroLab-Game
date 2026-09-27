@@ -106,3 +106,12 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
 31. **Frutos fiéis e visíveis:** o estágio "Colheita" (frutos maduros) passou a começar em 78 % do crescimento; antes só
     aparecia no instante da colheita e o jogador nunca via morangos vermelhos. Morango redesenhado (vermelho, formato de
     coração, sementes e cálice); tomate redondo com brilho e cálice em estrela, amadurecendo verde → laranja → vermelho.
+
+## v6 — integração com a IA do grupo
+
+32. **Ponte Python para o Random Forest** (`ia-servidor/`): servidor só com a biblioteca padrão + scikit-learn/joblib,
+    com CORS, que traduz o snapshot do jogo para as colunas do modelo (`config_modelo.json`, com reconhecimento de
+    nomes como `N`, `temperatura`, `umidade_solo`) e os rótulos do modelo para as 4 ações. Culturas que o modelo não
+    cobre respondem 422 e o jogo usa as regras. Modelo **provisório** de alface treinado com dados do simulador
+    (`gerar_dados.mjs`) até a equipe colocar o modelo real. `iniciar_com_ia.bat` sobe tudo. O HUD e o relatório
+    mostram quando a decisão veio do modelo.

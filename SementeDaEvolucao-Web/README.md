@@ -28,6 +28,12 @@ enquanto joga**: fechá-la desliga o jogo.
 > Abrir o `index.html` direto (duplo clique, `file://`) **não funciona**: navegadores bloqueiam ES modules fora de
 > um servidor.
 
+## Com a IA do grupo (Random Forest)
+
+Dois cliques em **`iniciar_com_ia.bat`**: ele sobe o servidor da IA (`ia-servidor/`) e abre o jogo já ligado a ela.
+A estufa autônoma passa a ser guiada pelo modelo; o painel COMPARE E APRENDA! mostra quem decidiu. Como trocar o
+modelo provisório pelo de vocês: `ia-servidor/LEIA-ME.md`.
+
 ## Controles
 
 | Tecla | Ação |

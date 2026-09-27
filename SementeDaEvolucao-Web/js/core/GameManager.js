@@ -295,7 +295,7 @@ export class GameManager {
       ia: {
         saude: this.aiAI.aiPlant.health, saudeMedia: this.aiAI.aiPlant.saudeMedia, crescimento: this.aiAI.aiPlant.progresso,
         produtividade: p.prodIA, agua: this.aiAI.waterUsed, energia: this.aiAI.energyUsed,
-        fertilizante: this.aiAI.fertilizerUsed, acoes: this.aiAI.actionsTaken,
+        fertilizante: this.aiAI.fertilizerUsed, acoes: this.aiAI.actionsTaken, decisoes: { ...this.aiAI.decisoes },
       },
       gastos: this.gastosPorAcao(),
       foraDaFaixa: { ...this.foraDaFaixa },
