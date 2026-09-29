@@ -127,3 +127,9 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     resposta, amarelo quando o modelo não cobre a cultura, vermelho quando o servidor está desligado. A tecla **I**
     abre o painel IA AO VIVO: o que o jogo enviou, o que o modelo recebeu depois da tradução e a resposta, com a
     latência. A janela do servidor escreve uma linha por decisão.
+35. **Terminal da IA e ritmo mais lento.** O jogo pede cerca de 2 decisões por segundo, rápido demais para ler.
+    A janela do servidor e o novo terminal da barra lateral (tecla T) mostram só a decisão mais recente a cada 3 s,
+    avisando quantas ficaram de fora. O terminal fica fora do palco e ocupa a faixa lateral que sobra nas telas 16:9
+    (384 px em 1920×1080, 342 px em 1366×768), sem diminuir o jogo. Em telas mais estreitas, o jogo encolhe um pouco
+    para dar lugar a ele. A escala do palco passou a aceitar escala fracionária quando a inteira deixaria o jogo
+    muito menor que a tela.

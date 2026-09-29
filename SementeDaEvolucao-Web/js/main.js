@@ -13,6 +13,7 @@ import { HUDController } from './ui/HUDController.js';
 import { TelasFase } from './ui/TelasFase.js';
 import { Debug } from './ui/Debug.js';
 import { PainelIA } from './ui/PainelIA.js';
+import { TerminalIA } from './ui/TerminalIA.js';
 import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
 import { Sons } from './audio/Sons.js';
@@ -34,7 +35,8 @@ const semente = url.get('semente');
 
 registrarMolduras();
 const palco = document.getElementById('palco');
-const ajustar = () => ajustarEscala(palco);
+let terminal = null; // barra lateral da IA, criada junto com o jogo
+const ajustar = () => ajustarEscala(palco, terminal?.el);
 addEventListener('resize', ajustar);
 ajustar();
 
@@ -48,6 +50,12 @@ const hud = new HUDController();
 const telas = new TelasFase();
 const debug = new Debug(gm);
 const painelIA = new PainelIA(gm);
+// Terminal da IA: aparece sozinho quando o jogo abre ligado à IA externa (iniciar_com_ia.bat).
+terminal = new TerminalIA(gm, {
+  visivel: url.has('terminal') ? url.get('terminal') !== '0' : configIA.ia === 'http',
+  intervalo: Number(url.get('terminalIntervalo') || iaPadrao.terminalIntervalo || 3),
+});
+ajustar();
 const sons = new Sons();
 
 // ------------------------------------------------------------ sons
@@ -166,6 +174,7 @@ addEventListener('keydown', (e) => {
   else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
   else if (tecla === 'm') alternarSom();
   else if (tecla === 'i') painelIA.alternar();
+  else if (tecla === 't') { terminal.alternar(); ajustar(); }
   else if (tecla === 'f') {
     // Tela cheia para o projetor (F11 fica livre para o navegador).
     if (document.fullscreenElement) document.exitFullscreen();
@@ -203,6 +212,7 @@ function quadro(agora) {
     mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
     hud.atualizar(vistaHud(gm));
     painelIA.atualizar();
+    terminal.atualizar(dt);
     const seg = Math.ceil(gm.tempoRestante);
     if (gm.estado === EstadoJogo.Jogando && seg !== ultimoSegundo && seg <= 10 && seg > 0) sons.relogio(seg);
     ultimoSegundo = seg;
@@ -213,4 +223,4 @@ function quadro(agora) {
 requestAnimationFrame(quadro);
 
 // Acesso pelo console para testes e apresentações: window.jogo.gm
-window.jogo = { gm, mundo, hud, telas, sons, painelIA };
+window.jogo = { gm, mundo, hud, telas, sons, painelIA, terminal };

@@ -31,9 +31,15 @@ simulador do jogo.
    enviou** (a estufa da IA, com o que está fora da faixa em vermelho), **2. o que o modelo recebeu** (as colunas
    depois da tradução: CE, nível do reservatório, fase…) e **3. o que ele respondeu** (classe, ação, confiança e
    tempo de resposta). Mexa na estufa ou espere um evento e veja os números mudarem.
-3. **Na janela "IA do AgroLab"**: uma linha por decisão, com o que chegou do jogo, o que o modelo recebeu e a
-   resposta. Se as linhas param de aparecer, o jogo não está mais pedindo decisões.
-4. **No relatório de fim de fase**: quantas decisões vieram do modelo.
+3. **Terminal da IA, na barra lateral do jogo (tecla T).** Abre sozinho pelo `iniciar_com_ia.bat`. Parece um
+   terminal: a cada 3 s digita a decisão mais recente, com o que o jogo enviou (valores fora da faixa em vermelho),
+   o que o modelo viu e a resposta, além do início de cada fase, dos eventos de clima e da conexão caindo ou
+   voltando. O "(+5 decisões)" diz quantas decisões aconteceram entre uma mensagem e outra. Numa tela 16:9 ele
+   ocupa a faixa lateral, sem diminuir o jogo.
+4. **Na janela "IA do AgroLab"**: a mesma decisão mais recente a cada 3 s, com o que chegou do jogo, o que o modelo
+   viu e a resposta. Se as mensagens param, o jogo não está mais pedindo decisões. O ritmo é ajustável:
+   `"intervalo_log_segundos"` em `config_modelo.json` (janela) e `"terminalIntervalo"` em `data/ia.json` (jogo).
+5. **No relatório de fim de fase**: quantas decisões vieram do modelo.
 
 Em http://localhost:5000/ dá para ver o modelo carregado e as colunas.
 

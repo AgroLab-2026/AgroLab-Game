@@ -148,39 +148,52 @@ def decidir(snapshot):
 
 
 # ---------------------------------------------------------------- registro na janela
-# Uma linha por pedido do jogo: o que chegou, o que o modelo recebeu e o que respondeu.
-# É a prova de que a IA está rodando e recebendo os dados do jogo.
-CONTADOR = {"pedidos": 0, "ultima_cultura_fora": None}
+# Prova de que a IA está rodando e recebendo os dados do jogo: o que chegou, o que o modelo
+# recebeu e o que respondeu. O jogo pede ~2 decisões por segundo; para dar tempo de ler, a
+# janela mostra só a mais recente a cada "intervalo_log_segundos" (config, padrão 3 s).
+INTERVALO_LOG = float(CONFIG.get("intervalo_log_segundos", 3))
+REGISTRO = {"pedidos": 0, "ultimo_print": 0.0, "desde_ultimo": 0, "ultima_cultura_fora": None}
 TRAVA_LOG = threading.Lock()
 
 
 def registrar(snapshot, status, corpo):
     with TRAVA_LOG:
-        CONTADOR["pedidos"] += 1
-        n = CONTADOR["pedidos"]
+        REGISTRO["pedidos"] += 1
+        REGISTRO["desde_ultimo"] += 1
+        n = REGISTRO["pedidos"]
+        agora = time.monotonic()
         hora = time.strftime("%H:%M:%S")
         if n == 1:
             print(f"\n[{hora}] Primeiro contato do jogo! Recebendo os dados da estufa da IA.\n", flush=True)
         if status == 422:
+            # Mudança de cultura aparece na hora; depois fica quieto.
             cultura = snapshot.get("cultura", {}).get("nome", "?")
-            if CONTADOR["ultima_cultura_fora"] != cultura:
-                CONTADOR["ultima_cultura_fora"] = cultura
-                print(f"[{hora}] #{n} {cultura}: o modelo não foi treinado para ela -> o jogo usa as regras", flush=True)
+            if REGISTRO["ultima_cultura_fora"] != cultura:
+                REGISTRO["ultima_cultura_fora"] = cultura
+                print(f"[{hora}] {cultura}: o modelo não foi treinado para ela -> o jogo usa as regras\n", flush=True)
+            REGISTRO["desde_ultimo"] = 0
             return
-        CONTADOR["ultima_cultura_fora"] = None
+        REGISTRO["ultima_cultura_fora"] = None
+        if agora - REGISTRO["ultimo_print"] < INTERVALO_LOG:
+            return
+        outras = REGISTRO["desde_ultimo"] - 1
+        REGISTRO["ultimo_print"] = agora
+        REGISTRO["desde_ultimo"] = 0
+        extra = f"   (+{outras} decisões desde a última linha)" if outras > 0 else ""
         if status != 200:
-            print(f"[{hora}] #{n} ERRO: {corpo.get('erro')}", flush=True)
+            print(f"[{hora}] decisão #{n}  ERRO: {corpo.get('erro')}{extra}\n", flush=True)
             return
         a = snapshot["ambiente"]
-        jogo = (f"T {a['airTemperature']:.1f}°C  subst. {a['soilMoisture']:.0f}%  pH {a['ph']:.2f}  "
-                f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f}  luz {a['luminosity']:.0f}%")
+        linhas = [f"[{hora}] decisão #{n}  · {snapshot['cultura']['nome']}  · t={snapshot.get('tempo', 0):.0f}s{extra}",
+                  f"   jogo enviou   T {a['airTemperature']:.1f}°C | substrato {a['soilMoisture']:.0f}% | pH {a['ph']:.2f} | "
+                  f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f} | luz {a['luminosity']:.0f}%"]
         e = corpo.get("entrada") or {}
-        modelo = ""
         if "ce_ms_cm" in e:
-            modelo = (f"  | modelo recebeu: CE {e['ce_ms_cm']:.2f}  reserv. {e['nivel_reservatorio_pct']:.0f}%  "
-                      f"pH {e['ph']:.2f}  ar {e['temp_ar_c']:.1f}°C  fase {e.get('fase', '?')}")
-        print(f"[{hora}] #{n} jogo enviou: {jogo}{modelo}\n           -> {corpo['motivo']}  => {NOMES_ACOES[corpo['acao']]}",
-              flush=True)
+            linhas.append(f"   modelo viu    CE {e['ce_ms_cm']:.2f} mS/cm | reservatório {e['nivel_reservatorio_pct']:.0f}% | "
+                          f"pH {e['ph']:.2f} | ar {e['temp_ar_c']:.1f}°C | fase {e.get('fase', '?')}")
+        motivo = corpo["motivo"].split(": ", 1)[-1]
+        linhas.append(f"   resposta      {motivo}  =>  {NOMES_ACOES[corpo['acao']].upper()}")
+        print("\n".join(linhas) + "\n", flush=True)
 
 
 class Tratador(BaseHTTPRequestHandler):
@@ -227,7 +240,7 @@ if __name__ == "__main__":
     print(f"IA do AgroLab rodando em http://localhost:{porta}/decidir")
     print(f"Modelo: {CONFIG['nome']} ({arquivo.name}) · culturas: {', '.join(sorted(CULTURAS)) or 'todas'}")
     print(f"Colunas do modelo: {', '.join(COLUNAS)}")
-    print("Deixe esta janela aberta enquanto joga. Cada decisão pedida pelo jogo aparece abaixo.")
+    print(f"Deixe esta janela aberta enquanto joga. A decisão mais recente aparece abaixo a cada {INTERVALO_LOG:g} s.")
     try:
         servidor = ThreadingHTTPServer(("127.0.0.1", porta), Tratador)
     except OSError:

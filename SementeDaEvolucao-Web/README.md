@@ -34,7 +34,8 @@ Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random 
 [AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
 IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
 modelo. O selo no painel COMPARE E APRENDA! fica verde e pisca a cada resposta ("IA ONLINE"); a tecla **I**
-abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma linha por decisão. Como o jogo traduz a estufa para as colunas do modelo:
+abre o painel IA AO VIVO com os dados trocados. O **terminal da IA** (barra lateral, tecla **T**) e a janela do
+servidor mostram a decisão mais recente a cada 3 s. Como o jogo traduz a estufa para as colunas do modelo:
 `ia-servidor/LEIA-ME.md`.
 
 ## Controles
@@ -52,6 +53,7 @@ abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma lin
 | M | Liga/desliga o som (também há o botão ao lado do título) |
 | B | Minimizar a fala do Sr. Bruno |
 | I | Painel **IA AO VIVO**: o que o jogo enviou para a IA, o que o modelo recebeu e o que respondeu |
+| T | **Terminal da IA** (barra lateral): a decisão mais recente da IA a cada 3 s, com os dados enviados e recebidos. Abre sozinho pelo `iniciar_com_ia.bat` |
 | ` (crase, ao lado do 1) | Modo debug: FPS, variáveis, velocidade 1×/2×/4×, disparar eventos, sobrepor a referência |
 
 Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emular as teclas 1–4 como teclado USB.
@@ -67,6 +69,7 @@ Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emul
 | `fase` / `cultura` | `?fase=3&cultura=Tomate` | Começar numa fase (1–5) e cultura (útil para apresentar) |
 | `semente` | `?semente=42` | Clima reproduzível |
 | `intro=0`, `debug=1` | | Pular a tela de introdução; abrir o debug |
+| `terminal`, `terminalIntervalo` | `?terminal=1&terminalIntervalo=5` | Mostrar o terminal da IA (padrão: só com `ia=http`) e de quantos em quantos segundos ele escreve |
 
 ## Teste headless
 

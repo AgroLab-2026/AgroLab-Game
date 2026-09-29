@@ -426,3 +426,43 @@ kbd {
 .ia-status.offline { color: #ff8a7a; }
 .ia-status.naocobre { color: #f0c860; }
 .ia-status span { margin-left: auto; font-weight: 600; color: #9aa4b0; font-size: 9.5px; }
+
+/* ------------------------------------------------------------ terminal da IA (barra lateral, tecla T) */
+#terminal-ia {
+  position: fixed; top: 0; right: 0; bottom: 0; width: 320px; z-index: 30;
+  display: flex; flex-direction: column;
+  background: #040a05;
+  border-left: 4px solid #6a360e; box-shadow: inset 3px 0 0 #a8662a, -4px 0 12px rgba(0,0,0,.5);
+  font-family: 'Cascadia Mono', Consolas, 'Lucida Console', 'Courier New', monospace;
+  font-size: 12.5px; line-height: 1.32; color: #8cff9e;
+}
+#terminal-ia[hidden] { display: none; }
+#terminal-ia::after { /* linhas de varredura de monitor antigo */
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(0,0,0,.18) 0 1px, transparent 1px 3px);
+}
+#terminal-ia header { padding: 8px 10px 6px; border-bottom: 1px solid #1c3a22; background: #07140a; }
+#terminal-ia header b { color: #c8ffd0; letter-spacing: .5px; }
+#terminal-ia footer { padding: 4px 10px; border-top: 1px solid #1c3a22; color: #4f8a5a; font-size: 11px; }
+.t-status { display: flex; align-items: center; gap: 6px; margin-top: 4px; color: #9aa4b0; font-weight: 700; }
+.t-status.online { color: #5ff0a0; }
+.t-status.online .led { background: #5ff0a0; box-shadow: 0 0 6px #5ff0a0; transition: opacity .15s; }
+.t-status.online.par .led { opacity: .35; }
+.t-status.offline { color: #ff8a7a; }
+.t-status.offline .led { background: #ff5a4a; animation: piscar-led .6s steps(2) infinite; }
+.t-status.naocobre, .t-status.conectando { color: #f0c860; }
+.t-status.naocobre .led, .t-status.conectando .led { background: #f0c860; }
+.t-corpo { flex: 1; overflow-y: auto; padding: 6px 10px 10px; scrollbar-width: thin; scrollbar-color: #1f5a2a #040a05; }
+.t-linha { white-space: pre-wrap; word-break: break-word; min-height: 1.32em; }
+.t-linha:last-child::after { content: '▌'; color: #8cff9e; animation: piscar-led 1s steps(2) infinite; }
+.t-dim { color: #4f8a5a; }
+.t-num { color: #c8ffd0; font-weight: 700; }
+.t-titulo { color: #ffe08a; font-weight: 700; }
+.t-envio { color: #6fd8ff; }
+.t-recebido { color: #d0a8ff; }
+.t-resposta { color: #c8ffd0; }
+.t-acao { color: #5ff0a0; font-weight: 800; }
+.t-fora { color: #ff8a7a; }
+.t-ok { color: #5ff0a0; }
+.t-alerta { color: #f0c860; }
+.t-erro { color: #ff8a7a; }
