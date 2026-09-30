@@ -133,8 +133,10 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     (384 px em 1920×1080, 342 px em 1366×768), sem diminuir o jogo. Em telas mais estreitas, o jogo encolhe um pouco
     para dar lugar a ele. A escala do palco passou a aceitar escala fracionária quando a inteira deixaria o jogo
     muito menor que a tela.
-36. **Controle PS5 (DualSense).** Usa a Gamepad API do navegador (`js/input/Controle.js`), sem driver nem
-    biblioteca. Os botões de face fazem as 4 ferramentas mais usadas (✕ irrigar, ○ travar, △ proteger, □ encher
-    água), porque são os que o visitante acha sem olhar; L1 aguarda, OPTIONS pausa e confirma. Com o controle
-    conectado, as ferramentas mostram os símbolos do PS5 no lugar das teclas. O teclado e o mouse continuam
-    funcionando juntos.
+36. **Controle de videogame, PlayStation e Xbox.** Usa a Gamepad API do navegador (`js/input/Controle.js`), sem
+    driver nem biblioteca. O "mapeamento padrão" identifica os botões pela posição, então a mesma ação fica no mesmo
+    lugar nos dois controles: embaixo irriga (✕/A), à direita trava (○/B), em cima protege (△/Y), à esquerda enche
+    a água (□/X). O visitante acha esses botões sem olhar. O jogo reconhece a família pelo id do controle (Sony
+    054c, Microsoft 045e; genéricos usam o layout do Xbox) e troca os símbolos das ferramentas, os avisos e a ajuda
+    da introdução. Com dois controles ligados, vale o último que apertou um botão. Teclado e mouse continuam
+    funcionando.

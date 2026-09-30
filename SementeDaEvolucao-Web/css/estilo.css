@@ -467,12 +467,23 @@ kbd {
 .t-alerta { color: #f0c860; }
 .t-erro { color: #ff8a7a; }
 
-/* ------------------------------------------------------------ controle PS5 (DualSense) */
-kbd.ps { display: none; }
+/* ------------------------------------------------------------ controle de videogame (PlayStation / Xbox) */
+kbd.ps, kbd.xb { display: none; }
 body.com-controle .lista-ferramentas button kbd.tecla { display: none; }
-body.com-controle .lista-ferramentas button kbd.ps { display: inline-block; background: #1a1d24; font-size: 10px; font-weight: 900; min-width: 16px; text-align: center; box-shadow: 0 1px 0 #000; }
+body.controle-ps .lista-ferramentas button kbd.ps,
+body.controle-xbox .lista-ferramentas button kbd.xb {
+  display: inline-block; font-size: 10px; font-weight: 900; min-width: 16px; text-align: center; box-shadow: 0 1px 0 #000;
+}
+body.controle-ps .lista-ferramentas button kbd.ps { background: #1a1d24; }
 .lista-ferramentas kbd.ps-x { color: #8fa8ff; }
-.lista-ferramentas kbd.ps-circulo { color: #ff7a7a; }
+.lista-ferramentas kbd.ps-circulo { color: #ff7a7a; font-size: 12px !important; line-height: 1; }
 .lista-ferramentas kbd.ps-triangulo { color: #4fe0b0; }
 .lista-ferramentas kbd.ps-quadrado { color: #f39ae0; }
 .lista-ferramentas kbd.ps-l1 { color: #e8e0c8; font-size: 8px !important; }
+/* Xbox: botões redondos coloridos */
+body.controle-xbox .lista-ferramentas button kbd.xb { color: #fff; border-radius: 50%; width: 16px; height: 16px; min-width: 0; padding: 0; line-height: 16px; }
+.lista-ferramentas kbd.xb-x { background: #3fa535; }         /* A verde */
+.lista-ferramentas kbd.xb-circulo { background: #d8322f; }   /* B vermelho */
+.lista-ferramentas kbd.xb-triangulo { background: #e3a818; } /* Y amarelo */
+.lista-ferramentas kbd.xb-quadrado { background: #1f6fd0; }  /* X azul */
+body.controle-xbox .lista-ferramentas button kbd.xb-l1 { background: #2a2d33; border-radius: 4px; width: auto; padding: 0 3px; font-size: 8px; }

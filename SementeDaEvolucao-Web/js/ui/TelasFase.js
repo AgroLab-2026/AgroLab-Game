@@ -104,7 +104,8 @@ export class TelasFase {
       ${this.custosHtml(gm)}
       <p class="pequeno"><button class="botao-madeira mini" id="btn-testar-som">🔊 Testar som</button> <span id="txt-som"></span></p>
       <p class="pequeno">Controles: teclas 1–4 e R, ou clique nas ferramentas · P pausa · M som · F tela cheia · Enter confirma.
-      <b>Controle PS5:</b> ✕ irrigar · ○ travar · △ proteger · □ encher água · L1 aguardar · OPTIONS pausa · ✕ confirma.
+      <b>Controle PlayStation / Xbox:</b> ✕/A irrigar · ○/B travar · △/Y proteger · □/X encher água · L1/LB aguardar ·
+      OPTIONS/Menu pausa · ✕/A confirma.
       Trocar cultura: ${culturas.map((c) => `<button class="botao-madeira mini" data-cultura="${c.id}"${c.id === gm.crop.id ? ' disabled' : ''}>${esc(c.cropName)}</button>`).join(' ')}</p>`;
     this.abrir(html, [{ texto: 'Começar ▶', principal: true, acao: aoComecar }]);
     const btnSom = this.conteudo.querySelector('#btn-testar-som');

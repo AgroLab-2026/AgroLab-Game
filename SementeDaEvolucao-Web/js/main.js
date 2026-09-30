@@ -187,38 +187,43 @@ function pausar() {
   gm.AlternarPausa();
   sons.suspender(gm.estado === EstadoJogo.Pausado);
   hud.toast(gm.estado === EstadoJogo.Pausado
-    ? `Pausado (${controle.conectado ? 'OPTIONS' : 'P'} para continuar)` : 'Continuando');
+    ? `Pausado (${controle.conectado ? controle.glifo(BOTAO.START) : 'P'} para continuar)` : 'Continuando');
 }
 const alternarBruno = () => document.getElementById('bruno-fala').classList.toggle('minimizado');
 function alternarTerminal() { terminal.alternar(); ajustar(); }
 
-// ------------------------------------------------------------ controle (DualSense / PS5)
-// ✕ irrigar · ○ travar · △ proteger · □ encher água · L1 aguardar
-// OPTIONS pausa · ✕/OPTIONS confirmam nas telas de fase · R1 terminal da IA
-// touchpad painel IA AO VIVO · CREATE som · R2 próxima fala do Bruno · L2 minimizar o Bruno
+// ------------------------------------------------------------ controle (PlayStation e Xbox)
+// Mesma posição nos dois controles (Controle.js); os símbolos na tela se adaptam ao que está em uso.
+//   ✕/A irrigar · ○/B travar · △/Y proteger · □/X encher água · L1/LB aguardar
+//   OPTIONS/Menu pausa · ✕/A ou OPTIONS/Menu confirmam as telas de fase · R1/RB terminal da IA
+//   touchpad ou R3/RS painel IA AO VIVO · CREATE/View som · R2/RT próxima fala · L2/LT minimizar a fala
 const BOTOES_ACAO = {
-  [BOTAO.X]: FarmAction.Irrigate, [BOTAO.CIRCULO]: FarmAction.LockIrrigation, [BOTAO.TRIANGULO]: FarmAction.ProtectPlant,
-  [BOTAO.QUADRADO]: 'Refill', [BOTAO.L1]: FarmAction.DoNothing,
+  [BOTAO.BAIXO_FACE]: FarmAction.Irrigate, [BOTAO.DIREITA_FACE]: FarmAction.LockIrrigation,
+  [BOTAO.CIMA_FACE]: FarmAction.ProtectPlant, [BOTAO.ESQUERDA_FACE]: 'Refill', [BOTAO.L1]: FarmAction.DoNothing,
 };
 const controle = new Controle((botao) => {
   sons.iniciar(); // tenta liberar o áudio (alguns navegadores só liberam com clique ou tecla)
   if (telas.aberta) {
-    if (botao === BOTAO.X || botao === BOTAO.OPTIONS) telas.confirmar();
+    if (botao === BOTAO.BAIXO_FACE || botao === BOTAO.START) telas.confirmar();
     return;
   }
   if (botao in BOTOES_ACAO) agir(BOTOES_ACAO[botao]);
-  else if (botao === BOTAO.OPTIONS) pausar();
+  else if (botao === BOTAO.START) pausar();
   else if (botao === BOTAO.R1) alternarTerminal();
-  else if (botao === BOTAO.TOUCHPAD) painelIA.alternar();
-  else if (botao === BOTAO.CREATE) alternarSom();
+  else if (botao === BOTAO.TOUCHPAD || botao === BOTAO.R3) painelIA.alternar();
+  else if (botao === BOTAO.SELECT) alternarSom();
   else if (botao === BOTAO.R2) gm.bruno.Proxima();
   else if (botao === BOTAO.L2) alternarBruno();
-}, (conectado, nome) => {
-  document.body.classList.toggle('com-controle', conectado || navigator.getGamepads?.().some((g) => g?.connected));
-  hud.toast(conectado ? `${nome} conectado! ✕ irrigar · ○ travar · △ proteger · □ água` : `${nome} desconectado`);
-  if (conectado) controle.vibrar(0.2, 0.4, 150);
+}, ({ conectado, nome, tipo }) => {
+  document.body.classList.toggle('com-controle', conectado);
+  document.body.classList.toggle('controle-ps', tipo === 'ps');
+  document.body.classList.toggle('controle-xbox', tipo === 'xbox');
+  if (!conectado) { hud.toast(`${nome} desconectado`); return; }
+  const g = (b) => controle.glifo(b);
+  hud.toast(`${nome} conectado! ${g(BOTAO.BAIXO_FACE)} irrigar · ${g(BOTAO.DIREITA_FACE)} travar · ` +
+    `${g(BOTAO.CIMA_FACE)} proteger · ${g(BOTAO.ESQUERDA_FACE)} água · ${g(BOTAO.START)} pausa`);
+  controle.vibrar(0.2, 0.4, 150);
 });
-// Vibra quando uma ação do jogador é negada (sem água/energia) e quando a fase termina.
 gm.OnAcao.on((quem, _acao, ok) => { if (quem === 'jogador' && ok === false) controle.vibrar(0.6, 0.6, 180); });
 gm.OnFaseTerminou.on((rel) => controle.vibrar(rel.venceu ? 0.2 : 0.8, 0.6, rel.venceu ? 200 : 450));
 
