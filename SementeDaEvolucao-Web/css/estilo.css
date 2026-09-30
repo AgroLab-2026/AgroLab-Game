@@ -466,3 +466,13 @@ kbd {
 .t-ok { color: #5ff0a0; }
 .t-alerta { color: #f0c860; }
 .t-erro { color: #ff8a7a; }
+
+/* ------------------------------------------------------------ controle PS5 (DualSense) */
+kbd.ps { display: none; }
+body.com-controle .lista-ferramentas button kbd.tecla { display: none; }
+body.com-controle .lista-ferramentas button kbd.ps { display: inline-block; background: #1a1d24; font-size: 10px; font-weight: 900; min-width: 16px; text-align: center; box-shadow: 0 1px 0 #000; }
+.lista-ferramentas kbd.ps-x { color: #8fa8ff; }
+.lista-ferramentas kbd.ps-circulo { color: #ff7a7a; }
+.lista-ferramentas kbd.ps-triangulo { color: #4fe0b0; }
+.lista-ferramentas kbd.ps-quadrado { color: #f39ae0; }
+.lista-ferramentas kbd.ps-l1 { color: #e8e0c8; font-size: 8px !important; }

@@ -58,6 +58,28 @@ servidor mostram a decisão mais recente a cada 3 s. Como o jogo traduz a estufa
 
 Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emular as teclas 1–4 como teclado USB.
 
+### Controle PS5 (DualSense)
+
+Ligue o controle no PC por USB ou Bluetooth e aperte qualquer botão: aparece "DualSense (PS5) conectado!" e as
+ferramentas passam a mostrar os símbolos do controle. Funciona no **Chrome ou Edge**, sem instalar nada (também
+aceita DualShock 4, Xbox e controles genéricos).
+
+| Botão | Ação |
+|---|---|
+| ✕ | Irrigar (e confirmar nas telas de fase) |
+| ○ | Travar irrigação |
+| △ | Proteger a planta |
+| □ | Encher o tanque de água |
+| L1 | Aguardar |
+| OPTIONS | Pausa (e confirmar nas telas de fase) |
+| R1 | Terminal da IA |
+| Touchpad | Painel IA AO VIVO |
+| CREATE | Liga/desliga o som |
+| R2 / L2 | Próxima fala do Sr. Bruno / minimizar a fala |
+
+O controle vibra quando falta recurso para uma ação e no fim de cada fase. Alguns navegadores só liberam o som
+depois de um clique ou tecla: se o jogo estiver mudo, clique uma vez na tela (ou use o botão Testar som).
+
 ## Parâmetros de URL
 
 | Parâmetro | Exemplo | Efeito |

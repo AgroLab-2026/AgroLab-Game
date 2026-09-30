@@ -14,6 +14,7 @@ import { TelasFase } from './ui/TelasFase.js';
 import { Debug } from './ui/Debug.js';
 import { PainelIA } from './ui/PainelIA.js';
 import { TerminalIA } from './ui/TerminalIA.js';
+import { Controle, BOTAO } from './input/Controle.js';
 import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
 import { Sons } from './audio/Sons.js';
@@ -170,17 +171,56 @@ addEventListener('keydown', (e) => {
   const tecla = e.key.toLowerCase();
   if (TECLAS[tecla]) { agir(TECLAS[tecla]); e.preventDefault(); }
   else if (tecla === 'r') agir('Refill');
-  else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); sons.suspender(gm.estado === EstadoJogo.Pausado); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
-  else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
+  else if (tecla === 'p' || e.code === 'Space') { pausar(); e.preventDefault(); }
+  else if (tecla === 'b') alternarBruno();
   else if (tecla === 'm') alternarSom();
   else if (tecla === 'i') painelIA.alternar();
-  else if (tecla === 't') { terminal.alternar(); ajustar(); }
+  else if (tecla === 't') alternarTerminal();
   else if (tecla === 'f') {
     // Tela cheia para o projetor (F11 fica livre para o navegador).
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.().catch(() => {});
   }
 });
+
+function pausar() {
+  gm.AlternarPausa();
+  sons.suspender(gm.estado === EstadoJogo.Pausado);
+  hud.toast(gm.estado === EstadoJogo.Pausado
+    ? `Pausado (${controle.conectado ? 'OPTIONS' : 'P'} para continuar)` : 'Continuando');
+}
+const alternarBruno = () => document.getElementById('bruno-fala').classList.toggle('minimizado');
+function alternarTerminal() { terminal.alternar(); ajustar(); }
+
+// ------------------------------------------------------------ controle (DualSense / PS5)
+// ✕ irrigar · ○ travar · △ proteger · □ encher água · L1 aguardar
+// OPTIONS pausa · ✕/OPTIONS confirmam nas telas de fase · R1 terminal da IA
+// touchpad painel IA AO VIVO · CREATE som · R2 próxima fala do Bruno · L2 minimizar o Bruno
+const BOTOES_ACAO = {
+  [BOTAO.X]: FarmAction.Irrigate, [BOTAO.CIRCULO]: FarmAction.LockIrrigation, [BOTAO.TRIANGULO]: FarmAction.ProtectPlant,
+  [BOTAO.QUADRADO]: 'Refill', [BOTAO.L1]: FarmAction.DoNothing,
+};
+const controle = new Controle((botao) => {
+  sons.iniciar(); // tenta liberar o áudio (alguns navegadores só liberam com clique ou tecla)
+  if (telas.aberta) {
+    if (botao === BOTAO.X || botao === BOTAO.OPTIONS) telas.confirmar();
+    return;
+  }
+  if (botao in BOTOES_ACAO) agir(BOTOES_ACAO[botao]);
+  else if (botao === BOTAO.OPTIONS) pausar();
+  else if (botao === BOTAO.R1) alternarTerminal();
+  else if (botao === BOTAO.TOUCHPAD) painelIA.alternar();
+  else if (botao === BOTAO.CREATE) alternarSom();
+  else if (botao === BOTAO.R2) gm.bruno.Proxima();
+  else if (botao === BOTAO.L2) alternarBruno();
+}, (conectado, nome) => {
+  document.body.classList.toggle('com-controle', conectado || navigator.getGamepads?.().some((g) => g?.connected));
+  hud.toast(conectado ? `${nome} conectado! ✕ irrigar · ○ travar · △ proteger · □ água` : `${nome} desconectado`);
+  if (conectado) controle.vibrar(0.2, 0.4, 150);
+});
+// Vibra quando uma ação do jogador é negada (sem água/energia) e quando a fase termina.
+gm.OnAcao.on((quem, _acao, ok) => { if (quem === 'jogador' && ok === false) controle.vibrar(0.6, 0.6, 180); });
+gm.OnFaseTerminou.on((rel) => controle.vibrar(rel.venceu ? 0.2 : 0.8, 0.6, rel.venceu ? 200 : 450));
 
 for (const btn of document.querySelectorAll('.lista-ferramentas button')) {
   btn.addEventListener('click', () => agir(btn.dataset.acao));
@@ -213,6 +253,7 @@ function quadro(agora) {
     hud.atualizar(vistaHud(gm));
     painelIA.atualizar();
     terminal.atualizar(dt);
+    controle.atualizar();
     const seg = Math.ceil(gm.tempoRestante);
     if (gm.estado === EstadoJogo.Jogando && seg !== ultimoSegundo && seg <= 10 && seg > 0) sons.relogio(seg);
     ultimoSegundo = seg;
