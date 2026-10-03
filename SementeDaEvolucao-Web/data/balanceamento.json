@@ -201,7 +201,7 @@
     }
   },
   "fase": {
-    "_comentario": "Regras da conversa com a equipe: fase de 1 minuto (tempo real). Vitória = colher antes do tempo acabar. Derrota = planta morre ou o tempo acaba e custa 1 das 3 vidas do jogo (progressao.json).",
+    "_comentario": "Regras da conversa com a equipe: tempo padrão de 1 minuto (tempo real); cada fase pode mudar o tempo e a dificuldade em progressao.json -> fases[n].dificuldade. Vitória = colher antes do tempo acabar. Derrota = planta morre ou o tempo acaba e custa 1 das 3 vidas do jogo (progressao.json).",
     "tempoLimiteReal": 60,
     "janelaReacao": 6,
     "pesos": {

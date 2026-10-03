@@ -1,5 +1,5 @@
 {
-  "_comentario": "5 fases de 1 minuto, uma tecnologia nova por fase (o medidor de pH já vem na fase 1). As tecnologias ajudam o jogador (medem, avisam, economizam), mas NUNCA agem sozinhas na estufa dele. O jogador tem 3 VIDAS para o jogo inteiro: cada derrota gasta uma e repete a fase; sem vidas, game over e recomeça da fase 1.",
+  "_comentario": "5 fases com dificuldade progressiva: 1 muito fácil (para entender o jogo), 2 e 3 sobem aos poucos (1 minuto cada), 4 difícil e 5 a mais difícil, com mais tempo (1:30 e 2:00). Uma tecnologia nova por fase (o medidor de pH já vem na fase 1). As tecnologias ajudam o jogador (medem, avisam, economizam), mas NUNCA agem sozinhas na estufa dele. O jogador tem 3 VIDAS para o jogo inteiro: cada derrota gasta uma e repete a fase; sem vidas, game over e recomeça da fase 1. 'dificuldade' multiplica o balanceamento base (1 = sem mudança) e vale para as duas estufas: tempo (s), crescimento, perdaSaude, evaporacao, consumo (nutrientes), intervaloEventos (>1 = eventos mais espaçados), duracaoEventos, intensidadeEventos, energia (recarga).",
   "vidas": 3,
   "tecnologias": [
     {
@@ -41,7 +41,8 @@
       "tecnologias": [
         "medidorPh"
       ],
-      "objetivo": "Use o medidor de pH e colha a alface antes do tempo acabar. Irrigue quando secar."
+      "objetivo": "Use o medidor de pH e colha a alface antes do tempo acabar. Irrigue quando secar.",
+      "dificuldade": { "tempo": 60, "crescimento": 1.1, "evaporacao": 1.0, "consumo": 0.7, "intervaloEventos": 1.8, "intensidadeEventos": 0.6, "perdaSaude": 0.9, "energia": 1.5 }
     },
     {
       "numero": 2,
@@ -50,7 +51,8 @@
       "tecnologias": [
         "timerIrrigacao"
       ],
-      "objetivo": "O timer economiza energia na irrigação. Colha os morangos vermelhos a tempo!"
+      "objetivo": "O timer economiza energia na irrigação. Colha os morangos vermelhos a tempo!",
+      "dificuldade": { "tempo": 60, "crescimento": 1.1, "evaporacao": 0.9, "consumo": 0.85, "intervaloEventos": 1.3, "intensidadeEventos": 0.85, "perdaSaude": 0.85, "energia": 1.2 }
     },
     {
       "numero": 3,
@@ -59,7 +61,8 @@
       "tecnologias": [
         "sensorUmidade"
       ],
-      "objetivo": "O sensor avisa quando secar ou encharcar. O tomate é exigente: colha a tempo."
+      "objetivo": "O sensor avisa quando secar ou encharcar. O tomate é exigente: colha a tempo.",
+      "dificuldade": { "tempo": 60, "crescimento": 1.05, "intensidadeEventos": 0.9, "perdaSaude": 0.9, "evaporacao": 0.95 }
     },
     {
       "numero": 4,
@@ -68,7 +71,8 @@
       "tecnologias": [
         "sombrite"
       ],
-      "objetivo": "O sombrite reforçado dura mais. Enfrente o calor e colha a tempo."
+      "objetivo": "Fase difícil: 1 minuto e meio, com mais calor e mais eventos. O sombrite reforçado dura mais: use na hora certa.",
+      "dificuldade": { "tempo": 90, "crescimento": 0.72, "evaporacao": 1.05, "consumo": 1.05, "intervaloEventos": 0.9, "intensidadeEventos": 1.1, "perdaSaude": 1.05 }
     },
     {
       "numero": 5,
@@ -77,7 +81,8 @@
       "tecnologias": [
         "painelDados"
       ],
-      "objetivo": "Com o painel você sabe o próximo evento. Prepare-se e colha o tomate a tempo!"
+      "objetivo": "A fase mais difícil: 2 minutos de tomate sob clima pesado. O painel mostra o próximo evento: prepare-se antes dele!",
+      "dificuldade": { "tempo": 120, "crescimento": 0.62, "evaporacao": 1.15, "consumo": 1.1, "intervaloEventos": 0.85, "intensidadeEventos": 1.15, "perdaSaude": 1.1, "energia": 0.95 }
     }
   ]
 }

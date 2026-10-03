@@ -140,3 +140,25 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     054c, Microsoft 045e; genéricos usam o layout do Xbox) e troca os símbolos das ferramentas, os avisos e a ajuda
     da introdução. Com dois controles ligados, vale o último que apertou um botão. Teclado e mouse continuam
     funcionando.
+
+## v10 — dificuldade progressiva
+
+37. **Cada fase tem a sua dificuldade** (`progressao.json → fases[n].dificuldade`), com multiplicadores sobre o
+    balanceamento base que valem para as duas estufas: tempo, crescimento, perda de saúde, evaporação, consumo de
+    nutrientes, intervalo/duração/intensidade dos eventos e recarga de energia. Fases 1–3 duram 1 minuto; a 4 dura
+    1:30 e a 5, 2:00. Nas fases longas a planta cresce mais devagar, então o tempo extra é de pressão, não de folga.
+    Varredura (48 partidas por fase; "reage a cada N s" é o jogador simulado que faz a ação certa a cada N segundos):
+
+    | Fase | Tempo | 4 s | 6 s | 9 s | 12 s | 15 s | 20 s | parado |
+    |---|---|---|---|---|---|---|---|---|
+    | 1 Alface | 1:00 | 100 % | 100 % | 100 % | 100 % | 100 % | 83 % | 0 % |
+    | 2 Morango | 1:00 | 100 % | 100 % | 100 % | 100 % | 67 % | 52 % | 0 % |
+    | 3 Tomate | 1:00 | 100 % | 98 % | 85 % | 71 % | 48 % | 27 % | 0 % |
+    | 4 Morango | 1:30 | 100 % | 90 % | 60 % | 58 % | 13 % | 10 % | 0 % |
+    | 5 Tomate | 2:00 | 81 % | 67 % | 40 % | 15 % | 6 % | 0 % | 0 % |
+
+    Quem fica parado continua perdendo em todas as fases, inclusive na 1. O teste headless confere a progressão.
+38. **Fertirrigação de precisão na estufa autônoma.** Com as fases longas, a IA irrigava tanto que os nutrientes
+    passavam do máximo, e a planta dela morria em metade das partidas da fase 5. Agora ela só repõe N, P e K até o
+    centro da faixa. Ela volta a cuidar bem da planta em todas as fases (saúde média de 99–100 %), e a distância
+    para o jogador cresce nas fases difíceis.

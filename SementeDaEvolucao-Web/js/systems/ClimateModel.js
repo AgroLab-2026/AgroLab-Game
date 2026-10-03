@@ -5,6 +5,7 @@ import { limitar } from '../core/EnvironmentState.js';
 export class ClimateModel {
   constructor(cfgAmbiente) {
     this.cfg = cfgAmbiente;
+    this.multiplicadores = { evaporacao: 1, consumo: 1 }; // dificuldade da fase
     this.tempo = 0;
     this.Reset(null);
     this.ambienteExterno = { airTemperature: cfgAmbiente.externoBase.airTemperature, luminosity: cfgAmbiente.externoBase.luminosity, umidadeAr: cfgAmbiente.externoBase.umidadeAr, condicao: 'Ensolarado' };
@@ -58,12 +59,13 @@ export class ClimateModel {
     env.luminosity += (alvoL - env.luminosity) * k;
 
     const evap = c.evaporacaoBase + Math.max(0, env.airTemperature - c.temperaturaReferenciaEvaporacao) * c.evaporacaoPorGrauAcima;
-    env.soilMoisture -= evap * dt;
+    const m = this.multiplicadores;
+    env.soilMoisture -= evap * m.evaporacao * dt;
 
     if (plantaAtiva) {
-      env.nitrogen -= c.consumoNutrientes.nitrogen * dt;
-      env.phosphorus -= c.consumoNutrientes.phosphorus * dt;
-      env.potassium -= c.consumoNutrientes.potassium * dt;
+      env.nitrogen -= c.consumoNutrientes.nitrogen * m.consumo * dt;
+      env.phosphorus -= c.consumoNutrientes.phosphorus * m.consumo * dt;
+      env.potassium -= c.consumoNutrientes.potassium * m.consumo * dt;
     }
     env.ph += c.derivaPh * dt;
 
