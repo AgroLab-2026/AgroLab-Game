@@ -1,0 +1,3 @@
+# Capturas de tela ficam no próprio Git (sem LFS), como no SementeDaEvolucao-Web
+*.jpg -filter -diff -merge binary
+*.png -filter -diff -merge binary

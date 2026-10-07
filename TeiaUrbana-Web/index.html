@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teia Urbana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bangers&family=Barlow+Condensed:wght@500;700&display=swap">
+  <link rel="stylesheet" href="css/estilo.css">
+</head>
+<body>
+  <canvas id="jogo"></canvas>
+
+  <div id="hud" class="oculto">
+    <div id="status">
+      <div class="retrato"><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 4C18 4 10 16 10 30c0 16 10 30 22 30s22-14 22-30C54 16 46 4 32 4z" fill="#1e2672" stroke="#0b0f24" stroke-width="3"/><path d="M32 6v54M12 26h40M14 40h36M32 32L14 14M32 32l18-18M32 32L16 52M32 32l16 20" stroke="#33e1ff" stroke-width="1.3" opacity=".6"/><path d="M14 27c6-4 12-3 15 4-6 3-12 2-15-4zM50 27c-6-4-12-3-15 4 6 3 12 2 15-4z" fill="#f4fbff" stroke="#05060f" stroke-width="2"/></svg><div id="nivel">1</div></div>
+      <div class="barras">
+        <div class="nome">TEIA</div>
+        <div class="vida"><div id="vida-fantasma"></div><div id="vida-barra"></div><span id="vida-txt">100</span></div>
+        <div id="foco"></div>
+        <div class="xp"><div id="xp-barra"></div></div>
+      </div>
+    </div>
+
+    <div id="objetivo"><div id="obj-titulo"></div><div id="obj-texto"></div><div id="obj-tempo"></div></div>
+
+    <div id="canto-dir">
+      <canvas id="minimapa" width="190" height="190"></canvas>
+      <div class="contadores"><span class="ic-cristal"></span><span id="cont-cristais">0/40</span><span class="ic-crime"></span><span id="cont-crimes">0</span></div>
+      <div id="velocidade">0 km/h</div>
+    </div>
+
+    <div id="mira"></div>
+    <div id="mira-zip"><div></div></div>
+    <div id="marcador"><i></i><span></span></div>
+    <div id="sentido"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div id="combo"></div>
+    <div id="xp-pop"></div>
+    <div id="dica"></div>
+    <div id="banner" class="banner"></div>
+    <div id="onomas"></div>
+    <div id="fps"></div>
+    <div id="atalhos"><b>SHIFT</b> teia/correr <b>ESPAÇO</b> pular <b>Q</b> zip <b>CLIQUE</b> soco <b>BOTÃO DIR.</b> teia <b>C</b> esquiva <b>M</b> mapa <b>ESC</b> pausa</div>
+  </div>
+
+  <div id="mapa">
+    <canvas id="mapa-canvas"></canvas>
+    <div class="mapa-legenda">
+      <h2>NOVA AURORA</h2>
+      <p><span class="lg" style="background:#33e1ff"></span> Você</p>
+      <p><span class="lg" style="background:#ff3344"></span> Crime</p>
+      <p><span class="lg quad" style="background:#33e1ff"></span> Desafio de anéis</p>
+      <p><span class="lg losango" style="background:#ffd84a"></span> Cristal de Aurora</p>
+      <p><span class="lg" style="background:#ffc23d"></span> Torre Aurora</p>
+      <small>M ou TAB fecha</small>
+    </div>
+  </div>
+
+  <div id="menu" class="tela">
+    <div class="menu-caixa">
+      <div class="logo"><span class="logo-1">TEIA</span><span class="logo-2">URBANA</span></div>
+      <p class="subtitulo">Balance pelos arranha-céus de Nova Aurora, enfrente o crime e proteja a cidade.</p>
+      <div class="botoes">
+        <button id="btn-jogar" class="btn grande">JOGAR</button>
+        <button data-tela="controles" class="btn">CONTROLES</button>
+        <button data-tela="opcoes" class="btn">OPÇÕES</button>
+        <button id="btn-novo" class="btn fraco">NOVO JOGO</button>
+      </div>
+      <p class="rodape">Clique em JOGAR para capturar o mouse · ESC pausa · Funciona com controle de Xbox/PlayStation</p>
+    </div>
+  </div>
+
+  <div id="pausa" class="tela">
+    <div class="menu-caixa">
+      <div class="logo pequena"><span class="logo-1">PAUSA</span></div>
+      <div id="estatisticas"></div>
+      <div class="botoes">
+        <button id="btn-continuar" class="btn grande">CONTINUAR</button>
+        <button data-tela="controles" class="btn">CONTROLES</button>
+        <button data-tela="opcoes" class="btn">OPÇÕES</button>
+        <button id="btn-menu" class="btn fraco">SALVAR E SAIR</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tela-controles" class="tela">
+    <div class="menu-caixa larga">
+      <div class="logo pequena"><span class="logo-1">CONTROLES</span></div>
+      <div class="grade-controles">
+        <div><h3>Movimento</h3>
+          <p><kbd>W A S D</kbd> mover</p>
+          <p><kbd>Mouse</kbd> câmera</p>
+          <p><kbd>Espaço</kbd> pular · no balanço: impulso</p>
+          <p><kbd>Shift</kbd> no ar: <b>balançar na teia</b> (segure)</p>
+          <p><kbd>Shift</kbd> no chão: correr / escalar paredes</p>
+          <p><kbd>Q</kbd> ou <kbd>botão do meio</kbd> zip até a borda mirada</p>
+          <p>Zip + <kbd>Espaço</kbd> ao chegar = lançamento</p>
+        </div>
+        <div><h3>Combate</h3>
+          <p><kbd>Clique</kbd> soco (combo de 4)</p>
+          <p><kbd>Botão direito</kbd> atirar teia</p>
+          <p><kbd>C</kbd> esquiva (no <b>!</b> = esquiva perfeita)</p>
+          <p><kbd>F</kbd> finalização (1 barra de foco)</p>
+          <p><kbd>R</kbd> cura (1 barra de foco)</p>
+          <p><kbd>E</kbd> iniciar desafio</p>
+        </div>
+        <div><h3>Outros</h3>
+          <p><kbd>M</kbd>/<kbd>Tab</kbd> mapa</p>
+          <p><kbd>T</kbd> avançar a hora do dia</p>
+          <p><kbd>N</kbd> som liga/desliga</p>
+          <p><kbd>Esc</kbd>/<kbd>P</kbd> pausa</p>
+          <h3>Controle</h3>
+          <p><kbd>RT</kbd> teia · <kbd>A</kbd> pular · <kbd>X</kbd> soco · <kbd>Y</kbd> teia · <kbd>B</kbd> esquiva · <kbd>LB</kbd> zip · <kbd>RB</kbd> finalização · <kbd>↓</kbd> cura</p>
+        </div>
+      </div>
+      <div class="botoes"><button data-tela="voltar" class="btn">VOLTAR</button></div>
+    </div>
+  </div>
+
+  <div id="tela-opcoes" class="tela">
+    <div class="menu-caixa">
+      <div class="logo pequena"><span class="logo-1">OPÇÕES</span></div>
+      <div class="opcoes">
+        <label>Qualidade gráfica
+          <select id="opt-qualidade"><option value="baixa">Baixa (notebooks)</option><option value="media">Média</option><option value="alta">Alta</option></select>
+        </label>
+        <label>Sensibilidade do mouse <input id="opt-sens" type="range" min="0.3" max="2.5" step="0.05"></label>
+        <label class="linha"><input id="opt-inverter" type="checkbox"> Inverter eixo vertical</label>
+        <label>Música <input id="opt-musica" type="range" min="0" max="1" step="0.05"></label>
+        <label>Efeitos sonoros <input id="opt-efeitos" type="range" min="0" max="1" step="0.05"></label>
+      </div>
+      <div class="botoes"><button data-tela="voltar" class="btn">VOLTAR</button></div>
+    </div>
+  </div>
+
+  <div id="carregando"><div class="logo"><span class="logo-1">TEIA</span><span class="logo-2">URBANA</span></div><p>Construindo Nova Aurora...</p></div>
+  <pre id="erro"></pre>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
