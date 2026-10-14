@@ -14,7 +14,7 @@ const esperar = () => new Promise((r) => setTimeout(r, 1));
 
 async function jogar(ia, semente) {
   const provedorIA = criarProvedorIA(ia === 'modelo'
-    ? { ia: 'http', iaUrl: 'http://localhost:5000/decidir', timeoutMs: 800 } : { ia: 'regras' });
+    ? { ia: 'http', iaUrl: 'http://127.0.0.1:5000/decidir', timeoutMs: 800 } : { ia: 'regras' });
   const gm = new GameManager(dados, { rng: criarRng(semente), provedorIA });
   gm.IniciarFase(1 + (semente % 5), 'AlfaceCrespa');
   const motivos = {};

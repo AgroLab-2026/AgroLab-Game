@@ -92,7 +92,7 @@ export class TerminalIA {
       this._chaveStatus = chave;
       this.status.className = `t-status ${st.estado}${(prov?.respostas ?? 0) % 2 ? ' par' : ''}`;
       this.statusTexto.textContent = prov?.externo
-        ? `${st.estado === 'online' ? 'ONLINE' : st.estado === 'naocobre' ? 'SÓ REGRAS' : st.estado === 'offline' ? 'DESLIGADA' : '...'} #${prov.respostas}`
+        ? `${{ online: 'ONLINE', naocobre: 'SÓ REGRAS', offline: 'DESLIGADA', lenta: 'LENTA' }[st.estado] ?? '...'} #${prov.respostas}`
         : 'regras do jogo';
     }
 
@@ -100,7 +100,8 @@ export class TerminalIA {
     if (st.estado !== this._estado) {
       this._estado = st.estado;
       if (st.estado === 'online') this.linha([['t-ok', 'conectado ao modelo']]);
-      else if (st.estado === 'offline') this.linha([['t-erro', 'IA desligada -> regras. A janela "IA do AgroLab" está aberta?']]);
+      else if (st.estado === 'offline') this.linha([['t-erro', `${st.texto.replace(' · ', ' -> ')}. A janela "IA do AgroLab" está aberta?`]]);
+      else if (st.estado === 'lenta') this.linha([['t-alerta', 'IA lenta: respostas demorando demais -> regras enquanto isso']]);
       else if (st.estado === 'naocobre') this.linha([['t-alerta', `modelo sem ${prov.ultima.snapshot.cultura.nome} -> regras`]]);
       else if (st.estado === 'regras') this.linha([['t-dim', 'sem IA externa: regras do jogo']]);
     }

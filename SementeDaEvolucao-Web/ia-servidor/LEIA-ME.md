@@ -22,10 +22,13 @@ simulador do jogo.
 ## Como saber se a IA está rodando e recebendo os dados
 
 1. **No jogo, o selo embaixo do painel COMPARE E APRENDA!**
-   - 🟢 `IA ONLINE · Irrigar 97% · 40 ms · #52`: o modelo está respondendo. A luz pisca a cada resposta, e o
+   - 🟢 `IA ONLINE · Irrigar 97% · 15 ms · #52`: o modelo está respondendo. A luz pisca a cada resposta, e o
      número (#52) conta as respostas;
    - 🟡 `IA online · não treinada para Tomate: regras`: o servidor está ligado, mas o modelo não cobre essa cultura;
-   - 🔴 `IA DESLIGADA (servidor desligado) · usando regras`: o jogo não conseguiu falar com o servidor;
+   - 🟡 `IA LENTA (3,0 s por decisão) · usando regras`: o servidor responde, mas demora mais que o limite do jogo
+     (2,5 s). A estufa usa as regras enquanto isso e volta para o modelo sozinha quando ele ficar rápido;
+   - 🔴 `IA DESLIGADA · abra o iniciar_com_ia.bat`: o jogo não encontrou o servidor (a janela "IA do AgroLab" foi
+     fechada, deu erro ao abrir ou ainda está treinando). O jogo testa de novo a cada 4 s;
    - ⚪ `Cérebro da IA: regras do jogo`: o jogo foi aberto sem a IA (pelo `iniciar.bat` comum).
 2. **Tecla I (ou clique no selo): painel IA AO VIVO.** Três colunas atualizadas a cada decisão: **1. o que o jogo
    enviou** (a estufa da IA, com o que está fora da faixa em vermelho), **2. o que o modelo recebeu** (as colunas
@@ -42,6 +45,18 @@ simulador do jogo.
 5. **No relatório de fim de fase**: quantas decisões vieram do modelo.
 
 Em http://localhost:5000/ dá para ver o modelo carregado e as colunas.
+
+## Se aparecer "IA DESLIGADA" ou "IA LENTA"
+
+1. Olhe a janela **"IA do AgroLab"**. Ao abrir, ela mostra `Tempo de uma decisão neste PC: 9 ms`. Depois, a cada
+   3 s, mostra a última decisão com o tempo dela entre colchetes (`[13 ms]`).
+   - **A janela não existe ou fechou sozinha:** abra o `iniciar_com_ia.bat` de novo e leia a mensagem de erro.
+   - **Ela ainda está treinando** (só na primeira vez, cerca de 1 minuto): espere terminar; o jogo reconecta sozinho.
+   - **O tempo passa de 500 ms** (`(LENTO!)`): feche programas pesados. O limite do jogo é `timeoutMs` em
+     `data/ia.json` (2 500 ms).
+2. Abra http://127.0.0.1:5000/ no navegador: deve aparecer `{"ok": true, ...}`.
+3. Atualizou o projeto (`git pull`)? **Feche a janela "IA do AgroLab" antiga** e abra o `iniciar_com_ia.bat` de
+   novo: o servidor só usa o código novo depois de reiniciado.
 
 ## Por que retreinar em vez de usar o arquivo do notebook
 

@@ -518,8 +518,10 @@ kbd {
 .cerebro-ia.online.par .led { opacity: .35; }
 .cerebro-ia.offline { color: #ff8a7a; border-color: #8a3a30; }
 .cerebro-ia.offline .led, .ia-status.offline .led { background: #ff5a4a; animation: piscar-led .6s steps(2) infinite; }
-.cerebro-ia.naocobre, .cerebro-ia.conectando { color: #f0c860; border-color: #7a6030; }
-.cerebro-ia.naocobre .led, .cerebro-ia.conectando .led, .ia-status.naocobre .led { background: #f0c860; }
+.cerebro-ia.naocobre, .cerebro-ia.conectando, .cerebro-ia.lenta { color: #f0c860; border-color: #7a6030; }
+.cerebro-ia.naocobre .led, .cerebro-ia.conectando .led, .ia-status.naocobre .led, .cerebro-ia.lenta .led, .ia-status.lenta .led { background: #f0c860; }
+.cerebro-ia.lenta .led, .ia-status.lenta .led { animation: piscar-led 1s steps(2) infinite; }
+.ia-status.lenta { color: #f0c860; }
 @keyframes piscar-led { 50% { opacity: .2; } }
 
 /* ------------------------------------------------------------ painel IA AO VIVO (tecla I) */
@@ -575,8 +577,8 @@ kbd {
 .t-status.online.par .led { opacity: .35; }
 .t-status.offline { color: #ff8a7a; }
 .t-status.offline .led { background: #ff5a4a; animation: piscar-led .6s steps(2) infinite; }
-.t-status.naocobre, .t-status.conectando { color: #f0c860; }
-.t-status.naocobre .led, .t-status.conectando .led { background: #f0c860; }
+.t-status.naocobre, .t-status.conectando, .t-status.lenta { color: #f0c860; }
+.t-status.naocobre .led, .t-status.conectando .led, .t-status.lenta .led { background: #f0c860; }
 .t-corpo { flex: 1; overflow-y: auto; padding: 4px 7px 6px; scrollbar-width: thin; scrollbar-color: #1f5a2a #040a05; }
 .t-linha { white-space: pre-wrap; word-break: break-word; min-height: 1.25em; }
 .t-linha:last-child::after { content: '▌'; color: #8cff9e; animation: piscar-led 1s steps(2) infinite; }

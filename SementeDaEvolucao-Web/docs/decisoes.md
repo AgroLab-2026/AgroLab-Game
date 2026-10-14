@@ -185,3 +185,20 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
 43. **Pop-ups alinhados.** Avisos numa pílula no centro, logo abaixo da barra de cima, com entrada e saída
     animadas; telas de fase centralizadas, com fundo desfocado e o botão principal brilhando; painel IA AO VIVO
     centralizado.
+
+## v12 — IA que não "desliga" à toa
+
+44. **A IA aparecia como "DESLIGADA (sem resposta)".** O servidor estava ligado, mas cada decisão demorava mais que
+    o limite do jogo (0,8 s). O modelo foi treinado com `n_jobs=-1`, e prever uma linha só repartindo o trabalho
+    entre todos os núcleos é lento, principalmente no Windows. Pior: a cada timeout o jogo mandava outro pedido, e
+    os pedidos se acumulavam até nenhum voltar a tempo. Correções:
+    - **servidor:** usa um núcleo por decisão, calcula as probabilidades uma vez só (a classe sai delas), faz um
+      cálculo por vez e aquece o modelo antes de abrir a porta. Passou de ~80 ms para ~10–20 ms aqui. A janela
+      mostra o tempo de cada decisão;
+    - **jogo:** um pedido de cada vez (nunca empilha), limite de 2,5 s (`data/ia.json → timeoutMs`), "ping" no
+      servidor para separar desligado de lento, e regras na hora quando o servidor está desligado ou lento (a
+      estufa não fica parada esperando); volta para o modelo sozinho;
+    - **selo e terminal:** "IA DESLIGADA" (não encontrou o servidor) e "IA LENTA (x s por decisão)" passaram a
+      ser estados diferentes;
+    - o `iniciar_com_ia.bat` usa `127.0.0.1` em vez de `localhost`, porque no Windows `localhost` pode tentar o
+      IPv6 primeiro e atrasar a conexão.

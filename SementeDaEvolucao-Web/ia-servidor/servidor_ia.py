@@ -88,6 +88,18 @@ if not arquivo.exists():
              f"ou coloque o modelo na pasta ia-servidor e ajuste 'arquivo' em {ARQUIVO_CONFIG.name}.")
 modelo = joblib.load(arquivo)
 
+
+def um_nucleo(obj):
+    """Uma decisão por vez é uma linha só: dividir entre todos os núcleos (n_jobs=-1, como no treino)
+    custa mais do que calcular. No Windows isso chegava a passar de 1 s por decisão."""
+    for etapa in [obj] + [e for _, e in getattr(obj, "steps", [])]:
+        if hasattr(etapa, "n_jobs"):
+            etapa.n_jobs = 1
+
+
+um_nucleo(modelo)
+TRAVA_MODELO = threading.Lock()  # um cálculo por vez: pedidos simultâneos não disputam a CPU
+
 if ADAPTADOR == "nft":
     import adaptador_nft
     COLUNAS = list(getattr(modelo, "feature_names_in_", adaptador_nft.COLUNAS))
@@ -110,9 +122,13 @@ def prever(linha):
     if hasattr(modelo, "feature_names_in_"):
         import pandas as pd  # só quando o modelo foi treinado com DataFrame
         entrada = pd.DataFrame(linha, columns=COLUNAS)
-    previsto = modelo.predict(entrada)[0]
-    confianca = float(np.max(modelo.predict_proba(entrada)[0])) if hasattr(modelo, "predict_proba") else None
-    return previsto, confianca
+    with TRAVA_MODELO:
+        if hasattr(modelo, "predict_proba") and hasattr(modelo, "classes_"):
+            # Uma passada só: a classe é a de maior probabilidade (o mesmo que o predict faria).
+            proba = modelo.predict_proba(entrada)[0]
+            i = int(np.argmax(proba))
+            return modelo.classes_[i], float(proba[i])
+        return modelo.predict(entrada)[0], None
 
 
 def com_confianca(texto, confianca):
@@ -192,7 +208,10 @@ def registrar(snapshot, status, corpo):
             linhas.append(f"   modelo viu    CE {e['ce_ms_cm']:.2f} mS/cm | reservatório {e['nivel_reservatorio_pct']:.0f}% | "
                           f"pH {e['ph']:.2f} | ar {e['temp_ar_c']:.1f}°C | fase {e.get('fase', '?')}")
         motivo = corpo["motivo"].split(": ", 1)[-1]
-        linhas.append(f"   resposta      {motivo}  =>  {NOMES_ACOES[corpo['acao']].upper()}")
+        tempo = corpo.get("ms")
+        aviso = "  (LENTO!)" if tempo and tempo > 500 else ""
+        linhas.append(f"   resposta      {motivo}  =>  {NOMES_ACOES[corpo['acao']].upper()}"
+                      + (f"   [{tempo:.0f} ms]{aviso}" if tempo is not None else ""))
         print("\n".join(linhas) + "\n", flush=True)
 
 
@@ -221,7 +240,11 @@ class Tratador(BaseHTTPRequestHandler):
         try:
             tamanho = int(self.headers.get("Content-Length", 0))
             snapshot = json.loads(self.rfile.read(tamanho) or b"{}")
+            inicio = time.perf_counter()
             status, corpo = decidir(snapshot)
+            corpo_ms = (time.perf_counter() - inicio) * 1000
+            if isinstance(corpo, dict) and status == 200:
+                corpo["ms"] = round(corpo_ms, 1)
         except Exception as erro:  # o jogo cai nas regras se algo der errado aqui
             snapshot = snapshot if "snapshot" in locals() else {}
             status, corpo = 500, {"erro": str(erro)}
@@ -240,6 +263,14 @@ if __name__ == "__main__":
     print(f"IA do AgroLab rodando em http://localhost:{porta}/decidir")
     print(f"Modelo: {CONFIG['nome']} ({arquivo.name}) · culturas: {', '.join(sorted(CULTURAS)) or 'todas'}")
     print(f"Colunas do modelo: {', '.join(COLUNAS)}")
+    # Aquece o modelo (a 1ª previsão carrega bibliotecas) e mede o tempo de uma decisão.
+    zeros = [[0.0] * len(COLUNAS)]
+    prever(zeros)
+    inicio = time.perf_counter()
+    for _ in range(5):
+        prever(zeros)
+    ms = (time.perf_counter() - inicio) / 5 * 1000
+    print(f"Tempo de uma decisão neste PC: {ms:.0f} ms" + ("  (lento: feche outros programas pesados)" if ms > 500 else ""))
     print(f"Deixe esta janela aberta enquanto joga. A decisão mais recente aparece abaixo a cada {INTERVALO_LOG:g} s.")
     try:
         servidor = ThreadingHTTPServer(("127.0.0.1", porta), Tratador)

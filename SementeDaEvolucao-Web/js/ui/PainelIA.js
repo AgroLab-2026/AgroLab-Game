@@ -38,10 +38,14 @@ export function estadoIA(prov) {
   if (u.erro && /HTTP 422/.test(u.erro)) {
     return { estado: 'naocobre', texto: `IA online · não treinada para ${u.snapshot.cultura.nome}: regras` };
   }
-  if (u.erro) {
-    const motivo = u.erro === 'timeout' ? 'sem resposta' : /fetch|network|Failed/i.test(u.erro) ? 'servidor desligado' : u.erro;
-    return { estado: 'offline', texto: `IA DESLIGADA (${motivo}) · usando regras` };
+  if (u.erro === 'servidor desligado') {
+    return { estado: 'offline', texto: 'IA DESLIGADA · abra o iniciar_com_ia.bat' };
   }
+  if (u.erro === 'timeout' || u.erro?.startsWith('aguardando')) {
+    const seg = prov.latenciaReal ? ` (${(prov.latenciaReal / 1000).toFixed(1).replace('.', ',')} s por decisão)` : '';
+    return { estado: 'lenta', texto: `IA LENTA${seg} · usando regras` };
+  }
+  if (u.erro) return { estado: 'offline', texto: `IA COM ERRO (${u.erro}) · usando regras` };
   const acao = AutonomousFarmAI.Translate(u.resposta.acao);
   const conf = (u.resposta.motivo || '').match(/\((\d+)%/);
   return { estado: 'online', texto: `IA ONLINE · ${acao}${conf ? ` ${conf[1]}%` : ''} · ${u.latenciaMs} ms · #${prov.respostas}` };
