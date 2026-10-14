@@ -71,7 +71,7 @@
       "tecnologias": [
         "sombrite"
       ],
-      "objetivo": "Fase difícil: 1 minuto e meio, com mais calor e mais eventos. O sombrite reforçado dura mais: use na hora certa.",
+      "objetivo": "Fase difícil: 1min30 com mais calor e mais eventos. O sombrite reforçado dura mais: use na hora certa!",
       "dificuldade": { "tempo": 90, "crescimento": 0.72, "evaporacao": 1.05, "consumo": 1.05, "intervaloEventos": 0.9, "intensidadeEventos": 1.1, "perdaSaude": 1.05 }
     },
     {
@@ -81,7 +81,7 @@
       "tecnologias": [
         "painelDados"
       ],
-      "objetivo": "A fase mais difícil: 2 minutos de tomate sob clima pesado. O painel mostra o próximo evento: prepare-se antes dele!",
+      "objetivo": "A fase mais difícil: 2 minutos de tomate sob clima pesado. O painel mostra o próximo evento: prepare-se!",
       "dificuldade": { "tempo": 120, "crescimento": 0.62, "evaporacao": 1.15, "consumo": 1.1, "intervaloEventos": 0.85, "intensidadeEventos": 1.15, "perdaSaude": 1.1, "energia": 0.95 }
     }
   ]

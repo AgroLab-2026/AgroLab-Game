@@ -7,6 +7,7 @@ import { criarProvedorIA } from './ai/IAProvider.js';
 import { GeradorFalasHttp } from './ai/provedores/falasHttp.js';
 import { AutonomousFarmAI } from './ai/AutonomousFarmAI.js';
 import { WorldRenderer } from './render/WorldRenderer.js';
+import { Atmosfera } from './render/Atmosfera.js';
 import { registrarMolduras } from './render/Molduras.js';
 import { criarRng } from './render/Pixel.js';
 import { HUDController } from './ui/HUDController.js';
@@ -47,6 +48,24 @@ const gm = new GameManager({ culturas, balanceamento, progressao, falas }, {
   geradorFalas: (url.get('falasUrl') || iaPadrao.falasUrl) ? new GeradorFalasHttp(url.get('falasUrl') || iaPadrao.falasUrl) : null,
 });
 const mundo = new WorldRenderer(document.getElementById('mundo'));
+const atmosfera = new Atmosfera(document.getElementById('atmosfera'));
+const luz = document.getElementById('luz');
+const CLASSE_LUZ = { HeatWave: 'calor', HeavyRain: 'chuva', PowerFailure: 'sem-energia', Pest: 'praga' };
+
+// Painéis entram em sequência no começo de cada fase.
+const hudEl = document.getElementById('hud');
+[...hudEl.querySelectorAll('.moldura, .moldura-lousa')]
+  .sort((a, b) => a.offsetTop - b.offsetTop || a.offsetLeft - b.offsetLeft)
+  .forEach((el, i) => el.style.setProperty('--i', i));
+function animarEntrada() {
+  hudEl.classList.remove('entrada');
+  void hudEl.offsetWidth;
+  hudEl.classList.add('entrada');
+  clearTimeout(animarEntrada.t);
+  animarEntrada.t = setTimeout(() => hudEl.classList.remove('entrada'), 1200);
+}
+gm.OnFaseIniciada.on(animarEntrada);
+animarEntrada();
 const hud = new HUDController();
 const telas = new TelasFase();
 const debug = new Debug(gm);
@@ -112,6 +131,25 @@ gm.OnAcao.on((quem, acao, ok) => {
   if (!ok || acao === 'Refill' || acao === FarmAction.DoNothing) return;
   mundo.animarAcao(quem === 'ia' ? 'ia' : 'jogador', acao);
   if (quem === 'ia' && gm.progressao.tem('painelDados')) hud.toast(`IA: ${AutonomousFarmAI.Translate(acao)} — ${gm.aiAI.lastReason}`, false, 2200);
+});
+// Textos flutuando por cima das estufas: o efeito de cada ação, na hora.
+const CANTEIRO = { x: 404, y: 250 }, ESTANTE_IA = { x: 590, y: 230 }, TANQUE = { x: 264, y: 170 };
+let ultimoFlutuanteIA = 0;
+gm.OnAcao.on((quem, acao, ok) => {
+  const jit = () => (Math.random() - 0.5) * 40;
+  if (quem === 'ia') {
+    if (!ok || acao === FarmAction.DoNothing || performance.now() - ultimoFlutuanteIA < 1200) return;
+    ultimoFlutuanteIA = performance.now();
+    hud.flutuar(`IA: ${AutonomousFarmAI.Translate(acao)}`, ESTANTE_IA.x + jit(), ESTANTE_IA.y, 'ia');
+    return;
+  }
+  if (!ok) { hud.flutuar('sem recurso!', CANTEIRO.x, CANTEIRO.y, 'negado'); return; }
+  const ef = balanceamento.acoesJogador[acao]?.efeito || {};
+  if (acao === FarmAction.Irrigate) hud.flutuar(`+${ef.soilMoisture}% umidade · +nutrientes`, CANTEIRO.x + jit(), CANTEIRO.y, 'agua');
+  else if (acao === FarmAction.LockIrrigation) hud.flutuar(`${ef.soilMoisture}% umidade · pH no centro`, CANTEIRO.x + jit(), CANTEIRO.y, 'travar');
+  else if (acao === FarmAction.ProtectPlant) hud.flutuar(`sombrite: ${Math.round(gm.estufaJogador.sombra / gm.timeScale)} s`, CANTEIRO.x + jit(), CANTEIRO.y, 'sombra');
+  else if (acao === 'Refill') hud.flutuar('tanque cheio!', TANQUE.x, TANQUE.y, 'agua');
+  else if (acao === FarmAction.DoNothing) hud.flutuar('observando...', CANTEIRO.x, CANTEIRO.y, 'calmo');
 });
 // Falhas (falta de recurso, tanque cheio) e "aguardar" viram aviso; gastos viram números.
 gm.OnMensagem.on((texto, ruim) => { if (ruim || texto.includes('aguardar')) hud.toast(texto, ruim); });
@@ -254,7 +292,11 @@ function quadro(agora) {
       while (acumulado >= PASSO) { gm.Step(PASSO); acumulado -= PASSO; }
     }
     tempoAnimacao += gm.estado === EstadoJogo.Pausado ? 0 : dt;
-    mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
+    const vm = vistaMundo(gm, tempoAnimacao);
+    mundo.desenhar(vm, dt);
+    atmosfera.desenhar(vm, gm.estado === EstadoJogo.Pausado ? 0 : dt);
+    const classeLuz = CLASSE_LUZ[vm.evento] || '';
+    if (luz.className !== classeLuz) luz.className = classeLuz;
     hud.atualizar(vistaHud(gm));
     painelIA.atualizar();
     terminal.atualizar(dt);

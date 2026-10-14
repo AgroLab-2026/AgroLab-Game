@@ -32,6 +32,7 @@ export class WeatherEventSystem {
     const ids = Object.keys(this.cfg.eventos);
     this.proximo = ids[Math.floor(this.rng() * ids.length)];
     this.tempoParaProximo = this.minInterval + this.rng() * (this.maxInterval - this.minInterval);
+    this.intervaloAgendado = this.tempoParaProximo; // para a barra de contagem do HUD
   }
 
   /** Dados do evento ativo (ou null). */

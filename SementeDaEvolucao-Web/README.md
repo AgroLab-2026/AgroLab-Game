@@ -9,7 +9,7 @@ timer, sensor, sombrite, painel de dados), que ajuda, mas nunca age sozinha.
 
 HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
-![Jogo × referência](docs/comparacao/final-lado-a-lado.png)
+![Semente da Evolução](docs/comparacao/v11-visual.png)
 
 ## Como rodar
 

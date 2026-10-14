@@ -165,3 +165,23 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
 39. **Terminal da IA menor.** A pedido da equipe, virou um monitor pequeno ao lado do jogo: 200 a 250 px de
     largura, 60 % da altura do palco, alinhado à parte de baixo, com letra menor e cada decisão em 5 linhas
     (o que o jogo enviou, o que o modelo viu, a classe e a ação). Palco e terminal ficam centralizados juntos.
+
+## v11 — visual mais bonito, organizado e reativo
+
+40. **HUD numa grade.** Os painéis estavam no lugar certo, mas com larguras e espaçamentos diferentes. Agora
+    seguem 3 faixas com margem de 8 px e 6 px entre painéis: coluna esquerda (título, objetivo, recursos,
+    ferramentas, Sr. Bruno), centro (uma barra única de clima · previsão · fase em cima e a fala do Sr. Bruno
+    embaixo) e coluna direita (controle, tecnologias, compare, evento). Todos os cabeçalhos têm a mesma altura e
+    letra, e os painéis ganharam sombra e um degradê suave. A grade fica no começo de `css/estilo.css`.
+41. **Luz moderna sobre a pixel art.** A pixel art continua nítida, e por cima dela vem uma camada de luz suave em
+    alta resolução (`#luz` e `js/render/Atmosfera.js`): vinheta, raios de sol que "respiram", poeira dourada no ar,
+    brilho nas telas e no lampião. O tom muda devagar com o clima: quente e com brasas na onda de calor, azul e
+    com gotas e relâmpagos na chuva, escuro na falta de energia (as telas apagam e o lampião brilha mais).
+42. **Reações em tempo real.** Número flutuando sobre a estufa a cada ação (o seu efeito e o da IA); setas ▲▼
+    de tendência e fundo pulsando em vermelho quando uma variável sai da faixa; barra do tempo da fase (verde,
+    laranja, vermelho); barra do evento com a cor de cada evento e um tremor quando ele chega; barras de saúde e
+    crescimento no COMPARE E APRENDA!; corações tremendo ao perder uma vida; painéis entrando em sequência no
+    começo de cada fase.
+43. **Pop-ups alinhados.** Avisos numa pílula no centro, logo abaixo da barra de cima, com entrada e saída
+    animadas; telas de fase centralizadas, com fundo desfocado e o botão principal brilhando; painel IA AO VIVO
+    centralizado.

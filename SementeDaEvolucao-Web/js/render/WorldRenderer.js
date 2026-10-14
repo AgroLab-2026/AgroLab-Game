@@ -239,7 +239,7 @@ export class WorldRenderer {
 
   clima(c, vista, t) {
     if (vista.evento === 'HeatWave') {
-      c.globalAlpha = 0.14 + Math.sin(t * 2) * 0.04;
+      c.globalAlpha = 0.07 + Math.sin(t * 2) * 0.03;
       ret(c, 0, 0, LARGURA, ALTURA, '#ff8a2a');
       c.globalAlpha = 0.35;
       for (let i = 0; i < 18; i++) {
@@ -248,7 +248,7 @@ export class WorldRenderer {
       }
       c.globalAlpha = 1;
     } else if (vista.evento === 'HeavyRain') {
-      c.globalAlpha = 0.22; ret(c, 0, 0, LARGURA, ALTURA, '#1a2a4a'); c.globalAlpha = 0.7;
+      c.globalAlpha = 0.12; ret(c, 0, 0, LARGURA, ALTURA, '#1a2a4a'); c.globalAlpha = 0.7;
       for (const g of this.chuva) linha(c, g.x, g.y, g.x - 2, g.y + 6, '#a8d0f0');
       c.globalAlpha = 1;
     } else if (vista.evento === 'PowerFailure') {
