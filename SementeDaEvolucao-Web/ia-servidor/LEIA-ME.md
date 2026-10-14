@@ -34,8 +34,8 @@ simulador do jogo.
 3. **Terminal da IA, na barra lateral do jogo (tecla T).** Abre sozinho pelo `iniciar_com_ia.bat`. Parece um
    terminal: a cada 3 s digita a decisão mais recente, com o que o jogo enviou (valores fora da faixa em vermelho),
    o que o modelo viu e a resposta, além do início de cada fase, dos eventos de clima e da conexão caindo ou
-   voltando. O "(+5 decisões)" diz quantas decisões aconteceram entre uma mensagem e outra. Numa tela 16:9 ele
-   ocupa a faixa lateral, sem diminuir o jogo.
+   voltando. O "+5" diz quantas decisões aconteceram entre uma mensagem e outra. É um monitor pequeno à direita do
+   jogo (até 250 px de largura e 60 % da altura do jogo), sem diminuir o jogo numa tela 16:9.
 4. **Na janela "IA do AgroLab"**: a mesma decisão mais recente a cada 3 s, com o que chegou do jogo, o que o modelo
    viu e a resposta. Se as mensagens param, o jogo não está mais pedindo decisões. O ritmo é ajustável:
    `"intervalo_log_segundos"` em `config_modelo.json` (janela) e `"terminalIntervalo"` em `data/ia.json` (jogo).

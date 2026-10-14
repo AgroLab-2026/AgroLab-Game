@@ -162,3 +162,6 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     passavam do máximo, e a planta dela morria em metade das partidas da fase 5. Agora ela só repõe N, P e K até o
     centro da faixa. Ela volta a cuidar bem da planta em todas as fases (saúde média de 99–100 %), e a distância
     para o jogador cresce nas fases difíceis.
+39. **Terminal da IA menor.** A pedido da equipe, virou um monitor pequeno ao lado do jogo: 200 a 250 px de
+    largura, 60 % da altura do palco, alinhado à parte de baixo, com letra menor e cada decisão em 5 linhas
+    (o que o jogo enviou, o que o modelo viu, a classe e a ação). Palco e terminal ficam centralizados juntos.

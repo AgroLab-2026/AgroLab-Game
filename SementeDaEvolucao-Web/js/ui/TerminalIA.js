@@ -24,10 +24,9 @@ export class TerminalIA {
     this.el = document.createElement('aside');
     this.el.id = 'terminal-ia';
     this.el.innerHTML = `
-      <header><b>agrolab-ia</b> <span class="t-dim">— terminal da IA</span>
-        <div class="t-status"><i class="led"></i><span></span></div></header>
+      <header><b>agrolab-ia</b><div class="t-status"><i class="led"></i><span></span></div></header>
       <div class="t-corpo" role="log" aria-live="off"></div>
-      <footer>T esconde · decisão mais recente a cada ${intervalo} s</footer>`;
+      <footer>T esconde · a cada ${intervalo} s</footer>`;
     document.body.appendChild(this.el);
     this.corpo = this.el.querySelector('.t-corpo');
     this.status = this.el.querySelector('.t-status');
@@ -47,8 +46,7 @@ export class TerminalIA {
     this._estado = '';
     this._chaveStatus = '';
 
-    this.linha([['t-dim', 'AgroLab IA · Semente da Evolução']]);
-    this.linha([['t-dim', 'aguardando os dados da estufa autônoma...']]);
+    this.linha([['t-dim', 'aguardando a estufa da IA...']]);
     gm.OnFaseIniciada.on((fase) => this.cabecalhoFase(fase));
     if (gm.crop) this.cabecalhoFase(gm.progressao.dadosFase); // a fase 1 já começou no construtor do jogo
     gm.weather.OnEventStarted.on((evt) => {
@@ -58,15 +56,14 @@ export class TerminalIA {
     gm.OnFaseTerminou.on((rel) => {
       const d = rel.ia?.decisoes || {};
       const fim = rel.venceu ? 'você colheu' : rel.motivo === 'morreu' ? 'sua planta morreu' : 'o tempo acabou';
-      this.linha([['t-titulo', `-- fim da fase: ${fim} --`]]);
-      this.linha([['t-dim', `decisões da IA: ${(d.modelo || 0) + (d.regras || 0)} · do modelo: ${d.modelo || 0}`]]);
+      this.linha([['t-titulo', `-- ${fim} --`]]);
+      this.linha([['t-dim', `IA: ${(d.modelo || 0) + (d.regras || 0)} decisões (${d.modelo || 0} do modelo)`]]);
     });
   }
 
   cabecalhoFase(fase) {
     this.linha([]);
     this.linha([['t-titulo', `== FASE ${fase.numero ?? this.gm.progressao.faseAtual} · ${this.gm.crop.cropName} ==`]]);
-    this.linha([['t-dim', fase.titulo || '']]);
     this._ultimoBloco = -Infinity;
     // Respostas que ainda chegarem da fase anterior não aparecem depois deste cabeçalho.
     this._inicioFase = Date.now();
@@ -95,17 +92,17 @@ export class TerminalIA {
       this._chaveStatus = chave;
       this.status.className = `t-status ${st.estado}${(prov?.respostas ?? 0) % 2 ? ' par' : ''}`;
       this.statusTexto.textContent = prov?.externo
-        ? `${st.estado === 'online' ? 'ONLINE' : st.estado === 'naocobre' ? 'ONLINE · cultura fora do modelo' : st.estado === 'offline' ? 'DESLIGADA' : 'conectando'} · #${prov.respostas}${prov.ultima && !prov.ultima.erro ? ` · ${prov.ultima.latenciaMs} ms` : ''}`
-        : 'regras do jogo (sem IA externa)';
+        ? `${st.estado === 'online' ? 'ONLINE' : st.estado === 'naocobre' ? 'SÓ REGRAS' : st.estado === 'offline' ? 'DESLIGADA' : '...'} #${prov.respostas}`
+        : 'regras do jogo';
     }
 
     // Mudanças de estado saem na hora.
     if (st.estado !== this._estado) {
       this._estado = st.estado;
-      if (st.estado === 'online') this.linha([['t-ok', `conectado ao modelo em ${prov.url}`]]);
-      else if (st.estado === 'offline') this.linha([['t-erro', `${st.texto} do jogo. A janela "IA do AgroLab" está aberta?`]]);
-      else if (st.estado === 'naocobre') this.linha([['t-alerta', `modelo não treinado para ${prov.ultima.snapshot.cultura.nome} -> regras do jogo`]]);
-      else if (st.estado === 'regras') this.linha([['t-dim', 'jogo aberto sem a IA externa: a estufa usa as regras do jogo']]);
+      if (st.estado === 'online') this.linha([['t-ok', 'conectado ao modelo']]);
+      else if (st.estado === 'offline') this.linha([['t-erro', 'IA desligada -> regras. A janela "IA do AgroLab" está aberta?']]);
+      else if (st.estado === 'naocobre') this.linha([['t-alerta', `modelo sem ${prov.ultima.snapshot.cultura.nome} -> regras`]]);
+      else if (st.estado === 'regras') this.linha([['t-dim', 'sem IA externa: regras do jogo']]);
     }
 
     const agora = performance.now() / 1000;
@@ -130,26 +127,21 @@ export class TerminalIA {
     const s = u.snapshot, r = u.resposta;
     const linhas = [
       [],
-      [['t-dim', `[${hora()}] `], ['t-num', `#${prov.respostas}`], ['', ` ${s.cultura.nome} · t=${n(s.tempo)}s`],
-        ...(puladas > 0 ? [['t-dim', ` (+${puladas} decisões)`]] : [])],
-      [['t-envio', '> jogo enviou']],
+      [['t-dim', `${hora()} `], ['t-num', `#${prov.respostas}`], ['', ` t=${n(s.tempo)}s`],
+        ...(puladas > 0 ? [['t-dim', ` +${puladas}`]] : [])],
       ...this.linhasAmbiente(s.ambiente, s.cultura.faixas),
     ];
     const e = r.entrada;
     if (e && typeof e === 'object') {
-      linhas.push([['t-recebido', '< modelo viu']]);
-      if ('ce_ms_cm' in e) {
-        linhas.push([['', `  CE ${n(e.ce_ms_cm, 2)}  reserv ${n(e.nivel_reservatorio_pct)}%  pH ${n(e.ph, 2)}`]]);
-        linhas.push([['', `  ar ${n(e.temp_ar_c, 1)}°C  O2 ${n(e.od_mg_l, 1)}  fase ${e.fase ?? '?'}`]]);
-      } else {
-        linhas.push([['', `  ${Object.entries(e).map(([k, v]) => `${k} ${typeof v === 'number' ? n(v, 1) : v}`).join('  ')}`]]);
-      }
+      linhas.push('ce_ms_cm' in e
+        ? [['t-recebido', '< '], ['', `CE ${n(e.ce_ms_cm, 2)} res ${n(e.nivel_reservatorio_pct)}% ${e.fase ?? ''}`]]
+        : [['t-recebido', '< '], ['', Object.entries(e).map(([k, v]) => `${k} ${typeof v === 'number' ? n(v, 1) : v}`).join(' ')]]);
     }
     const conf = (r.motivo || '').match(/\((\d+)% de confiança\)/);
     const causa = (r.motivo || '').replace(/ \(\d+% de confiança\)$/, '').split(': ').slice(1).join(': ');
-    linhas.push([['t-resposta', `= ${Number.isInteger(r.classe) ? `classe ${r.classe} · ` : ''}${causa || CLASSES[r.classe] || ''}`]]);
+    linhas.push([['t-resposta', `= ${Number.isInteger(r.classe) ? `${r.classe} · ` : ''}${causa || CLASSES[r.classe] || ''}`]]);
     linhas.push([['t-acao', `  ${AutonomousFarmAI.Translate(r.acao).toUpperCase()}`],
-      ['t-dim', `${conf ? `  ${conf[1]}%` : ''}  ${u.latenciaMs} ms`]]);
+      ['t-dim', `${conf ? ` ${conf[1]}%` : ''} ${u.latenciaMs}ms`]]);
     return linhas;
   }
 
@@ -163,10 +155,9 @@ export class TerminalIA {
     for (const v of Object.keys(ia.aiEnv.toJSON())) faixas[v] = this.gm.crop.faixaDe(v);
     return [
       [],
-      [['t-dim', `[${hora()}] `], ['t-num', `#${total}`], ['', ` ${this.gm.crop.cropName}`]],
-      [['t-envio', '> estufa da IA']],
+      [['t-dim', `${hora()} `], ['t-num', `#${total}`], ['', ' regras do jogo']],
       ...this.linhasAmbiente(ia.aiEnv.toJSON(), faixas),
-      [['t-resposta', `= regras: ${ia.lastReason}`]],
+      [['t-resposta', `= ${ia.lastReason}`]],
       [['t-acao', `  ${AutonomousFarmAI.Translate(ia.lastAction).toUpperCase()}`]],
     ];
   }
@@ -174,10 +165,10 @@ export class TerminalIA {
   linhasAmbiente(a, f) {
     const v = (chave, texto) => [a[chave] < f[chave].min || a[chave] > f[chave].max ? 't-fora' : '', texto];
     return [
-      [['', '  '], v('airTemperature', `T ${n(a.airTemperature, 1)}°C`), ['', '  '], v('soilMoisture', `subst ${n(a.soilMoisture)}%`),
-        ['', '  '], v('ph', `pH ${n(a.ph, 2)}`)],
-      [['', '  '], v('nitrogen', `N ${n(a.nitrogen)}`), ['', '  '], v('phosphorus', `P ${n(a.phosphorus)}`), ['', '  '],
-        v('potassium', `K ${n(a.potassium)}`), ['', '  '], v('luminosity', `luz ${n(a.luminosity)}%`)],
+      [['t-envio', '> '], v('airTemperature', `${n(a.airTemperature, 1)}°C`), ['', ' '], v('soilMoisture', `sub ${n(a.soilMoisture)}%`),
+        ['', ' '], v('ph', `pH ${n(a.ph, 1)}`)],
+      [['', '  '], v('nitrogen', `N${n(a.nitrogen)}`), ['', ' '], v('phosphorus', `P${n(a.phosphorus)}`), ['', ' '],
+        v('potassium', `K${n(a.potassium)}`), ['', ' '], v('luminosity', `luz ${n(a.luminosity)}%`)],
     ];
   }
 
