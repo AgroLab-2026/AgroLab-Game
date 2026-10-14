@@ -1,6 +1,6 @@
 // Desenho procedural das culturas nos 6 estágios (Semente → Colheita).
 // Substitui os sprites de Crops/ e Sunnyside/ enquanto a arte final não chega.
-import { criarRng, corDoente, elipse, ret, px, clarear, escurecer } from './Pixel.js';
+import { criarRng, corDoente, elipse, ret, px, clarear } from './Pixel.js';
 
 /**
  * Desenha uma planta com a base em (x, y).
@@ -36,7 +36,6 @@ export function desenharPlanta(ctx, x, y, visual, estagio, saude01, semente = 1,
   }
 
   const b = Math.round(balanco);
-  if (visual.forma === 'roseta') return alface(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, rng, b });
   if (visual.forma === 'haste') return tomate(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, rng, b });
   return morango(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, rng, b });
 }
@@ -87,28 +86,6 @@ function frutoMorango(ctx, fx, fy, maturacao, cor) {
   px(ctx, fx + 2, fy + 2, sombra);
   px(ctx, fx, fy, brilho);
   if (maturacao === 2) { px(ctx, fx + 1, fy + 1, semente); px(ctx, fx + 2, fy, semente); px(ctx, fx, fy + 2, semente); }
-}
-
-function alface(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, rng, b }) {
-  const r = [0, 0, 4, 5, 6, 7][estagio];
-  const ry = Math.max(2, r - 2);
-  elipse(ctx, x, y - ry, r, ry, folhaEsc);
-  elipse(ctx, x, y - ry - 1, r - 1, ry - 1 < 1 ? 1 : ry - 1, folha);
-  // Bordas crespas: pixels claros e escuros alternados no contorno.
-  for (let a = 0; a < 14; a++) {
-    const ang = (a / 14) * Math.PI * 2;
-    const fx = x + Math.round(Math.cos(ang) * r), fy = y - ry + Math.round(Math.sin(ang) * ry) - 1;
-    px(ctx, fx, fy, a % 2 ? folhaClara : folhaEsc);
-  }
-  // Miolo mais claro e folhas internas.
-  elipse(ctx, x + b, y - ry - 1, Math.max(1, r - 3), Math.max(1, ry - 2), folhaClara);
-  if (estagio >= 3) {
-    for (let i = 0; i < 3; i++) {
-      const fx = x - r + 2 + Math.round(rng() * (r * 2 - 4));
-      px(ctx, fx, y - ry - 1 - Math.round(rng() * ry), escurecer(folha, 0.1));
-    }
-  }
-  if (estagio >= 5) px(ctx, x, y - ry - 2, clarear(folhaClara, 0.3));
 }
 
 function tomate(ctx, x, y, estagio, { folha, folhaEsc, folhaClara, cor, visual, rng, b }) {

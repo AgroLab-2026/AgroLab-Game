@@ -9,7 +9,10 @@ import { estadoIA } from './PainelIA.js';
 const CHAVE = 'semente.terminal';
 const MAX_LINHAS = 220;
 const CARACTERES_POR_SEGUNDO = 180;
-const CLASSES = { 0: 'não fazer nada', 1: 'travar/corrigir excesso', 2: 'repor/corrigir falta', 3: 'proteger' };
+const CLASSES = {
+  0: 'não fazer nada', 1: 'travar/corrigir excesso', 2: 'repor/corrigir falta', 3: 'proteger',
+  Ideal: 'não fazer nada', Irrigar: 'repor água e nutrientes', Proteger: 'proteger a planta', 'Travar Irrigação': 'parar a irrigação',
+};
 
 const n = (x, casas = 0) => (typeof x === 'number' ? x.toFixed(casas) : '?');
 
@@ -134,13 +137,13 @@ export class TerminalIA {
     ];
     const e = r.entrada;
     if (e && typeof e === 'object') {
-      linhas.push('ce_ms_cm' in e
-        ? [['t-recebido', '< '], ['', `CE ${n(e.ce_ms_cm, 2)} res ${n(e.nivel_reservatorio_pct)}% ${e.fase ?? ''}`]]
+      linhas.push('umidade_solo' in e
+        ? [['t-recebido', '< '], ['', `sub ${n(e.umidade_solo)}% N${n(e.N_mgL)} K${n(e.K_mgL)} Tmáx ${n(e.temp_ar_max, 1)}°`]]
         : [['t-recebido', '< '], ['', Object.entries(e).map(([k, v]) => `${k} ${typeof v === 'number' ? n(v, 1) : v}`).join(' ')]]);
     }
     const conf = (r.motivo || '').match(/\((\d+)% de confiança\)/);
     const causa = (r.motivo || '').replace(/ \(\d+% de confiança\)$/, '').split(': ').slice(1).join(': ');
-    linhas.push([['t-resposta', `= ${Number.isInteger(r.classe) ? `${r.classe} · ` : ''}${causa || CLASSES[r.classe] || ''}`]]);
+    linhas.push([['t-resposta', `= ${causa || CLASSES[r.classe] || r.classe || ''}`]]);
     linhas.push([['t-acao', `  ${AutonomousFarmAI.Translate(r.acao).toUpperCase()}`],
       ['t-dim', `${conf ? ` ${conf[1]}%` : ''} ${u.latenciaMs}ms`]]);
     return linhas;

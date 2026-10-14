@@ -31,13 +31,11 @@ enquanto joga**: fechá-la desliga o jogo.
 
 ## Com a IA do grupo (Random Forest)
 
-Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de alface NFT** do
-[AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
-IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
-modelo. O selo no painel COMPARE E APRENDA! fica verde e pisca a cada resposta ("IA ONLINE"); a tecla **I**
-abre o painel IA AO VIVO com os dados trocados. O **terminal da IA** (barra lateral, tecla **T**) e a janela do
-servidor mostram a decisão mais recente a cada 3 s. Como o jogo traduz a estufa para as colunas do modelo:
-`ia-servidor/LEIA-ME.md`.
+Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de morango** do
+[AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,918), sobe o servidor
+da IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de morango (1, 3 e 5), a estufa autônoma passa a
+ser guiada pelo modelo; nas de tomate, pelas regras do jogo. Como o jogo traduz a estufa para as colunas do
+modelo: `ia-servidor/LEIA-ME.md`.
 
 ## Controles
 

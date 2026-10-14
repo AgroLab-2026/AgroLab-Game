@@ -16,7 +16,7 @@ async function jogar(ia, semente) {
   const provedorIA = criarProvedorIA(ia === 'modelo'
     ? { ia: 'http', iaUrl: 'http://127.0.0.1:5000/decidir', timeoutMs: 800 } : { ia: 'regras' });
   const gm = new GameManager(dados, { rng: criarRng(semente), provedorIA });
-  gm.IniciarFase(1 + (semente % 5), 'AlfaceCrespa');
+  gm.IniciarFase(1 + (semente % 5), 'Morango');
   const motivos = {};
   gm.aiAI.OnAction.on((_, m) => { const k = m.replace(/ \(\d+% de confiança\)$/, ''); motivos[k] = (motivos[k] || 0) + 1; });
   // O jogador reage a cada 6 s, só para a fase ter a duração normal. Cada partida espera a
@@ -38,7 +38,7 @@ for (const ia of ['regras', 'modelo']) {
   const rs = [];
   for (let s = 1; s <= partidas; s++) rs.push(await jogar(ia, s));
   const media = (f) => rs.reduce((a, r) => a + f(r), 0) / rs.length;
-  console.log(`\n${ia === 'modelo' ? 'MODELO (servidor_ia.py)' : 'REGRAS DO JOGO'} · ${partidas} partidas de alface`);
+  console.log(`\n${ia === 'modelo' ? 'MODELO (servidor_ia.py)' : 'REGRAS DO JOGO'} · ${partidas} partidas de morango`);
   console.log(`  saúde média ${media((r) => r.saude).toFixed(1)}% · crescimento ${(100 * media((r) => r.crescimento)).toFixed(0)}% · ` +
     `plantas mortas ${rs.filter((r) => r.morta).length} · água ${media((r) => r.agua).toFixed(1)} L · energia ${media((r) => r.energia).toFixed(0)}`);
   if (ia === 'modelo') {

@@ -1,13 +1,13 @@
 // Gera um CSV de treino a partir do simulador do jogo: situações variadas da
 // estufa (as 7 variáveis) com a ação que as regras do AutonomousFarmAI tomariam.
 // Uso: node ia-servidor/gerar_dados.mjs [Cultura] [linhas]
-//   ex.: node ia-servidor/gerar_dados.mjs AlfaceCrespa 6000
+//   ex.: node ia-servidor/gerar_dados.mjs Morango 6000
 import { readFileSync, writeFileSync } from 'node:fs';
 import { GameManager } from '../js/core/GameManager.js';
 import { FarmAction, VARIAVEIS } from '../js/core/EnvironmentState.js';
 import { criarRng } from '../js/render/Pixel.js';
 
-const cultura = process.argv[2] || 'AlfaceCrespa';
+const cultura = process.argv[2] || 'Morango';
 const linhas = Number(process.argv[3] || 6000);
 const ler = (f) => JSON.parse(readFileSync(new URL(`../data/${f}`, import.meta.url), 'utf8'));
 const dados = { culturas: ler('culturas.json'), balanceamento: ler('balanceamento.json'), progressao: ler('progressao.json'), falas: ler('falas.json') };

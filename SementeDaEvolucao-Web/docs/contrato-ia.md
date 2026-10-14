@@ -123,7 +123,7 @@ e espera `{ "fala": "texto até 280 caracteres" }`. As categorias são `saudeCri
 
 ## Servidor pronto com Random Forest
 
-A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`) com o Random Forest de alface NFT do grupo. Ele traduz o snapshot para as 17 colunas do modelo (`adaptador_nft.py`), traduz a classe 0–3 para a ferramenta do jogo e responde com a ação e a confiança. Veja `ia-servidor/LEIA-ME.md`.
+A pasta `ia-servidor/` já tem o servidor real (`servidor_ia.py`) com o Random Forest de morango do grupo. Ele traduz o snapshot para as 15 colunas do modelo (`adaptador_morango.py`), traduz a ação do modelo para a ferramenta do jogo e responde com a ação e a confiança. Para o tomate, o servidor responde 422 e o jogo usa as regras. Veja `ia-servidor/LEIA-ME.md`.
 
 ## Exemplo mínimo de servidor (Python, para testar)
 

@@ -20,15 +20,21 @@ const ENVIADO = [
 
 // Colunas conhecidas do modelo (adaptador NFT e modo direto); as outras aparecem com o nome cru.
 const RECEBIDO = {
-  ce_ms_cm: ['CE da solução', 'mS/cm'], ph: ['pH', ''], N: ['Nitrogênio', 'mg/L'], P: ['Fósforo', 'mg/L'], K: ['Potássio', 'mg/L'],
-  temp_solucao_c: ['Temp. da solução', '°C'], od_mg_l: ['O₂ dissolvido', 'mg/L'], nivel_reservatorio_pct: ['Nível do reservatório', '%'],
-  temp_ar_c: ['Temp. do ar', '°C'], temp_max_c: ['Temp. máxima', '°C'], temp_min_c: ['Temp. mínima', '°C'],
-  umidade_relativa_pct: ['Umidade do ar', '%'], vpd_kpa: ['VPD', 'kPa'], dli_mol_m2_d: ['Luz do dia (DLI)', 'mol/m²'],
-  dias_apos_transplante: ['Dias após transplante', ''], fase: ['Fase', ''],
-  pH: ['pH', ''], temperatura: ['Temperatura', '°C'], umidade: ['Umidade', '%'], luminosidade: ['Luminosidade', '%'],
+  // modelo de morango (adaptador_morango.py)
+  umidade_solo: ['Umidade do substrato', '%'], N_mgL: ['Nitrogênio', 'mg/L'], P_mgL: ['Fósforo', 'mg/L'], K_mgL: ['Potássio', 'mg/L'],
+  pH: ['pH', ''], temp_ar_media: ['Temp. média do ar', '°C'], temp_ar_max: ['Temp. máxima', '°C'], temp_ar_min: ['Temp. mínima', '°C'],
+  h_calor_extremo: ['Horas acima de 30 °C', 'h'], temp_substrato: ['Temp. do substrato', '°C'],
+  umidade_ar_media: ['Umidade do ar', '%'], h_umid_alta: ['Horas de ar úmido', 'h'], chuva_mm: ['Chuva', 'mm'],
+  luminosidade_lux: ['Luminosidade', 'lux'], radiacao_PAR: ['Radiação (PAR)', ''],
+  // modelo com as 7 variáveis do jogo (adaptador "direto")
+  N: ['Nitrogênio', 'mg/L'], P: ['Fósforo', 'mg/L'], K: ['Potássio', 'mg/L'],
+  temperatura: ['Temperatura', '°C'], umidade: ['Umidade', '%'], luminosidade: ['Luminosidade', '%'],
 };
 
-const CLASSES = { 0: 'não fazer nada', 1: 'travar/corrigir excesso', 2: 'repor/corrigir falta', 3: 'proteger' };
+const CLASSES = {
+  0: 'não fazer nada', 1: 'travar/corrigir excesso', 2: 'repor/corrigir falta', 3: 'proteger',
+  Ideal: 'não fazer nada', Irrigar: 'repor água e nutrientes', Proteger: 'proteger a planta', 'Travar Irrigação': 'parar a irrigação',
+};
 
 /** Estado da conexão com a IA, a partir do ProvedorComFallback. */
 export function estadoIA(prov) {
@@ -134,7 +140,7 @@ export class PainelIA {
       recebido = `<div><h3>2. O modelo recebeu</h3><p class="ia-sub">depois da tradução do servidor</p><table>${entrada}</table></div>`;
       const conf = (r.motivo || '').match(/\((\d+)% de confiança\)/);
       resposta = `<div><h3>3. O modelo respondeu</h3>
-        ${Number.isInteger(r.classe) ? `<p class="ia-grande">Classe ${r.classe}<br><small>${CLASSES[r.classe] ?? ''}</small></p>` : ''}
+        ${r.classe !== undefined ? `<p class="ia-grande">${esc(Number.isInteger(r.classe) ? `Classe ${r.classe}` : r.classe)}<br><small>${esc(CLASSES[r.classe] ?? 'ação do modelo')}</small></p>` : ''}
         <p class="ia-grande acao">${esc(AutonomousFarmAI.Translate(r.acao))}</p>
         ${conf ? `<p>Confiança: <b>${conf[1]}%</b></p>` : ''}
         <p class="ia-sub">${esc((r.motivo || '').replace(/ \(\d+% de confiança\)$/, ''))}</p>

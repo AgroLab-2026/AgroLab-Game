@@ -66,7 +66,7 @@ const atento = (gm) => {
 /** Afobado: irriga sem olhar, toda vez. */
 const afobado = (gm) => { if (!gm.DoAction(FarmAction.Irrigate)) gm.Refill(); };
 
-const CULTURAS = ['AlfaceCrespa', 'Morango', 'Tomate'];
+const CULTURAS = ['Morango', 'Tomate'];
 const resumo = (r) => `${r.rel.venceu ? 'VENCEU' : 'perdeu'} (${r.rel.motivo}) em ${r.segundos.toFixed(0)} s · saúde média ${r.rel.jogador.saudeMedia.toFixed(0)}% · ` +
   `crescimento ${(r.rel.jogador.crescimento * 100).toFixed(0)}% · ${r.rel.jogador.agua.toFixed(0)} L · ${r.rel.jogador.energia.toFixed(0)} energia · ${r.rel.eficiencia}% da IA`;
 

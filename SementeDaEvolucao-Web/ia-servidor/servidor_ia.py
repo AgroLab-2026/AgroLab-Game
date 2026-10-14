@@ -4,14 +4,15 @@ O jogo manda o estado da estufa autônoma em JSON (POST /decidir) e este servido
 responde {"acao", "motivo"} usando o modelo. Contrato completo em docs/contrato-ia.md.
 
 Uso:  python ia-servidor/servidor_ia.py [config.json]
-      (padrão: config_modelo.json, o Random Forest de alface NFT do grupo)
-Depois abra o jogo com ?ia=http&iaUrl=http://localhost:5000/decidir
+      (padrão: config_modelo.json, o Random Forest de morango do grupo)
+Depois abra o jogo com ?ia=http&iaUrl=http://127.0.0.1:5000/decidir
 (o iniciar_com_ia.bat já faz tudo isso).
 
 Culturas fora de config_modelo.json -> "culturas" respondem 422 e o jogo usa as
 regras dele (fallback automático). O jogo também cai nas regras se este servidor
-estiver desligado ou demorar mais de 800 ms.
+estiver desligado ou demorar mais que data/ia.json -> timeoutMs.
 """
+import importlib
 import json
 import sys
 import threading
@@ -29,7 +30,8 @@ if not ARQUIVO_CONFIG.is_absolute() and not ARQUIVO_CONFIG.exists():
     ARQUIVO_CONFIG = PASTA / ARQUIVO_CONFIG.name
 CONFIG = json.loads(ARQUIVO_CONFIG.read_text(encoding="utf-8"))
 # "direto": as colunas do modelo são as 7 variáveis do jogo (config "colunas").
-# "nft": o modelo de alface NFT do grupo, com o tradutor de adaptador_nft.py.
+# Outro nome (ex.: "morango"): o tradutor adaptador_<nome>.py converte a estufa do jogo para as
+# colunas do modelo e a resposta do modelo para a ferramenta do jogo.
 ADAPTADOR = CONFIG.get("adaptador", "direto")
 
 ACOES = ["DoNothing", "LockIrrigation", "Irrigate", "ProtectPlant"]
@@ -83,7 +85,7 @@ def traduzir_rotulo(rotulo):
 # ---------------------------------------------------------------- carrega o modelo
 arquivo = PASTA / CONFIG["arquivo"]
 if not arquivo.exists():
-    treino = "treinar_modelo_equipe.py" if ADAPTADOR == "nft" else "treinar_modelo_exemplo.py"
+    treino = "treinar_modelo_exemplo.py" if ADAPTADOR == "direto" else "treinar_modelo_equipe.py"
     sys.exit(f"Modelo não encontrado: {arquivo}\nRode: python ia-servidor/{treino}\n"
              f"ou coloque o modelo na pasta ia-servidor e ajuste 'arquivo' em {ARQUIVO_CONFIG.name}.")
 modelo = joblib.load(arquivo)
@@ -100,13 +102,13 @@ def um_nucleo(obj):
 um_nucleo(modelo)
 TRAVA_MODELO = threading.Lock()  # um cálculo por vez: pedidos simultâneos não disputam a CPU
 
-if ADAPTADOR == "nft":
-    import adaptador_nft
-    COLUNAS = list(getattr(modelo, "feature_names_in_", adaptador_nft.COLUNAS))
-    faltando = set(COLUNAS) - set(adaptador_nft.COLUNAS)
+if ADAPTADOR != "direto":
+    adaptador = importlib.import_module(f"adaptador_{ADAPTADOR}")
+    COLUNAS = list(getattr(modelo, "feature_names_in_", adaptador.COLUNAS))
+    faltando = set(COLUNAS) - set(adaptador.COLUNAS)
     if faltando:
-        sys.exit(f"O modelo usa colunas que o tradutor NFT não gera: {sorted(faltando)}")
-    VARIAVEIS = ["(traduzidas por adaptador_nft.py)"]
+        sys.exit(f"O modelo usa colunas que adaptador_{ADAPTADOR}.py não gera: {sorted(faltando)}")
+    VARIAVEIS = [f"(traduzidas por adaptador_{ADAPTADOR}.py)"]
 else:
     if hasattr(modelo, "feature_names_in_"):
         COLUNAS = list(modelo.feature_names_in_)
@@ -135,27 +137,26 @@ def com_confianca(texto, confianca):
     return texto if confianca is None else f"{texto} ({confianca:.0%} de confiança)"
 
 
-def decidir_nft(snapshot):
-    x = adaptador_nft.traduzir_entrada(snapshot)
+def decidir_adaptado(snapshot):
+    x = adaptador.traduzir_entrada(snapshot)
     previsto, confianca = prever([[x[c] for c in COLUNAS]])
-    classe = int(previsto)
-    causa = adaptador_nft.causa_provavel(x, classe)
-    acao, nota = adaptador_nft.escolher_ferramenta(classe, causa, snapshot.get("clima", {}).get("sombraAtiva", False))
-    texto = f"{CONFIG['nome']}: {adaptador_nft.CLASSES[classe]}"
-    if classe:
+    nome, causa = adaptador.interpretar(x, previsto)
+    acao, nota = adaptador.escolher_ferramenta(previsto, causa, snapshot.get("clima", {}).get("sombraAtiva", False))
+    texto = f"{CONFIG['nome']}: {nome}"
+    if causa != "tudo no ideal":
         texto += f" — {causa}"
     if nota:
         texto += f"; {nota}"
-    return 200, {"acao": acao, "motivo": com_confianca(texto, confianca), "classe": classe, "entrada": {
-        c: x[c] for c in COLUNAS if not c.startswith(("fase_", "tolerancia_"))} | {"fase": x["_fase"]}}
+    return 200, {"acao": acao, "motivo": com_confianca(texto, confianca), "classe": str(previsto),
+                 "entrada": {c: x[c] for c in COLUNAS}, "resumo": adaptador.resumo(x)}
 
 
 def decidir(snapshot):
     cultura = snapshot["cultura"]["id"]
     if CULTURAS and cultura not in CULTURAS:
         return 422, {"erro": f"O modelo não foi treinado para {cultura}; o jogo usa as regras."}
-    if ADAPTADOR == "nft":
-        return decidir_nft(snapshot)
+    if ADAPTADOR != "direto":
+        return decidir_adaptado(snapshot)
     amb = snapshot["ambiente"]
     previsto, confianca = prever([[float(amb[v]) for v in VARIAVEIS]])
     acao = traduzir_rotulo(previsto)
@@ -203,10 +204,8 @@ def registrar(snapshot, status, corpo):
         linhas = [f"[{hora}] decisão #{n}  · {snapshot['cultura']['nome']}  · t={snapshot.get('tempo', 0):.0f}s{extra}",
                   f"   jogo enviou   T {a['airTemperature']:.1f}°C | substrato {a['soilMoisture']:.0f}% | pH {a['ph']:.2f} | "
                   f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f} | luz {a['luminosity']:.0f}%"]
-        e = corpo.get("entrada") or {}
-        if "ce_ms_cm" in e:
-            linhas.append(f"   modelo viu    CE {e['ce_ms_cm']:.2f} mS/cm | reservatório {e['nivel_reservatorio_pct']:.0f}% | "
-                          f"pH {e['ph']:.2f} | ar {e['temp_ar_c']:.1f}°C | fase {e.get('fase', '?')}")
+        if corpo.get("resumo"):
+            linhas.append(f"   modelo viu    {corpo['resumo']}")
         motivo = corpo["motivo"].split(": ", 1)[-1]
         tempo = corpo.get("ms")
         aviso = "  (LENTO!)" if tempo and tempo > 500 else ""

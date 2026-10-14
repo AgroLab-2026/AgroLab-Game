@@ -2,7 +2,7 @@
 
 Uso (no PC onde está o modelo):
     python ia-servidor/inspecionar_modelo.py "C:\\Users\\siraj\\Downloads\\Modelos"
-    python ia-servidor/inspecionar_modelo.py "C:\\...\\Modelos\\modelo_alface.joblib"
+    python ia-servidor/inspecionar_modelo.py "C:\\...\\Modelos\\modelo_morango.joblib"
 
 Com uma pasta, inspeciona todos os .joblib/.pkl/.pickle/.sav dela. Copie a saída e
 mande para a equipe do jogo: ela diz as colunas, a ordem e as classes do modelo.

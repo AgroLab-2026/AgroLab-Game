@@ -202,3 +202,24 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
       ser estados diferentes;
     - o `iniciar_com_ia.bat` usa `127.0.0.1` em vez de `localhost`, porque no Windows `localhost` pode tentar o
       IPv6 primeiro e atrasar a conexão.
+
+## v13 — sem alface; a IA do grupo agora é a de morango
+
+45. **A alface saiu do jogo** (pedido da equipe). As fases alternam morango e tomate: 1 Morango, 2 Tomate,
+    3 Morango, 4 Tomate, 5 Morango. A dificuldade das fases 1 e 3 foi reajustada para o morango (varredura de 48
+    partidas por fase; quem fica parado continua perdendo em todas):
+
+    | Fase | Tempo | 4 s | 6 s | 9 s | 12 s | 15 s | 20 s |
+    |---|---|---|---|---|---|---|---|
+    | 1 Morango | 1:00 | 100 % | 100 % | 100 % | 100 % | 100 % | 88 % |
+    | 2 Tomate | 1:00 | 100 % | 100 % | 98 % | 98 % | 65 % | 38 % |
+    | 3 Morango | 1:00 | 100 % | 94 % | 77 % | 71 % | 46 % | 27 % |
+    | 4 Tomate | 1:30 | 98 % | 94 % | 65 % | 46 % | 8 % | 6 % |
+    | 5 Morango | 2:00 | 85 % | 71 % | 35 % | 19 % | 0 % | 2 % |
+
+46. **Modelo de morango no lugar do de alface.** Sem a alface, o Random Forest de alface NFT não teria mais uso.
+    O AgroLab-IA tem um Random Forest de morango (`morango/agrolab_morango_modelo.ipynb`), que agora guia a estufa
+    autônoma nas fases de morango: `treinar_modelo_equipe.py` o refaz igual ao notebook (acurácia 0,918), e
+    `adaptador_morango.py` traduz a estufa do jogo para as 15 colunas dele. O dataset (365 linhas) vem junto com o
+    jogo em `ia-servidor/dados_equipe/`, então o treino não precisa de internet; por isso o modelo provisório
+    (plano B) deixou de ser necessário e foi removido, junto com o tradutor NFT e os dados simulados de alface.

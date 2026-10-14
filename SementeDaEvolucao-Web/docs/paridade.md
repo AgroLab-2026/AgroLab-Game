@@ -30,7 +30,7 @@ Legenda: ✅ fiel (há fonte) · 🔧 reconstruído (sem fonte; ajustar com o C#
 | Regra | Status | Onde |
 |---|---|---|
 | `cropName`, `descricaoEducativa`, `growthPointsToHarvest = 100` | ✅ Fase 1 | JSON |
-| 7 faixas (`nitrogenRange` … `luminosityRange`) | ✅ Alface e Tomate (Fase 3) · ✅ pH e temperatura do Morango (Guia) · 🔧 demais faixas do Morango | JSON |
+| 7 faixas (`nitrogenRange` … `luminosityRange`) | ✅ Tomate (Fase 3) · ✅ pH e temperatura do Morango (Guia) · 🔧 demais faixas do Morango (a alface foi retirada do jogo) | JSON |
 | `EvaluateConditions(env)` de 0 a 1 | ✅ API / 🔧 fórmula: `1 − média dos 7 Stress` | `CropData.EvaluateConditions` |
 | Estágios de crescimento | ✅ o prompt pede **6**; os guias falam em 3–5 sprites. Usamos 6: Semente, Muda, Vegetativo, Floração, Frutificação, Colheita | `balanceamento.planta.estagios` |
 | `produtividadeKg` (kg por bancada) | ➕ para o painel "Produtividade" da referência | JSON |
