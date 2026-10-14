@@ -94,13 +94,28 @@ export class AutonomousFarmAI {
     this.lastSource = r.fonte || this.provedor?.nome;
     this.decisoes[AutonomousFarmAI.doModelo(this.lastSource) ? 'modelo' : 'regras']++;
     if (r.acao === FarmAction.DoNothing) return;
-    aplicarEfeito(this.aiEnv, this.crop, tabela.efeito, this.estufa);
+    aplicarEfeito(this.aiEnv, this.crop, this.dosar(tabela.efeito), this.estufa);
     this.waterUsed += tabela.custo.agua;
     this.energyUsed += tabela.custo.energia;
     this.fertilizerUsed += tabela.custo.fertilizante;
     this.actionsTaken++;
     this.historico.push({ tempo, acao: r.acao, motivo: r.motivo });
     this.OnAction.emit(r.acao, r.motivo);
+  }
+
+  /**
+   * Fertirrigação de precisão: a estufa autônoma mede N, P e K e só repõe o que falta até o centro
+   * da faixa, em vez da dose fixa. Sem isso, nas fases longas (muita evaporação, falta de luz) ela
+   * irrigava tanto que os nutrientes passavam do máximo e a planta dela adoecia.
+   */
+  dosar(efeito) {
+    const e = { ...efeito };
+    for (const v of ['nitrogen', 'phosphorus', 'potassium']) {
+      if (!e[v]) continue;
+      const falta = this.crop.faixaDe(v).centro - this.aiEnv[v];
+      e[v] = Math.max(0, Math.min(e[v], falta));
+    }
+    return e;
   }
 
   /** Texto pronto para o painel de comparação (como no C#). */

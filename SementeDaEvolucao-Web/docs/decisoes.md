@@ -127,3 +127,78 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     resposta, amarelo quando o modelo não cobre a cultura, vermelho quando o servidor está desligado. A tecla **I**
     abre o painel IA AO VIVO: o que o jogo enviou, o que o modelo recebeu depois da tradução e a resposta, com a
     latência. A janela do servidor escreve uma linha por decisão.
+35. **Terminal da IA e ritmo mais lento.** O jogo pede cerca de 2 decisões por segundo, rápido demais para ler.
+    A janela do servidor e o novo terminal da barra lateral (tecla T) mostram só a decisão mais recente a cada 3 s,
+    avisando quantas ficaram de fora. O terminal fica fora do palco e ocupa a faixa lateral que sobra nas telas 16:9
+    (384 px em 1920×1080, 342 px em 1366×768), sem diminuir o jogo. Em telas mais estreitas, o jogo encolhe um pouco
+    para dar lugar a ele. A escala do palco passou a aceitar escala fracionária quando a inteira deixaria o jogo
+    muito menor que a tela.
+36. **Controle de videogame, PlayStation e Xbox.** Usa a Gamepad API do navegador (`js/input/Controle.js`), sem
+    driver nem biblioteca. O "mapeamento padrão" identifica os botões pela posição, então a mesma ação fica no mesmo
+    lugar nos dois controles: embaixo irriga (✕/A), à direita trava (○/B), em cima protege (△/Y), à esquerda enche
+    a água (□/X). O visitante acha esses botões sem olhar. O jogo reconhece a família pelo id do controle (Sony
+    054c, Microsoft 045e; genéricos usam o layout do Xbox) e troca os símbolos das ferramentas, os avisos e a ajuda
+    da introdução. Com dois controles ligados, vale o último que apertou um botão. Teclado e mouse continuam
+    funcionando.
+
+## v10 — dificuldade progressiva
+
+37. **Cada fase tem a sua dificuldade** (`progressao.json → fases[n].dificuldade`), com multiplicadores sobre o
+    balanceamento base que valem para as duas estufas: tempo, crescimento, perda de saúde, evaporação, consumo de
+    nutrientes, intervalo/duração/intensidade dos eventos e recarga de energia. Fases 1–3 duram 1 minuto; a 4 dura
+    1:30 e a 5, 2:00. Nas fases longas a planta cresce mais devagar, então o tempo extra é de pressão, não de folga.
+    Varredura (48 partidas por fase; "reage a cada N s" é o jogador simulado que faz a ação certa a cada N segundos):
+
+    | Fase | Tempo | 4 s | 6 s | 9 s | 12 s | 15 s | 20 s | parado |
+    |---|---|---|---|---|---|---|---|---|
+    | 1 Alface | 1:00 | 100 % | 100 % | 100 % | 100 % | 100 % | 83 % | 0 % |
+    | 2 Morango | 1:00 | 100 % | 100 % | 100 % | 100 % | 67 % | 52 % | 0 % |
+    | 3 Tomate | 1:00 | 100 % | 98 % | 85 % | 71 % | 48 % | 27 % | 0 % |
+    | 4 Morango | 1:30 | 100 % | 90 % | 60 % | 58 % | 13 % | 10 % | 0 % |
+    | 5 Tomate | 2:00 | 81 % | 67 % | 40 % | 15 % | 6 % | 0 % | 0 % |
+
+    Quem fica parado continua perdendo em todas as fases, inclusive na 1. O teste headless confere a progressão.
+38. **Fertirrigação de precisão na estufa autônoma.** Com as fases longas, a IA irrigava tanto que os nutrientes
+    passavam do máximo, e a planta dela morria em metade das partidas da fase 5. Agora ela só repõe N, P e K até o
+    centro da faixa. Ela volta a cuidar bem da planta em todas as fases (saúde média de 99–100 %), e a distância
+    para o jogador cresce nas fases difíceis.
+39. **Terminal da IA menor.** A pedido da equipe, virou um monitor pequeno ao lado do jogo: 200 a 250 px de
+    largura, 60 % da altura do palco, alinhado à parte de baixo, com letra menor e cada decisão em 5 linhas
+    (o que o jogo enviou, o que o modelo viu, a classe e a ação). Palco e terminal ficam centralizados juntos.
+
+## v11 — visual mais bonito, organizado e reativo
+
+40. **HUD numa grade.** Os painéis estavam no lugar certo, mas com larguras e espaçamentos diferentes. Agora
+    seguem 3 faixas com margem de 8 px e 6 px entre painéis: coluna esquerda (título, objetivo, recursos,
+    ferramentas, Sr. Bruno), centro (uma barra única de clima · previsão · fase em cima e a fala do Sr. Bruno
+    embaixo) e coluna direita (controle, tecnologias, compare, evento). Todos os cabeçalhos têm a mesma altura e
+    letra, e os painéis ganharam sombra e um degradê suave. A grade fica no começo de `css/estilo.css`.
+41. **Luz moderna sobre a pixel art.** A pixel art continua nítida, e por cima dela vem uma camada de luz suave em
+    alta resolução (`#luz` e `js/render/Atmosfera.js`): vinheta, raios de sol que "respiram", poeira dourada no ar,
+    brilho nas telas e no lampião. O tom muda devagar com o clima: quente e com brasas na onda de calor, azul e
+    com gotas e relâmpagos na chuva, escuro na falta de energia (as telas apagam e o lampião brilha mais).
+42. **Reações em tempo real.** Número flutuando sobre a estufa a cada ação (o seu efeito e o da IA); setas ▲▼
+    de tendência e fundo pulsando em vermelho quando uma variável sai da faixa; barra do tempo da fase (verde,
+    laranja, vermelho); barra do evento com a cor de cada evento e um tremor quando ele chega; barras de saúde e
+    crescimento no COMPARE E APRENDA!; corações tremendo ao perder uma vida; painéis entrando em sequência no
+    começo de cada fase.
+43. **Pop-ups alinhados.** Avisos numa pílula no centro, logo abaixo da barra de cima, com entrada e saída
+    animadas; telas de fase centralizadas, com fundo desfocado e o botão principal brilhando; painel IA AO VIVO
+    centralizado.
+
+## v12 — IA que não "desliga" à toa
+
+44. **A IA aparecia como "DESLIGADA (sem resposta)".** O servidor estava ligado, mas cada decisão demorava mais que
+    o limite do jogo (0,8 s). O modelo foi treinado com `n_jobs=-1`, e prever uma linha só repartindo o trabalho
+    entre todos os núcleos é lento, principalmente no Windows. Pior: a cada timeout o jogo mandava outro pedido, e
+    os pedidos se acumulavam até nenhum voltar a tempo. Correções:
+    - **servidor:** usa um núcleo por decisão, calcula as probabilidades uma vez só (a classe sai delas), faz um
+      cálculo por vez e aquece o modelo antes de abrir a porta. Passou de ~80 ms para ~10–20 ms aqui. A janela
+      mostra o tempo de cada decisão;
+    - **jogo:** um pedido de cada vez (nunca empilha), limite de 2,5 s (`data/ia.json → timeoutMs`), "ping" no
+      servidor para separar desligado de lento, e regras na hora quando o servidor está desligado ou lento (a
+      estufa não fica parada esperando); volta para o modelo sozinho;
+    - **selo e terminal:** "IA DESLIGADA" (não encontrou o servidor) e "IA LENTA (x s por decisão)" passaram a
+      ser estados diferentes;
+    - o `iniciar_com_ia.bat` usa `127.0.0.1` em vez de `localhost`, porque no Windows `localhost` pode tentar o
+      IPv6 primeiro e atrasar a conexão.

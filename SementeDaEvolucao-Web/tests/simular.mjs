@@ -1,6 +1,6 @@
 // Teste headless da simulação: node tests/simular.mjs
 // Roda partidas completas sem navegador e confere as invariantes (nada de NaN,
-// recursos dentro dos limites, fases de até 1 minuto, os 6 estágios) e o
+// recursos dentro dos limites, duração das fases, os 6 estágios, a dificuldade progressiva) e o
 // balanceamento: quem joga atento vence, quem fica parado perde, nada age
 // sozinho na estufa do jogador, 3 vidas no jogo e game over, fallback da IA.
 import { readFileSync } from 'node:fs';
@@ -70,7 +70,7 @@ const CULTURAS = ['AlfaceCrespa', 'Morango', 'Tomate'];
 const resumo = (r) => `${r.rel.venceu ? 'VENCEU' : 'perdeu'} (${r.rel.motivo}) em ${r.segundos.toFixed(0)} s · saúde média ${r.rel.jogador.saudeMedia.toFixed(0)}% · ` +
   `crescimento ${(r.rel.jogador.crescimento * 100).toFixed(0)}% · ${r.rel.jogador.agua.toFixed(0)} L · ${r.rel.jogador.energia.toFixed(0)} energia · ${r.rel.eficiencia}% da IA`;
 
-console.log('Semente da Evolução — teste headless (fases de 1 minuto)\n');
+console.log('Semente da Evolução — teste headless (dificuldade progressiva)\n');
 
 for (const cultura of CULTURAS) {
   console.log(`▶ ${cultura}`);
@@ -104,6 +104,35 @@ for (const cultura of CULTURAS) {
   const a = await jogarFase({ cultura, estrategia: afobado, reacao: 2 });
   console.log(`  afobado (2 s):     ${resumo(a)}`);
   checar(!a.rel.venceu, `${cultura}: irrigar sem parar deveria perder`);
+}
+
+console.log('\n▶ Dificuldade progressiva (fase 1 muito fácil → fase 5 a mais difícil)');
+{
+  const tempos = [1, 2, 3, 4, 5].map((n) => { const g = new GameManager(dados, { rng: criarRng(1) }); g.IniciarFase(n); return g.tempoLimite; });
+  console.log(`  tempo por fase: ${tempos.map((t) => `${t} s`).join(' · ')}`);
+  checar(tempos.slice(0, 3).every((t) => t === 60), 'as fases 1 a 3 deveriam durar 1 minuto');
+  checar(tempos[3] > 60 && tempos[4] > tempos[3], 'as fases 4 e 5 deveriam ser mais longas (5 a mais longa)');
+  const N = 12;
+  const taxa = async (fase, reacao) => {
+    let v = 0;
+    for (let s = 1; s <= N; s++) if ((await jogarFase({ fase, estrategia: atento, reacao, semente: 100 + s })).rel.venceu) v++;
+    return v / N;
+  };
+  const linha = [];
+  for (const fase of [1, 2, 3, 4, 5]) {
+    const t = { r4: await taxa(fase, 4), r9: await taxa(fase, 9), r15: await taxa(fase, 15) };
+    linha.push(t);
+    const parado = await jogarFase({ fase, estrategia: nada, semente: 7 });
+    console.log(`  fase ${fase} (${tempos[fase - 1]} s): reage a cada 4 s ${Math.round(t.r4 * 100)}% · 9 s ${Math.round(t.r9 * 100)}% · 15 s ${Math.round(t.r15 * 100)}%`);
+    checar(!parado.rel.venceu, `fase ${fase}: quem não faz nada deveria perder`);
+    checar(t.r4 >= 0.6, `fase ${fase}: quem joga atento (4 s) deveria vencer na maioria das vezes (${Math.round(t.r4 * 100)}%)`);
+  }
+  checar(linha[0].r15 >= 0.9, 'a fase 1 deveria ser muito fácil (quase todos vencem reagindo a cada 15 s)');
+  const media = (t) => (t.r4 + t.r9 + t.r15) / 3;
+  for (let i = 1; i < 5; i++) {
+    checar(media(linha[i]) <= media(linha[i - 1]) + 0.05, `a fase ${i + 1} não deveria ser mais fácil que a fase ${i}`);
+  }
+  checar(media(linha[4]) < media(linha[2]), 'a fase 5 deveria ser bem mais difícil que a fase 3');
 }
 
 console.log('\n▶ Fase 5 (todas as tecnologias; nada age sozinho)');

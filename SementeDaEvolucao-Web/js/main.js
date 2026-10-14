@@ -7,12 +7,15 @@ import { criarProvedorIA } from './ai/IAProvider.js';
 import { GeradorFalasHttp } from './ai/provedores/falasHttp.js';
 import { AutonomousFarmAI } from './ai/AutonomousFarmAI.js';
 import { WorldRenderer } from './render/WorldRenderer.js';
+import { Atmosfera } from './render/Atmosfera.js';
 import { registrarMolduras } from './render/Molduras.js';
 import { criarRng } from './render/Pixel.js';
 import { HUDController } from './ui/HUDController.js';
 import { TelasFase } from './ui/TelasFase.js';
 import { Debug } from './ui/Debug.js';
 import { PainelIA } from './ui/PainelIA.js';
+import { TerminalIA } from './ui/TerminalIA.js';
+import { Controle, BOTAO } from './input/Controle.js';
 import { vistaHud, vistaMundo } from './ui/Vistas.js';
 import { ajustarEscala } from './ui/Escala.js';
 import { Sons } from './audio/Sons.js';
@@ -34,7 +37,8 @@ const semente = url.get('semente');
 
 registrarMolduras();
 const palco = document.getElementById('palco');
-const ajustar = () => ajustarEscala(palco);
+let terminal = null; // barra lateral da IA, criada junto com o jogo
+const ajustar = () => ajustarEscala(palco, terminal?.el);
 addEventListener('resize', ajustar);
 ajustar();
 
@@ -44,10 +48,34 @@ const gm = new GameManager({ culturas, balanceamento, progressao, falas }, {
   geradorFalas: (url.get('falasUrl') || iaPadrao.falasUrl) ? new GeradorFalasHttp(url.get('falasUrl') || iaPadrao.falasUrl) : null,
 });
 const mundo = new WorldRenderer(document.getElementById('mundo'));
+const atmosfera = new Atmosfera(document.getElementById('atmosfera'));
+const luz = document.getElementById('luz');
+const CLASSE_LUZ = { HeatWave: 'calor', HeavyRain: 'chuva', PowerFailure: 'sem-energia', Pest: 'praga' };
+
+// Painéis entram em sequência no começo de cada fase.
+const hudEl = document.getElementById('hud');
+[...hudEl.querySelectorAll('.moldura, .moldura-lousa')]
+  .sort((a, b) => a.offsetTop - b.offsetTop || a.offsetLeft - b.offsetLeft)
+  .forEach((el, i) => el.style.setProperty('--i', i));
+function animarEntrada() {
+  hudEl.classList.remove('entrada');
+  void hudEl.offsetWidth;
+  hudEl.classList.add('entrada');
+  clearTimeout(animarEntrada.t);
+  animarEntrada.t = setTimeout(() => hudEl.classList.remove('entrada'), 1200);
+}
+gm.OnFaseIniciada.on(animarEntrada);
+animarEntrada();
 const hud = new HUDController();
 const telas = new TelasFase();
 const debug = new Debug(gm);
 const painelIA = new PainelIA(gm);
+// Terminal da IA: aparece sozinho quando o jogo abre ligado à IA externa (iniciar_com_ia.bat).
+terminal = new TerminalIA(gm, {
+  visivel: url.has('terminal') ? url.get('terminal') !== '0' : configIA.ia === 'http',
+  intervalo: Number(url.get('terminalIntervalo') || iaPadrao.terminalIntervalo || 3),
+});
+ajustar();
 const sons = new Sons();
 
 // ------------------------------------------------------------ sons
@@ -103,6 +131,25 @@ gm.OnAcao.on((quem, acao, ok) => {
   if (!ok || acao === 'Refill' || acao === FarmAction.DoNothing) return;
   mundo.animarAcao(quem === 'ia' ? 'ia' : 'jogador', acao);
   if (quem === 'ia' && gm.progressao.tem('painelDados')) hud.toast(`IA: ${AutonomousFarmAI.Translate(acao)} — ${gm.aiAI.lastReason}`, false, 2200);
+});
+// Textos flutuando por cima das estufas: o efeito de cada ação, na hora.
+const CANTEIRO = { x: 404, y: 250 }, ESTANTE_IA = { x: 590, y: 230 }, TANQUE = { x: 264, y: 170 };
+let ultimoFlutuanteIA = 0;
+gm.OnAcao.on((quem, acao, ok) => {
+  const jit = () => (Math.random() - 0.5) * 40;
+  if (quem === 'ia') {
+    if (!ok || acao === FarmAction.DoNothing || performance.now() - ultimoFlutuanteIA < 1200) return;
+    ultimoFlutuanteIA = performance.now();
+    hud.flutuar(`IA: ${AutonomousFarmAI.Translate(acao)}`, ESTANTE_IA.x + jit(), ESTANTE_IA.y, 'ia');
+    return;
+  }
+  if (!ok) { hud.flutuar('sem recurso!', CANTEIRO.x, CANTEIRO.y, 'negado'); return; }
+  const ef = balanceamento.acoesJogador[acao]?.efeito || {};
+  if (acao === FarmAction.Irrigate) hud.flutuar(`+${ef.soilMoisture}% umidade · +nutrientes`, CANTEIRO.x + jit(), CANTEIRO.y, 'agua');
+  else if (acao === FarmAction.LockIrrigation) hud.flutuar(`${ef.soilMoisture}% umidade · pH no centro`, CANTEIRO.x + jit(), CANTEIRO.y, 'travar');
+  else if (acao === FarmAction.ProtectPlant) hud.flutuar(`sombrite: ${Math.round(gm.estufaJogador.sombra / gm.timeScale)} s`, CANTEIRO.x + jit(), CANTEIRO.y, 'sombra');
+  else if (acao === 'Refill') hud.flutuar('tanque cheio!', TANQUE.x, TANQUE.y, 'agua');
+  else if (acao === FarmAction.DoNothing) hud.flutuar('observando...', CANTEIRO.x, CANTEIRO.y, 'calmo');
 });
 // Falhas (falta de recurso, tanque cheio) e "aguardar" viram aviso; gastos viram números.
 gm.OnMensagem.on((texto, ruim) => { if (ruim || texto.includes('aguardar')) hud.toast(texto, ruim); });
@@ -162,16 +209,61 @@ addEventListener('keydown', (e) => {
   const tecla = e.key.toLowerCase();
   if (TECLAS[tecla]) { agir(TECLAS[tecla]); e.preventDefault(); }
   else if (tecla === 'r') agir('Refill');
-  else if (tecla === 'p' || e.code === 'Space') { gm.AlternarPausa(); sons.suspender(gm.estado === EstadoJogo.Pausado); hud.toast(gm.estado === EstadoJogo.Pausado ? 'Pausado (P para continuar)' : 'Continuando'); e.preventDefault(); }
-  else if (tecla === 'b') document.getElementById('bruno-fala').classList.toggle('minimizado');
+  else if (tecla === 'p' || e.code === 'Space') { pausar(); e.preventDefault(); }
+  else if (tecla === 'b') alternarBruno();
   else if (tecla === 'm') alternarSom();
   else if (tecla === 'i') painelIA.alternar();
+  else if (tecla === 't') alternarTerminal();
   else if (tecla === 'f') {
     // Tela cheia para o projetor (F11 fica livre para o navegador).
     if (document.fullscreenElement) document.exitFullscreen();
     else document.documentElement.requestFullscreen?.().catch(() => {});
   }
 });
+
+function pausar() {
+  gm.AlternarPausa();
+  sons.suspender(gm.estado === EstadoJogo.Pausado);
+  hud.toast(gm.estado === EstadoJogo.Pausado
+    ? `Pausado (${controle.conectado ? controle.glifo(BOTAO.START) : 'P'} para continuar)` : 'Continuando');
+}
+const alternarBruno = () => document.getElementById('bruno-fala').classList.toggle('minimizado');
+function alternarTerminal() { terminal.alternar(); ajustar(); }
+
+// ------------------------------------------------------------ controle (PlayStation e Xbox)
+// Mesma posição nos dois controles (Controle.js); os símbolos na tela se adaptam ao que está em uso.
+//   ✕/A irrigar · ○/B travar · △/Y proteger · □/X encher água · L1/LB aguardar
+//   OPTIONS/Menu pausa · ✕/A ou OPTIONS/Menu confirmam as telas de fase · R1/RB terminal da IA
+//   touchpad ou R3/RS painel IA AO VIVO · CREATE/View som · R2/RT próxima fala · L2/LT minimizar a fala
+const BOTOES_ACAO = {
+  [BOTAO.BAIXO_FACE]: FarmAction.Irrigate, [BOTAO.DIREITA_FACE]: FarmAction.LockIrrigation,
+  [BOTAO.CIMA_FACE]: FarmAction.ProtectPlant, [BOTAO.ESQUERDA_FACE]: 'Refill', [BOTAO.L1]: FarmAction.DoNothing,
+};
+const controle = new Controle((botao) => {
+  sons.iniciar(); // tenta liberar o áudio (alguns navegadores só liberam com clique ou tecla)
+  if (telas.aberta) {
+    if (botao === BOTAO.BAIXO_FACE || botao === BOTAO.START) telas.confirmar();
+    return;
+  }
+  if (botao in BOTOES_ACAO) agir(BOTOES_ACAO[botao]);
+  else if (botao === BOTAO.START) pausar();
+  else if (botao === BOTAO.R1) alternarTerminal();
+  else if (botao === BOTAO.TOUCHPAD || botao === BOTAO.R3) painelIA.alternar();
+  else if (botao === BOTAO.SELECT) alternarSom();
+  else if (botao === BOTAO.R2) gm.bruno.Proxima();
+  else if (botao === BOTAO.L2) alternarBruno();
+}, ({ conectado, nome, tipo }) => {
+  document.body.classList.toggle('com-controle', conectado);
+  document.body.classList.toggle('controle-ps', tipo === 'ps');
+  document.body.classList.toggle('controle-xbox', tipo === 'xbox');
+  if (!conectado) { hud.toast(`${nome} desconectado`); return; }
+  const g = (b) => controle.glifo(b);
+  hud.toast(`${nome} conectado! ${g(BOTAO.BAIXO_FACE)} irrigar · ${g(BOTAO.DIREITA_FACE)} travar · ` +
+    `${g(BOTAO.CIMA_FACE)} proteger · ${g(BOTAO.ESQUERDA_FACE)} água · ${g(BOTAO.START)} pausa`);
+  controle.vibrar(0.2, 0.4, 150);
+});
+gm.OnAcao.on((quem, _acao, ok) => { if (quem === 'jogador' && ok === false) controle.vibrar(0.6, 0.6, 180); });
+gm.OnFaseTerminou.on((rel) => controle.vibrar(rel.venceu ? 0.2 : 0.8, 0.6, rel.venceu ? 200 : 450));
 
 for (const btn of document.querySelectorAll('.lista-ferramentas button')) {
   btn.addEventListener('click', () => agir(btn.dataset.acao));
@@ -200,9 +292,15 @@ function quadro(agora) {
       while (acumulado >= PASSO) { gm.Step(PASSO); acumulado -= PASSO; }
     }
     tempoAnimacao += gm.estado === EstadoJogo.Pausado ? 0 : dt;
-    mundo.desenhar(vistaMundo(gm, tempoAnimacao), dt);
+    const vm = vistaMundo(gm, tempoAnimacao);
+    mundo.desenhar(vm, dt);
+    atmosfera.desenhar(vm, gm.estado === EstadoJogo.Pausado ? 0 : dt);
+    const classeLuz = CLASSE_LUZ[vm.evento] || '';
+    if (luz.className !== classeLuz) luz.className = classeLuz;
     hud.atualizar(vistaHud(gm));
     painelIA.atualizar();
+    terminal.atualizar(dt);
+    controle.atualizar();
     const seg = Math.ceil(gm.tempoRestante);
     if (gm.estado === EstadoJogo.Jogando && seg !== ultimoSegundo && seg <= 10 && seg > 0) sons.relogio(seg);
     ultimoSegundo = seg;
@@ -213,4 +311,4 @@ function quadro(agora) {
 requestAnimationFrame(quadro);
 
 // Acesso pelo console para testes e apresentações: window.jogo.gm
-window.jogo = { gm, mundo, hud, telas, sons, painelIA };
+window.jogo = { gm, mundo, hud, telas, sons, painelIA, terminal };

@@ -73,12 +73,14 @@ export function vistaHud(gm) {
 
   let eventoVista;
   if (evento) {
-    eventoVista = { ativo: true, nome: evento.nome.toUpperCase(), desc: evento.descricao, icone: ICONE_EVENTO[evento.id], rotulo: 'Termina em', tempo: mmss(evento.restante) };
+    eventoVista = { ativo: true, tipo: evento.id, nome: evento.nome.toUpperCase(), desc: evento.descricao, icone: ICONE_EVENTO[evento.id], rotulo: 'Termina em', tempo: mmss(evento.restante),
+      frac: evento.restante / (gm.weather.eventDuration || 1) };
   } else {
     const prox = gm.weather.proximo, dados = gm.bal.clima.eventos[prox];
+    const frac = gm.weather.tempoParaProximo / (gm.weather.intervaloAgendado || 1);
     eventoVista = painel
-      ? { ativo: false, nome: `PRÓXIMO: ${dados.nome.toUpperCase()}`, desc: dados.descricao, icone: ICONE_EVENTO[prox], rotulo: 'Tempo para o evento', tempo: mmss(gm.weather.tempoParaProximo) }
-      : { ativo: false, nome: 'TEMPO ESTÁVEL', desc: 'Nenhum evento agora. O clima pode mudar a qualquer momento!', icone: 'nuvem', rotulo: 'Tempo para o evento', tempo: mmss(gm.weather.tempoParaProximo) };
+      ? { ativo: false, tipo: '', nome: `PRÓXIMO: ${dados.nome.toUpperCase()}`, desc: dados.descricao, icone: ICONE_EVENTO[prox], rotulo: 'Próximo evento em', tempo: mmss(gm.weather.tempoParaProximo), frac }
+      : { ativo: false, tipo: '', nome: 'TEMPO ESTÁVEL', desc: 'Nenhum evento agora. O clima pode mudar a qualquer momento!', icone: 'nuvem', rotulo: 'Próximo evento em', tempo: mmss(gm.weather.tempoParaProximo), frac };
   }
 
   const ext = gm.clima.ambienteExterno;
@@ -104,6 +106,7 @@ export function vistaHud(gm) {
       titulo: `FASE ${prog.faseAtual} DE ${prog.ultimaFase}`,
       tempo: mmss(gm.tempoRestante),
       urgencia: gm.tempoRestante <= 10 ? 'urgente' : gm.tempoRestante <= 25 ? 'pouco-tempo' : '',
+      fracTempo: gm.tempoRestante / gm.tempoLimite,
       vidas: prog.vidas,
       vidasMax: prog.vidasMax,
       colheita: gm.playerPlant.progresso,
@@ -129,6 +132,7 @@ export function vistaHud(gm) {
       },
       // No comecinho (quase nada crescido) a razão não diz nada: mostra um traço.
       eficiencia: ia.aiPlant.progresso < 0.05 ? '—' : `${pontuacao.eficiencia}%`,
+      eficiencia01: ia.aiPlant.progresso < 0.05 ? 0 : Math.min(1, pontuacao.eficiencia / 100),
     },
     evento: eventoVista,
     bruno: { texto: gm.bruno.GetContextualTip(e, gm.playerPlant, gm.tempoReal) },

@@ -3,6 +3,9 @@
   "nome": "Random Forest do AgroLab",
   "arquivo": "modelo_equipe_alface_nft.joblib",
   "adaptador": "nft",
-  "culturas": ["AlfaceCrespa"],
-  "porta": 5000
+  "culturas": [
+    "AlfaceCrespa"
+  ],
+  "porta": 5000,
+  "intervalo_log_segundos": 3
 }

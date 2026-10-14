@@ -25,5 +25,5 @@ if not exist "ia-servidor\modelo_equipe_alface_nft.joblib" (
 )
 
 start "IA do AgroLab - NAO FECHE" cmd /k python ia-servidor\servidor_ia.py %CONFIG_IA%
-set "JOGO_QUERY=?ia=http&iaUrl=http://localhost:5000/decidir"
+set "JOGO_QUERY=?ia=http&iaUrl=http://127.0.0.1:5000/decidir"
 call iniciar.bat

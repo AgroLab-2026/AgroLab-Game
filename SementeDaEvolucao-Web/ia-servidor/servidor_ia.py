@@ -88,6 +88,18 @@ if not arquivo.exists():
              f"ou coloque o modelo na pasta ia-servidor e ajuste 'arquivo' em {ARQUIVO_CONFIG.name}.")
 modelo = joblib.load(arquivo)
 
+
+def um_nucleo(obj):
+    """Uma decisão por vez é uma linha só: dividir entre todos os núcleos (n_jobs=-1, como no treino)
+    custa mais do que calcular. No Windows isso chegava a passar de 1 s por decisão."""
+    for etapa in [obj] + [e for _, e in getattr(obj, "steps", [])]:
+        if hasattr(etapa, "n_jobs"):
+            etapa.n_jobs = 1
+
+
+um_nucleo(modelo)
+TRAVA_MODELO = threading.Lock()  # um cálculo por vez: pedidos simultâneos não disputam a CPU
+
 if ADAPTADOR == "nft":
     import adaptador_nft
     COLUNAS = list(getattr(modelo, "feature_names_in_", adaptador_nft.COLUNAS))
@@ -110,9 +122,13 @@ def prever(linha):
     if hasattr(modelo, "feature_names_in_"):
         import pandas as pd  # só quando o modelo foi treinado com DataFrame
         entrada = pd.DataFrame(linha, columns=COLUNAS)
-    previsto = modelo.predict(entrada)[0]
-    confianca = float(np.max(modelo.predict_proba(entrada)[0])) if hasattr(modelo, "predict_proba") else None
-    return previsto, confianca
+    with TRAVA_MODELO:
+        if hasattr(modelo, "predict_proba") and hasattr(modelo, "classes_"):
+            # Uma passada só: a classe é a de maior probabilidade (o mesmo que o predict faria).
+            proba = modelo.predict_proba(entrada)[0]
+            i = int(np.argmax(proba))
+            return modelo.classes_[i], float(proba[i])
+        return modelo.predict(entrada)[0], None
 
 
 def com_confianca(texto, confianca):
@@ -148,39 +164,55 @@ def decidir(snapshot):
 
 
 # ---------------------------------------------------------------- registro na janela
-# Uma linha por pedido do jogo: o que chegou, o que o modelo recebeu e o que respondeu.
-# É a prova de que a IA está rodando e recebendo os dados do jogo.
-CONTADOR = {"pedidos": 0, "ultima_cultura_fora": None}
+# Prova de que a IA está rodando e recebendo os dados do jogo: o que chegou, o que o modelo
+# recebeu e o que respondeu. O jogo pede ~2 decisões por segundo; para dar tempo de ler, a
+# janela mostra só a mais recente a cada "intervalo_log_segundos" (config, padrão 3 s).
+INTERVALO_LOG = float(CONFIG.get("intervalo_log_segundos", 3))
+REGISTRO = {"pedidos": 0, "ultimo_print": 0.0, "desde_ultimo": 0, "ultima_cultura_fora": None}
 TRAVA_LOG = threading.Lock()
 
 
 def registrar(snapshot, status, corpo):
     with TRAVA_LOG:
-        CONTADOR["pedidos"] += 1
-        n = CONTADOR["pedidos"]
+        REGISTRO["pedidos"] += 1
+        REGISTRO["desde_ultimo"] += 1
+        n = REGISTRO["pedidos"]
+        agora = time.monotonic()
         hora = time.strftime("%H:%M:%S")
         if n == 1:
             print(f"\n[{hora}] Primeiro contato do jogo! Recebendo os dados da estufa da IA.\n", flush=True)
         if status == 422:
+            # Mudança de cultura aparece na hora; depois fica quieto.
             cultura = snapshot.get("cultura", {}).get("nome", "?")
-            if CONTADOR["ultima_cultura_fora"] != cultura:
-                CONTADOR["ultima_cultura_fora"] = cultura
-                print(f"[{hora}] #{n} {cultura}: o modelo não foi treinado para ela -> o jogo usa as regras", flush=True)
+            if REGISTRO["ultima_cultura_fora"] != cultura:
+                REGISTRO["ultima_cultura_fora"] = cultura
+                print(f"[{hora}] {cultura}: o modelo não foi treinado para ela -> o jogo usa as regras\n", flush=True)
+            REGISTRO["desde_ultimo"] = 0
             return
-        CONTADOR["ultima_cultura_fora"] = None
+        REGISTRO["ultima_cultura_fora"] = None
+        if agora - REGISTRO["ultimo_print"] < INTERVALO_LOG:
+            return
+        outras = REGISTRO["desde_ultimo"] - 1
+        REGISTRO["ultimo_print"] = agora
+        REGISTRO["desde_ultimo"] = 0
+        extra = f"   (+{outras} decisões desde a última linha)" if outras > 0 else ""
         if status != 200:
-            print(f"[{hora}] #{n} ERRO: {corpo.get('erro')}", flush=True)
+            print(f"[{hora}] decisão #{n}  ERRO: {corpo.get('erro')}{extra}\n", flush=True)
             return
         a = snapshot["ambiente"]
-        jogo = (f"T {a['airTemperature']:.1f}°C  subst. {a['soilMoisture']:.0f}%  pH {a['ph']:.2f}  "
-                f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f}  luz {a['luminosity']:.0f}%")
+        linhas = [f"[{hora}] decisão #{n}  · {snapshot['cultura']['nome']}  · t={snapshot.get('tempo', 0):.0f}s{extra}",
+                  f"   jogo enviou   T {a['airTemperature']:.1f}°C | substrato {a['soilMoisture']:.0f}% | pH {a['ph']:.2f} | "
+                  f"N {a['nitrogen']:.0f} P {a['phosphorus']:.0f} K {a['potassium']:.0f} | luz {a['luminosity']:.0f}%"]
         e = corpo.get("entrada") or {}
-        modelo = ""
         if "ce_ms_cm" in e:
-            modelo = (f"  | modelo recebeu: CE {e['ce_ms_cm']:.2f}  reserv. {e['nivel_reservatorio_pct']:.0f}%  "
-                      f"pH {e['ph']:.2f}  ar {e['temp_ar_c']:.1f}°C  fase {e.get('fase', '?')}")
-        print(f"[{hora}] #{n} jogo enviou: {jogo}{modelo}\n           -> {corpo['motivo']}  => {NOMES_ACOES[corpo['acao']]}",
-              flush=True)
+            linhas.append(f"   modelo viu    CE {e['ce_ms_cm']:.2f} mS/cm | reservatório {e['nivel_reservatorio_pct']:.0f}% | "
+                          f"pH {e['ph']:.2f} | ar {e['temp_ar_c']:.1f}°C | fase {e.get('fase', '?')}")
+        motivo = corpo["motivo"].split(": ", 1)[-1]
+        tempo = corpo.get("ms")
+        aviso = "  (LENTO!)" if tempo and tempo > 500 else ""
+        linhas.append(f"   resposta      {motivo}  =>  {NOMES_ACOES[corpo['acao']].upper()}"
+                      + (f"   [{tempo:.0f} ms]{aviso}" if tempo is not None else ""))
+        print("\n".join(linhas) + "\n", flush=True)
 
 
 class Tratador(BaseHTTPRequestHandler):
@@ -208,7 +240,11 @@ class Tratador(BaseHTTPRequestHandler):
         try:
             tamanho = int(self.headers.get("Content-Length", 0))
             snapshot = json.loads(self.rfile.read(tamanho) or b"{}")
+            inicio = time.perf_counter()
             status, corpo = decidir(snapshot)
+            corpo_ms = (time.perf_counter() - inicio) * 1000
+            if isinstance(corpo, dict) and status == 200:
+                corpo["ms"] = round(corpo_ms, 1)
         except Exception as erro:  # o jogo cai nas regras se algo der errado aqui
             snapshot = snapshot if "snapshot" in locals() else {}
             status, corpo = 500, {"erro": str(erro)}
@@ -227,7 +263,15 @@ if __name__ == "__main__":
     print(f"IA do AgroLab rodando em http://localhost:{porta}/decidir")
     print(f"Modelo: {CONFIG['nome']} ({arquivo.name}) · culturas: {', '.join(sorted(CULTURAS)) or 'todas'}")
     print(f"Colunas do modelo: {', '.join(COLUNAS)}")
-    print("Deixe esta janela aberta enquanto joga. Cada decisão pedida pelo jogo aparece abaixo.")
+    # Aquece o modelo (a 1ª previsão carrega bibliotecas) e mede o tempo de uma decisão.
+    zeros = [[0.0] * len(COLUNAS)]
+    prever(zeros)
+    inicio = time.perf_counter()
+    for _ in range(5):
+        prever(zeros)
+    ms = (time.perf_counter() - inicio) / 5 * 1000
+    print(f"Tempo de uma decisão neste PC: {ms:.0f} ms" + ("  (lento: feche outros programas pesados)" if ms > 500 else ""))
+    print(f"Deixe esta janela aberta enquanto joga. A decisão mais recente aparece abaixo a cada {INTERVALO_LOG:g} s.")
     try:
         servidor = ThreadingHTTPServer(("127.0.0.1", porta), Tratador)
     except OSError:

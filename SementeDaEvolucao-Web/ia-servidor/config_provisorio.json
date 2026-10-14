@@ -46,5 +46,6 @@
     "irrigar": "Irrigate",
     "proteger": "ProtectPlant"
   },
-  "porta": 5000
+  "porta": 5000,
+  "intervalo_log_segundos": 3
 }

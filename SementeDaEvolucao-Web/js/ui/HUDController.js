@@ -28,7 +28,8 @@ export class HUDController {
       'barra-agua': $('barra-agua'), 'barra-energia': $('barra-energia'), 'barra-nutrientes': $('barra-nutrientes'),
       energiaRegen: $('rec-energia-regen'),
       lousaFase: $('lousa-fase'), faseTitulo: $('txt-fase'), faseTempo: $('txt-tempo'), tentativas: $('tentativas'),
-      barraColheita: $('barra-colheita'), txtColheita: $('txt-colheita'),
+      barraColheita: $('barra-colheita'), txtColheita: $('txt-colheita'), barraTempo: $('barra-tempo'),
+      barraEvento: $('barra-evento'), barraEficiencia: $('barra-eficiencia'), placar: $('placar-eficiencia'),
     };
     this.botoes = {};
     for (const btn of raiz.querySelectorAll('.lista-ferramentas button')) {
@@ -62,14 +63,15 @@ export class HUDController {
     this.el.controle.innerHTML = '';
     this.linhasControle = linhas.map((l) => {
       const li = document.createElement('li');
-      li.innerHTML = `<img alt=""><span class="rotulo"></span><span class="valor"></span>
+      li.innerHTML = `<img alt=""><span class="rotulo"></span><span class="valor"></span><i class="tendencia"></i>
         <div class="barra"><div class="ideal"></div><div class="preenche"></div><div class="marcador-ia"></div><div class="botao"></div></div>`;
       li.querySelector('img').src = iconeUrl(l.icone);
       this.el.controle.appendChild(li);
       return {
         rotulo: li.querySelector('.rotulo'), valor: li.querySelector('.valor'),
         ideal: li.querySelector('.ideal'), preenche: li.querySelector('.preenche'),
-        botao: li.querySelector('.botao'), ia: li.querySelector('.marcador-ia'), id: l.id,
+        botao: li.querySelector('.botao'), ia: li.querySelector('.marcador-ia'), id: l.id, li,
+        tendencia: li.querySelector('.tendencia'), ultimo: null, ritmo: 0,
       };
     });
   }
@@ -106,12 +108,15 @@ export class HUDController {
     // Lousa da fase: tempo, vidas (do jogo inteiro) e colheita.
     this.set(e.faseTitulo, 'text', h.fase.titulo);
     this.set(e.faseTempo, 'text', h.fase.tempo);
-    this.set(e.lousaFase, 'class', `lousa moldura-lousa ${h.fase.urgencia}`);
+    this.set(e.lousaFase, 'class', `topo-sec ${h.fase.urgencia}`);
+    this.set(e.barraTempo, 'width', `${(h.fase.fracTempo * 100).toFixed(2)}%`);
     this.set(e.barraColheita, 'width', `${(h.fase.colheita * 100).toFixed(1)}%`);
     this.set(e.txtColheita, 'text', `${Math.floor(h.fase.colheita * 100)}%`);
     const chaveT = `${h.fase.vidas}/${h.fase.vidasMax}`;
     if (e.tentativas.dataset.chave !== chaveT) {
+      const perdeu = e.tentativas.dataset.chave && h.fase.vidas < Number(e.tentativas.dataset.chave.split('/')[0]);
       e.tentativas.dataset.chave = chaveT;
+      if (perdeu) this.animar(e.tentativas, 'perdeu-vida');
       e.tentativas.title = `Vidas restantes no jogo: ${chaveT}`;
       e.tentativas.innerHTML = '';
       for (let i = 0; i < h.fase.vidasMax; i++) {
@@ -134,6 +139,7 @@ export class HUDController {
       this.set(r.rotulo, 'text', l.rotulo);
       this.set(r.valor, 'text', l.valorTxt);
       this.set(r.valor, 'class', `valor ${l.classe}`);
+      this.set(r.li, 'class', l.classe === 'ruim' ? 'fora' : '');
       this.set(r.ideal, 'left', `${(l.idealIni * 100).toFixed(1)}%`);
       this.set(r.ideal, 'width', `${((l.idealFim - l.idealIni) * 100).toFixed(1)}%`);
       this.set(r.preenche, 'width', `${(l.pos * 100).toFixed(1)}%`);
@@ -141,6 +147,14 @@ export class HUDController {
       this.set(r.botao, 'left', `${(l.pos * 100).toFixed(1)}%`);
       this.set(r.ia, 'left', `${(l.posIa * 100).toFixed(1)}%`);
       r.botao.style.display = l.oculto ? 'none' : '';
+      // Tendência: a variável está subindo ou descendo? (média móvel da velocidade na barra)
+      const agora = performance.now();
+      if (r.ultimo && !l.oculto) {
+        const dt = (agora - r.ultimo.t) / 1000;
+        if (dt > 0) r.ritmo += (((l.pos - r.ultimo.pos) / dt) - r.ritmo) * Math.min(1, dt * 2);
+      }
+      r.ultimo = { t: agora, pos: l.pos };
+      this.set(r.tendencia, 'class', `tendencia${l.oculto ? '' : r.ritmo > 0.006 ? ' sobe' : r.ritmo < -0.006 ? ' desce' : ''}`);
       r.ia.style.display = l.mostrarIa ? '' : 'none';
     });
 
@@ -154,7 +168,11 @@ export class HUDController {
 
     this.comparar(h.comparar);
 
-    this.set(e.painelEvento, 'class', `painel moldura${h.evento.ativo ? ' ativo' : ''}`);
+    const classeEvento = `painel moldura${h.evento.ativo ? ` ativo ev-${h.evento.tipo}` : ''}`;
+    const estavaAtivo = (this._cache.get(e.painelEvento)?.class || '').includes('ativo');
+    this.set(e.painelEvento, 'class', classeEvento);
+    if (h.evento.ativo && !estavaAtivo) this.animar(e.painelEvento, 'chegou');
+    this.set(e.barraEvento, 'width', `${(Math.max(0, Math.min(1, h.evento.frac ?? 0)) * 100).toFixed(2)}%`);
     this.set(e.icoEvento, 'src', iconeUrl(h.evento.icone));
     this.set(e.eventoNome, 'text', h.evento.nome);
     this.set(e.eventoDesc, 'text', h.evento.desc);
@@ -235,6 +253,9 @@ export class HUDController {
       this.set($(`${pref}-saude`), 'class', d.saude >= 70 ? (pref === 'ia' ? 'azul' : 'bom') : d.saude >= 40 ? 'medio' : 'ruim');
       this.set($(`${pref}-prod`), 'text', `${d.crescimento}%`);
       this.set($(`${pref}-prod`), 'class', pref === 'ia' ? 'azul' : 'bom');
+      this.set($(`${pref}-saude-barra`), 'width', `${d.saude}%`);
+      this.set($(`${pref}-saude-barra`), 'class', d.saude >= 70 ? '' : d.saude >= 40 ? 'medio' : 'ruim');
+      this.set($(`${pref}-prod-barra`), 'width', `${d.crescimento}%`);
       this.set($(`${pref}-agua`), 'text', d.agua);
       this.set($(`${pref}-agua`), 'class', d.aguaClasse);
       this.set($(`${pref}-energia`), 'text', d.energia);
@@ -245,6 +266,7 @@ export class HUDController {
     this.estrelas(this.el.estrelasVoce, cmp.voce.estrelas, true);
     this.estrelas(this.el.estrelasIa, cmp.ia.estrelas, false);
     this.set(this.el.eficiencia, 'text', cmp.eficiencia);
+    this.set(this.el.barraEficiencia, 'width', `${(cmp.eficiencia01 * 100).toFixed(1)}%`);
     const chaveV = `${cmp.voce.estagio}|${Math.round(cmp.voce.saude01 * 20)}|${cmp.voce.visual.forma}`;
     const chaveI = `${cmp.ia.estagio}|${Math.round(cmp.ia.saude01 * 20)}|${cmp.ia.visual.forma}`;
     if (this._canteiroV !== chaveV) { this._canteiroV = chaveV; this.canteiro(this.el.cvVoce, cmp.voce); }
@@ -267,7 +289,8 @@ export class HUDController {
   canteiro(cv, d) {
     const c = cv.getContext('2d');
     c.imageSmoothingEnabled = false;
-    c.clearRect(0, 0, cv.width, cv.height);
+    c.setTransform(1, 0, 0, 1, -4, 0); // o desenho ocupa x 4..52: recorta para 48 px (escala 2× exata)
+    c.clearRect(4, 0, cv.width, cv.height);
     ret(c, 4, 20, 48, 12, '#2a1a10');
     ret(c, 5, 20, 46, 10, '#4a3020');
     for (let x = 5; x < 51; x += 5) ret(c, x, 26, 1, 4, '#2a1a10');
@@ -303,9 +326,34 @@ export class HUDController {
   toast(msg, ruim = false, ms = 1800) {
     const t = this.el.toast;
     t.textContent = msg;
+    // Reinicia a animação de entrada a cada aviso novo.
+    t.className = '';
+    void t.offsetWidth;
     t.className = `visivel${ruim ? ' ruim' : ''}`;
     clearTimeout(this._toastTimer);
-    this._toastTimer = setTimeout(() => { t.className = ''; }, ms);
+    this._toastTimer = setTimeout(() => { t.className = 'saindo'; }, ms);
+  }
+
+  /** Texto que sobe e some por cima do mundo (coordenadas do palco). */
+  flutuar(texto, x, y, classe = '') {
+    const camada = this._flutuantes ??= document.getElementById('flutuantes');
+    if (!camada) return;
+    const d = document.createElement('div');
+    d.className = `flutua ${classe}`;
+    d.textContent = texto;
+    d.style.left = `${x}px`;
+    d.style.top = `${y}px`;
+    camada.appendChild(d);
+    setTimeout(() => d.remove(), 1700);
+  }
+
+  /** Reinicia uma animação CSS de uma vez só (classe temporária). */
+  animar(el, classe, ms = 900) {
+    el.classList.remove(classe);
+    void el.offsetWidth;
+    el.classList.add(classe);
+    clearTimeout(el[`_t_${classe}`]);
+    el[`_t_${classe}`] = setTimeout(() => el.classList.remove(classe), ms);
   }
 
   destacarFerramenta(acao) {

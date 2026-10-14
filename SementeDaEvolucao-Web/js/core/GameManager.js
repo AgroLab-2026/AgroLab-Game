@@ -2,7 +2,8 @@
 // jogador e a da IA crescerem, executa as 4 ações e conecta todos os sistemas.
 // Não toca DOM nem Canvas: a interface lê o estado e chama DoAction/UI_*.
 //
-// Regras de fase (conversa com a equipe): cada fase dura 1 minuto (tempo real, fase.tempoLimiteReal).
+// Regras de fase (conversa com a equipe): fases 1-3 de 1 minuto e fases 4-5 mais longas e difíceis
+// (tempo e multiplicadores em progressao.json -> fases[n].dificuldade).
 // VITÓRIA = colher antes do tempo acabar. DERROTA = a planta morre ou o tempo
 // acaba. Só avança quem vence; 3 vidas no jogo inteiro, depois game over.
 // Nada age sozinho na estufa do jogador: as tecnologias medem, avisam e sugerem.
@@ -20,6 +21,13 @@ import { BrunoDialogue } from '../ai/BrunoDialogue.js';
 import { criarProvedorIA } from '../ai/IAProvider.js';
 
 export const EstadoJogo = Object.freeze({ Jogando: 'jogando', FimDeFase: 'fimDeFase', Pausado: 'pausado' });
+
+// Multiplicadores de dificuldade por fase (1 = balanceamento base). Ver aplicarDificuldade.
+const DIFICULDADE_PADRAO = {
+  tempo: null, crescimento: 1, perdaSaude: 1, evaporacao: 1, consumo: 1,
+  intervaloEventos: 1, duracaoEventos: 1, intensidadeEventos: 1, energia: 1,
+};
+const EFEITOS_EVENTO = ['temperatura', 'luz', 'umidadePorSegundo', 'phPorSegundo', 'nitrogenioPorSegundo'];
 
 export class GameManager {
   /**
@@ -71,8 +79,15 @@ export class GameManager {
   }
 
   get crop() { return this.cropAtual; }
-  get evento() { return this.weather.eventoAtual ? { id: this.weather.eventoAtual, restante: this.weather.restante, ...this.weather.dadosAtuais } : null; }
-  get tempoLimite() { return this.bal.fase.tempoLimiteReal; }
+  get evento() {
+    if (!this.weather.eventoAtual) return null;
+    // A intensidade da fase escala os efeitos do evento (graus, luz, umidade/s, pH/s, N/s).
+    const e = { id: this.weather.eventoAtual, restante: this.weather.restante, ...this.weather.dadosAtuais };
+    const k = this.dificuldade?.intensidadeEventos ?? 1;
+    for (const campo of EFEITOS_EVENTO) if (typeof e[campo] === 'number') e[campo] *= k;
+    return e;
+  }
+  get tempoLimite() { return this.dificuldade?.tempo ?? this.bal.fase.tempoLimiteReal; }
   get tempoRestante() { return Math.max(0, this.tempoLimite - this.tempoReal); }
 
   /** Começa (ou recomeça) uma fase com a cultura indicada. */
@@ -113,12 +128,36 @@ export class GameManager {
     this._alertMsg = '';
     this.estado = EstadoJogo.Jogando;
 
+    this.aplicarDificuldade(fase);
+
     const texto = numero === 1 && this.progressao.tentativa === 1 ? this.falas.abertura : fase.objetivo;
     this.bruno.Anunciar(texto, 0, 10);
     this.OnFaseIniciada.emit(fase);
   }
 
   /** Um passo de simulação. dtReal em segundos reais (o passo fixo do laço). */
+  /**
+   * Dificuldade da fase (progressao.json -> fases[n].dificuldade): multiplicadores sobre o
+   * balanceamento base. Valem para as DUAS estufas (o clima é o mesmo), então a comparação
+   * com a IA continua justa.
+   */
+  aplicarDificuldade(fase) {
+    const d = { ...DIFICULDADE_PADRAO, ...(fase.dificuldade || {}) };
+    this.dificuldade = d;
+    const p = this.bal.planta;
+    for (const planta of [this.playerPlant, this.aiAI.aiPlant]) {
+      planta.baseGrowthRate = p.baseGrowthRate * d.crescimento;
+      planta.maxHealthDecay = p.maxHealthDecay * d.perdaSaude;
+    }
+    this.clima.multiplicadores = { evaporacao: d.evaporacao, consumo: d.consumo };
+    this.resources.energyRegenPerSecond = this.bal.recursos.energyRegenPerSecondReal * d.energia;
+    const c = this.bal.clima;
+    this.weather.minInterval = c.minIntervalReal * d.intervaloEventos;
+    this.weather.maxInterval = c.maxIntervalReal * d.intervaloEventos;
+    this.weather.eventDuration = c.eventDurationReal * d.duracaoEventos;
+    this.weather.agendarProximo();
+  }
+
   Step(dtReal) {
     if (this.estado !== EstadoJogo.Jogando) return;
     const real = dtReal * this.velocidade;

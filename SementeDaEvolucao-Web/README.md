@@ -2,13 +2,14 @@
 
 Serious game 2D top-down de agricultura de precisão (frente "Game" da iniciação científica AgroLab).
 Você é um fazendeiro que desconfia da tecnologia e cuida de uma estufa ao lado de uma **estufa autônoma**
-controlada por IA. São **5 fases de 1 minuto**: vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
+controlada por IA. São **5 fases com dificuldade progressiva** (fase 1 bem fácil, fases 1–3 de 1 minuto, fase 4 com
+1:30 e fase 5, a mais difícil, com 2 minutos): vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
 perde uma das **3 vidas do jogo** e repete a fase (sem vidas, game over e recomeço da fase 1). Cada fase traz uma tecnologia nova (medidor de pH,
 timer, sensor, sombrite, painel de dados), que ajuda, mas nunca age sozinha.
 
 HTML + CSS + JavaScript puro (ES modules), sem build e sem `node_modules`.
 
-![Jogo × referência](docs/comparacao/final-lado-a-lado.png)
+![Semente da Evolução](docs/comparacao/v11-visual.png)
 
 ## Como rodar
 
@@ -34,7 +35,8 @@ Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random 
 [AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,985), sobe o servidor da
 IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de alface, a estufa autônoma passa a ser guiada pelo
 modelo. O selo no painel COMPARE E APRENDA! fica verde e pisca a cada resposta ("IA ONLINE"); a tecla **I**
-abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma linha por decisão. Como o jogo traduz a estufa para as colunas do modelo:
+abre o painel IA AO VIVO com os dados trocados. O **terminal da IA** (barra lateral, tecla **T**) e a janela do
+servidor mostram a decisão mais recente a cada 3 s. Como o jogo traduz a estufa para as colunas do modelo:
 `ia-servidor/LEIA-ME.md`.
 
 ## Controles
@@ -52,9 +54,35 @@ abre o painel IA AO VIVO com os dados trocados, e a janela da IA escreve uma lin
 | M | Liga/desliga o som (também há o botão ao lado do título) |
 | B | Minimizar a fala do Sr. Bruno |
 | I | Painel **IA AO VIVO**: o que o jogo enviou para a IA, o que o modelo recebeu e o que respondeu |
+| T | **Terminal da IA** (barra lateral): a decisão mais recente da IA a cada 3 s, com os dados enviados e recebidos. Abre sozinho pelo `iniciar_com_ia.bat` |
 | ` (crase, ao lado do 1) | Modo debug: FPS, variáveis, velocidade 1×/2×/4×, disparar eventos, sobrepor a referência |
 
 Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emular as teclas 1–4 como teclado USB.
+
+### Controle de videogame (PlayStation e Xbox)
+
+Ligue o controle no PC (USB ou Bluetooth) e aperte qualquer botão: aparece, por exemplo, "Controle Xbox conectado!"
+e as ferramentas passam a mostrar os botões **desse** controle (✕ ○ △ □ no PlayStation; A B Y X coloridos no Xbox).
+Funciona no **Chrome ou Edge**, sem instalar nada: DualSense (PS5), DualShock 4 (PS4), Xbox One/Series/360 e a
+maioria dos genéricos. Dá para ter os dois ligados: a tela se adapta ao último controle usado.
+
+As ações ficam no **mesmo lugar** nos dois controles:
+
+| PlayStation | Xbox | Ação |
+|---|---|---|
+| ✕ | A | Irrigar (e confirmar nas telas de fase) |
+| ○ | B | Travar irrigação |
+| △ | Y | Proteger a planta |
+| □ | X | Encher o tanque de água |
+| L1 | LB | Aguardar |
+| OPTIONS | Menu | Pausa (e confirmar nas telas de fase) |
+| R1 | RB | Terminal da IA |
+| touchpad ou R3 | RS (apertar o analógico direito) | Painel IA AO VIVO |
+| CREATE | View | Liga/desliga o som |
+| R2 / L2 | RT / LT | Próxima fala do Sr. Bruno / minimizar a fala |
+
+O controle vibra quando falta recurso para uma ação e no fim de cada fase. Alguns navegadores só liberam o som
+depois de um clique ou tecla: se o jogo estiver mudo, clique uma vez na tela (ou use o botão Testar som).
 
 ## Parâmetros de URL
 
@@ -67,6 +95,7 @@ Também dá para clicar nas ferramentas do painel esquerdo. Um Arduino pode emul
 | `fase` / `cultura` | `?fase=3&cultura=Tomate` | Começar numa fase (1–5) e cultura (útil para apresentar) |
 | `semente` | `?semente=42` | Clima reproduzível |
 | `intro=0`, `debug=1` | | Pular a tela de introdução; abrir o debug |
+| `terminal`, `terminalIntervalo` | `?terminal=1&terminalIntervalo=5` | Mostrar o terminal da IA (padrão: só com `ia=http`) e de quantos em quantos segundos ele escreve |
 
 ## Teste headless
 
@@ -75,7 +104,7 @@ node tests/simular.mjs
 ```
 
 Roda partidas completas das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, fases de no
-máximo 1 minuto, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
+a duração certa (1 min nas fases 1–3, 1:30 e 2:00 nas fases 4 e 5), a dificuldade subindo de fase em fase, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
 age sozinho na estufa do jogador, as 3 vidas e o game over, e o fallback dos provedores de IA.
 
 ## Estrutura

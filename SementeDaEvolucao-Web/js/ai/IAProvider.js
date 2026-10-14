@@ -66,25 +66,54 @@ export class ProvedorComFallback {
   /** O provedor é externo (a IA de vocês), e não as próprias regras do jogo? */
   get externo() { return this.provedor !== this.fallback; }
 
+  /**
+   * Decide pela IA externa, sem nunca travar o jogo:
+   * - servidor sabidamente desligado: regras na hora (e um "ping" a cada 4 s para ver se voltou);
+   * - um pedido só de cada vez: se o anterior ainda não voltou (servidor lento), regras na hora,
+   *   em vez de empilhar pedidos que deixariam o servidor ainda mais lento;
+   * - resposta acima de timeoutMs: regras (a resposta atrasada ainda é medida, para o diagnóstico).
+   */
   async decidir(snapshot) {
     if (!this.externo) return { ...(await this.fallback.decidir(snapshot)), fonte: this.nome };
+    const p = this.provedor;
+    if (p.verificar) {
+      const velha = Date.now() - (p.ultimaVerificacao || 0) > 4000;
+      if (p.online === null || (p.online === false && velha)) p.verificar();
+      if (p.online === false) return this.cairNasRegras(snapshot, 'servidor desligado', 0);
+    }
+    if (this._emVoo) return this.cairNasRegras(snapshot, 'aguardando a resposta anterior', 0, false);
+
+    const inicio = Date.now();
+    const pedido = Promise.resolve().then(() => p.decidir(snapshot));
+    this._emVoo = pedido;
+    // Quando o pedido terminar (mesmo depois do timeout), libera o próximo e guarda quanto demorou.
+    pedido.then(() => { this.latenciaReal = Date.now() - inicio; }, () => {}).finally(() => { if (this._emVoo === pedido) this._emVoo = null; });
+    // Servidor sabidamente lento: o pedido segue "de teste" em segundo plano, e a estufa não fica
+    // parada esperando; quando ele voltar a responder a tempo, as decisões voltam para o modelo.
+    if (this.latenciaReal > this.timeoutMs) return this.cairNasRegras(snapshot, 'timeout', 0);
+
     let timer;
     const tempoEsgotado = new Promise((_, rej) => { timer = setTimeout(() => rej(new Error('timeout')), this.timeoutMs); });
-    const inicio = Date.now();
     try {
-      const r = await Promise.race([this.provedor.decidir(snapshot), tempoEsgotado]);
+      const r = await Promise.race([pedido, tempoEsgotado]);
       if (!respostaValida(r)) throw new Error('resposta inválida');
       this.respostas++;
       this.ultima = { snapshot, resposta: r, erro: null, latenciaMs: Date.now() - inicio, quando: Date.now() };
       return { acao: r.acao, motivo: r.motivo || '', fonte: this.nome };
     } catch (erro) {
-      this.falhas++;
-      const r = await this.fallback.decidir(snapshot);
-      this.ultima = { snapshot, resposta: null, erro: erro.message, latenciaMs: Date.now() - inicio, quando: Date.now() };
-      return { ...r, fonte: `${this.fallback.nome} (fallback: ${erro.message})` };
+      const msg = /fetch|network|Failed|Load failed|NetworkError/i.test(erro.message) ? 'servidor desligado' : erro.message;
+      return this.cairNasRegras(snapshot, msg, Date.now() - inicio);
     } finally {
       clearTimeout(timer);
     }
+  }
+
+  async cairNasRegras(snapshot, motivo, latenciaMs, contarFalha = true) {
+    if (contarFalha) this.falhas++;
+    const r = await this.fallback.decidir(snapshot);
+    // "aguardando" não apaga o diagnóstico anterior (o timeout que o causou).
+    if (contarFalha || !this.ultima?.erro) this.ultima = { snapshot, resposta: null, erro: motivo, latenciaMs, quando: Date.now() };
+    return { ...r, fonte: `${this.fallback.nome} (fallback: ${motivo})` };
   }
 }
 

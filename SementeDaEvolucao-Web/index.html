@@ -15,6 +15,9 @@
   <div id="fundo-tela"></div>
   <div id="palco" aria-label="Estufa Inteligente">
     <canvas id="mundo" aria-hidden="true"></canvas>
+    <!-- Luz e atmosfera por cima da pixel art (vinheta, raios de sol, brilhos e partículas suaves) -->
+    <div id="luz" aria-hidden="true"><i class="raio r1"></i><i class="raio r2"></i><i class="raio r3"></i></div>
+    <canvas id="atmosfera" aria-hidden="true"></canvas>
 
     <div id="hud">
       <!-- Placa de título -->
@@ -50,36 +53,40 @@
       <section id="painel-ferramentas" class="painel moldura">
         <h2 class="faixa">FERRAMENTAS INICIAIS</h2>
         <ul class="lista-ferramentas">
-          <li><button data-acao="Irrigate"><img data-icone="regador" alt=""><span class="nome">Irrigar</span><kbd>3</kbd>
+          <li><button data-acao="Irrigate"><img data-icone="regador" alt=""><span class="nome">Irrigar</span><kbd class="tecla">3</kbd><kbd class="ps ps-x">✕</kbd><kbd class="xb xb-x">A</kbd>
             <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
-          <li><button data-acao="LockIrrigation"><img data-icone="valvula" alt=""><span class="nome">Travar irrigação</span><kbd>2</kbd>
+          <li><button data-acao="LockIrrigation"><img data-icone="valvula" alt=""><span class="nome">Travar irrigação</span><kbd class="tecla">2</kbd><kbd class="ps ps-circulo">○</kbd><kbd class="xb xb-circulo">B</kbd>
             <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
-          <li><button data-acao="ProtectPlant"><img data-icone="proteger" alt=""><span class="nome">Proteger</span><kbd>4</kbd>
+          <li><button data-acao="ProtectPlant"><img data-icone="proteger" alt=""><span class="nome">Proteger</span><kbd class="tecla">4</kbd><kbd class="ps ps-triangulo">△</kbd><kbd class="xb xb-triangulo">Y</kbd>
             <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
-          <li><button data-acao="DoNothing"><img data-icone="aguardar" alt=""><span class="nome">Aguardar</span><kbd>1</kbd>
+          <li><button data-acao="DoNothing"><img data-icone="aguardar" alt=""><span class="nome">Aguardar</span><kbd class="tecla">1</kbd><kbd class="ps ps-l1">L1</kbd><kbd class="xb xb-l1">LB</kbd>
             <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
-          <li><button data-acao="Refill"><img data-icone="balde" alt=""><span class="nome">Encher água</span><kbd>R</kbd>
+          <li><button data-acao="Refill"><img data-icone="balde" alt=""><span class="nome">Encher água</span><kbd class="tecla">R</kbd><kbd class="ps ps-quadrado">□</kbd><kbd class="xb xb-quadrado">X</kbd>
             <span class="custos"></span><span class="selo"></span><span class="uso"><i></i></span></button></li>
         </ul>
       </section>
 
-      <!-- Lousas de clima -->
-      <div id="lousa-clima" class="lousa moldura-lousa">
-        <h3>CLIMA ATUAL</h3>
-        <div class="clima-linha"><img id="ico-clima" data-icone="sol" alt=""><span id="txt-condicao">Ensolarado</span></div>
-        <div class="clima-dado">Temp: <b id="txt-temp-ext">28°C</b></div>
-        <div class="clima-dado">Umidade: <b id="txt-umid-ext">65%</b></div>
-      </div>
-      <div id="lousa-previsao" class="lousa moldura-lousa">
-        <h3>PREVISÃO</h3>
-        <div class="previsao"><img id="ico-previsao" data-icone="nuvemChuva" alt=""><span id="txt-previsao">Chuva intensa esta tarde!</span></div>
-      </div>
-
-      <div id="lousa-fase" class="lousa moldura-lousa">
-        <h3 id="txt-fase">FASE 1 DE 5</h3>
-        <div class="cronometro"><img data-icone="relogio" alt=""><b id="txt-tempo">01:30</b></div>
-        <div class="tentativas" id="tentativas" title="Vidas restantes no jogo"></div>
-        <div class="colheita"><span>Colheita</span><div class="mini-barra"><i id="barra-colheita"></i></div><b id="txt-colheita">0%</b></div>
+      <!-- Barra superior: clima, previsão e fase -->
+      <div id="barra-topo" class="lousa moldura-lousa">
+        <section id="lousa-clima" class="topo-sec">
+          <h3>CLIMA AGORA</h3>
+          <div class="clima-linha"><img id="ico-clima" data-icone="sol" alt=""><span id="txt-condicao">Ensolarado</span></div>
+          <div class="clima-dados">
+            <span><img data-icone="termometro" alt="Temperatura"><b id="txt-temp-ext">28°C</b></span>
+            <span><img data-icone="gotaGrande" alt="Umidade do ar"><b id="txt-umid-ext">65%</b></span>
+          </div>
+        </section>
+        <section id="lousa-previsao" class="topo-sec">
+          <h3>PREVISÃO</h3>
+          <div class="previsao"><img id="ico-previsao" data-icone="nuvemChuva" alt=""><span id="txt-previsao">Chuva intensa esta tarde!</span></div>
+        </section>
+        <section id="lousa-fase" class="topo-sec">
+          <h3 id="txt-fase">FASE 1 DE 5</h3>
+          <div class="cronometro"><img data-icone="relogio" alt=""><b id="txt-tempo">01:00</b>
+            <div class="tentativas" id="tentativas" title="Vidas restantes no jogo"></div></div>
+          <div class="barra-tempo" title="Tempo restante"><i id="barra-tempo"></i></div>
+          <div class="colheita"><span>Colheita</span><div class="mini-barra"><i id="barra-colheita"></i></div><b id="txt-colheita">0%</b></div>
+        </section>
       </div>
 
       <!-- CONTROLE DA ESTUFA -->
@@ -101,29 +108,29 @@
         <div class="cards">
           <article id="card-voce" class="card card-voce">
             <h3>VOCÊ</h3>
-            <canvas class="canteiro" id="cv-voce" width="56" height="34"></canvas>
+            <canvas class="canteiro" id="cv-voce" width="48" height="34"></canvas>
             <div class="estrelas" id="estrelas-voce"></div>
-            <dl>
-              <dt>Saúde:</dt><dd id="voce-saude">100%</dd>
-              <dt>Crescimento:</dt><dd id="voce-prod">0%</dd>
-              <dt>Água usada:</dt><dd id="voce-agua">0 L</dd>
-              <dt>Energia usada:</dt><dd id="voce-energia">0</dd>
-            </dl>
+            <div class="stats">
+              <span>Saúde</span><b id="voce-saude">100%</b><div class="barrinha"><i id="voce-saude-barra"></i></div>
+              <span>Crescimento</span><b id="voce-prod">0%</b><div class="barrinha cresc"><i id="voce-prod-barra"></i></div>
+              <span>Água usada</span><b id="voce-agua">0 L</b>
+              <span>Energia usada</span><b id="voce-energia">0</b>
+            </div>
           </article>
           <div class="vs">VS</div>
           <article id="card-ia" class="card card-ia">
             <h3>IA AUTÔNOMA</h3>
-            <canvas class="canteiro" id="cv-ia" width="56" height="34"></canvas>
+            <canvas class="canteiro" id="cv-ia" width="48" height="34"></canvas>
             <div class="estrelas" id="estrelas-ia"></div>
-            <dl>
-              <dt>Saúde:</dt><dd id="ia-saude">100%</dd>
-              <dt>Crescimento:</dt><dd id="ia-prod">0%</dd>
-              <dt>Água usada:</dt><dd id="ia-agua">0 L</dd>
-              <dt>Energia usada:</dt><dd id="ia-energia">0</dd>
-            </dl>
+            <div class="stats">
+              <span>Saúde</span><b id="ia-saude">100%</b><div class="barrinha"><i id="ia-saude-barra"></i></div>
+              <span>Crescimento</span><b id="ia-prod">0%</b><div class="barrinha cresc"><i id="ia-prod-barra"></i></div>
+              <span>Água usada</span><b id="ia-agua">0 L</b>
+              <span>Energia usada</span><b id="ia-energia">0</b>
+            </div>
           </article>
         </div>
-        <div id="placar-eficiencia" class="placar">Você está em <b id="txt-eficiencia">—</b> da eficiência da IA</div>
+        <div id="placar-eficiencia" class="placar">Você está em <b id="txt-eficiencia">—</b> da eficiência da IA<div class="barrinha placar-barra"><i id="barra-eficiencia"></i></div></div>
         <button id="txt-cerebro-ia" class="cerebro-ia" type="button" title="Ver os dados trocados com a IA (tecla I)"><i class="led"></i><span></span></button>
       </section>
 
@@ -135,9 +142,10 @@
           <div>
             <h4 id="txt-evento-nome">TEMPO ESTÁVEL</h4>
             <p id="txt-evento-desc">Nenhum evento no momento.</p>
-            <p class="evento-tempo"><span id="txt-evento-rotulo">Tempo para o evento</span>: <b id="txt-evento-tempo">--:--</b></p>
           </div>
         </div>
+        <div class="evento-rodape"><span id="txt-evento-rotulo">Tempo para o evento</span>
+          <div class="barra-evento"><i id="barra-evento"></i></div><b id="txt-evento-tempo">--:--</b></div>
       </section>
 
       <!-- Sr. Bruno -->
@@ -149,6 +157,7 @@
         <button id="btn-proxima-fala" class="btn-seta" title="Próxima dica">▶</button>
       </section>
 
+      <div id="flutuantes" aria-hidden="true"></div>
       <button id="btn-som" class="btn-som" title="Som ligado (tecla M)"><img data-icone="somLigado" alt="Som"></button>
       <div id="toast" role="status" aria-live="polite"></div>
     </div>
