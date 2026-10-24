@@ -2,8 +2,8 @@
 
 Serious game 2D top-down de agricultura de precisão (frente "Game" da iniciação científica AgroLab).
 Você é um fazendeiro que desconfia da tecnologia e cuida de uma estufa ao lado de uma **estufa autônoma**
-controlada por IA. São **5 fases com dificuldade progressiva** (fase 1 bem fácil, fases 1–3 de 1 minuto, fase 4 com
-1:30 e fase 5, a mais difícil, com 2 minutos): vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
+controlada por IA. São **5 fases com alface, morango e tomate**: a 1 é o treino, a 2 começa o jogo
+de verdade (1 minuto cada), a 3 e a 4 são intermediárias (1:15 e 1:30) e a 5 é a mais difícil, mas vencível (2 minutos): vence quem colhe antes do tempo acabar; quem perde a planta ou o tempo
 perde uma das **3 vidas do jogo** e repete a fase (sem vidas, game over e recomeço da fase 1). Cada fase traz uma tecnologia nova (medidor de pH,
 timer, sensor, sombrite, painel de dados), que ajuda, mas nunca age sozinha.
 
@@ -33,8 +33,8 @@ enquanto joga**: fechá-la desliga o jogo.
 
 Dois cliques em **`iniciar_com_ia.bat`**: ele treina na primeira vez o **Random Forest de morango** do
 [AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA) (igual ao do notebook, acurácia 0,918), sobe o servidor
-da IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de morango (1, 3 e 5), a estufa autônoma passa a
-ser guiada pelo modelo; nas de tomate, pelas regras do jogo. Como o jogo traduz a estufa para as colunas do
+da IA (`ia-servidor/`) e abre o jogo já ligado a ela. Nas fases de morango (2 e 5), a estufa autônoma passa a
+ser guiada pelo modelo; nas de alface e tomate, pelas regras do jogo. Como o jogo traduz a estufa para as colunas do
 modelo: `ia-servidor/LEIA-ME.md`.
 
 ## Controles
@@ -102,7 +102,7 @@ node tests/simular.mjs
 ```
 
 Roda partidas completas das 3 culturas sem navegador e confere: nenhum NaN, recursos dentro dos limites, fases de no
-a duração certa (1 min nas fases 1–3, 1:30 e 2:00 nas fases 4 e 5), a dificuldade subindo de fase em fase, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
+a duração certa (1 min nas fases 1 e 2, 1:15, 1:30 e 2:00 nas fases 3, 4 e 5), a dificuldade subindo de fase em fase, os 6 estágios de crescimento, quem joga atento vence, quem fica parado ou irriga sem parar perde, nada
 age sozinho na estufa do jogador, as 3 vidas e o game over, e o fallback dos provedores de IA.
 
 ## Estrutura

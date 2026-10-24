@@ -66,7 +66,7 @@ const atento = (gm) => {
 /** Afobado: irriga sem olhar, toda vez. */
 const afobado = (gm) => { if (!gm.DoAction(FarmAction.Irrigate)) gm.Refill(); };
 
-const CULTURAS = ['Morango', 'Tomate'];
+const CULTURAS = ['AlfaceCrespa', 'Morango', 'Tomate'];
 const resumo = (r) => `${r.rel.venceu ? 'VENCEU' : 'perdeu'} (${r.rel.motivo}) em ${r.segundos.toFixed(0)} s · saúde média ${r.rel.jogador.saudeMedia.toFixed(0)}% · ` +
   `crescimento ${(r.rel.jogador.crescimento * 100).toFixed(0)}% · ${r.rel.jogador.agua.toFixed(0)} L · ${r.rel.jogador.energia.toFixed(0)} energia · ${r.rel.eficiencia}% da IA`;
 
@@ -106,12 +106,12 @@ for (const cultura of CULTURAS) {
   checar(!a.rel.venceu, `${cultura}: irrigar sem parar deveria perder`);
 }
 
-console.log('\n▶ Dificuldade progressiva (fase 1 muito fácil → fase 5 a mais difícil)');
+console.log('\n▶ Dificuldade progressiva (1 treino · 2 começo · 3 e 4 intermediárias · 5 a mais difícil)');
 {
   const tempos = [1, 2, 3, 4, 5].map((n) => { const g = new GameManager(dados, { rng: criarRng(1) }); g.IniciarFase(n); return g.tempoLimite; });
   console.log(`  tempo por fase: ${tempos.map((t) => `${t} s`).join(' · ')}`);
-  checar(tempos.slice(0, 3).every((t) => t === 60), 'as fases 1 a 3 deveriam durar 1 minuto');
-  checar(tempos[3] > 60 && tempos[4] > tempos[3], 'as fases 4 e 5 deveriam ser mais longas (5 a mais longa)');
+  checar(tempos[0] === 60 && tempos[1] === 60, 'as fases 1 (treino) e 2 deveriam durar 1 minuto');
+  checar(tempos.every((t, i) => i === 0 || t >= tempos[i - 1]) && tempos[4] > tempos[3], 'as fases seguintes deveriam ficar mais longas (5 a mais longa)');
   const N = 12;
   const taxa = async (fase, reacao) => {
     let v = 0;

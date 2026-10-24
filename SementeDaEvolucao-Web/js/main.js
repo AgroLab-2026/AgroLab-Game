@@ -130,6 +130,7 @@ gm.OnAcao.on((quem, acao, ok) => {
   // Só o jogador move o fazendeiro; a IA move os robôs da estufa dela.
   if (!ok || acao === 'Refill' || acao === FarmAction.DoNothing) return;
   mundo.animarAcao(quem === 'ia' ? 'ia' : 'jogador', acao);
+  if (acao === FarmAction.Irrigate && (quem !== 'ia' || Math.random() < 0.5)) atmosfera.borrifar(quem === 'ia' ? 'ia' : 'jogador');
   if (quem === 'ia' && gm.progressao.tem('painelDados')) hud.toast(`IA: ${AutonomousFarmAI.Translate(acao)} — ${gm.aiAI.lastReason}`, false, 2200);
 });
 // Textos flutuando por cima das estufas: o efeito de cada ação, na hora.

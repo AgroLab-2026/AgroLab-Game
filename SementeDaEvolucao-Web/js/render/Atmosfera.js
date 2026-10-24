@@ -4,7 +4,10 @@
 // (a mistura de "8 bits com iluminação moderna" que dá profundidade à cena).
 // Só lê a vista do mundo; não altera a simulação.
 
+import { LAYOUT } from './Cenario.js';
+
 const L = 1024, A = 682, Q = 2; // Q: resolução extra do canvas
+const E = 2;                     // mundo (512×341) → palco (1024×682)
 
 // Fontes de luz fixas do cenário (coordenadas do palco).
 const LUZES = [
@@ -43,6 +46,9 @@ export class Atmosfera {
     this.poeira = Array.from({ length: 46 }, () => this.novaPoeira(true));
     this.gotas = Array.from({ length: 70 }, () => this.novaGota(true));
     this.brasas = Array.from({ length: 30 }, () => this.novaBrasa(true));
+    this.faiscas = [];   // brilhos curtos: frutos maduros, mudança de estágio, névoa da irrigação
+    this.estagioAnterior = { jogador: null, ia: null };
+    this._proximoBrilho = 0;
   }
 
   brilho(cor) {
@@ -66,6 +72,40 @@ export class Atmosfera {
     return { x: 190 + this.rng() * 620, y: inicio ? 100 + this.rng() * 420 : 520, vy: -(18 + this.rng() * 30), r: 0.8 + this.rng() * 1.6, fase: this.rng() * 6.28, vida: 1 };
   }
 
+  /** Névoa d'água sobre o canteiro (jogador) ou as prateleiras (IA) quando alguém irriga. */
+  borrifar(quem) {
+    const area = quem === 'ia' ? { x0: 524, x1: 646, y0: 190, y1: 390 } : { x0: 310, x1: 500, y0: 170, y1: 420 };
+    for (let i = 0; i < 26; i++) {
+      this.faiscas.push({
+        x: area.x0 + this.rng() * (area.x1 - area.x0), y: area.y0 + this.rng() * (area.y1 - area.y0),
+        vx: (this.rng() - 0.5) * 10, vy: -6 - this.rng() * 10, vida: 0.8 + this.rng() * 0.6, total: 1.4,
+        r: 2 + this.rng() * 3, cor: [150, 210, 255], tipo: 'nevoa',
+      });
+    }
+  }
+
+  /** Estrelinha de brilho (frutos maduros) ou faísca dourada (mudou de estágio). */
+  faisca(x, y, tipo) {
+    this.faiscas.push(tipo === 'estagio'
+      ? { x, y, vx: (this.rng() - 0.5) * 30, vy: -20 - this.rng() * 30, vida: 0.9, total: 0.9, r: 2 + this.rng() * 2, cor: [255, 225, 120], tipo }
+      : { x, y, vx: 0, vy: -3, vida: 0.7, total: 0.7, r: 3.5, cor: [255, 255, 230], tipo: 'estrela' });
+  }
+
+  /** Planta mudou de estágio: chuva de faíscas douradas sobre as plantas daquela estufa. */
+  verificarEstagios(vista) {
+    for (const quem of ['jogador', 'ia']) {
+      const e = vista[quem]?.estagio;
+      const antes = this.estagioAnterior[quem];
+      this.estagioAnterior[quem] = e;
+      if (antes === null || e === undefined || e <= antes) continue;
+      const plantas = quem === 'ia' ? LAYOUT.plantasIA : LAYOUT.plantasJogador;
+      for (let i = 0; i < 18; i++) {
+        const pl = plantas[Math.floor(this.rng() * plantas.length)];
+        this.faisca(pl.x * E, pl.y * E - 8, 'estagio');
+      }
+    }
+  }
+
   /**
    * @param {{tempo:number, evento:string|null}} vista  vistaMundo
    * @param {number} dt segundos reais
@@ -85,6 +125,46 @@ export class Atmosfera {
       c.globalAlpha = Math.min(1, forca);
       c.drawImage(this.brilho(luz.cor), luz.x - luz.r, luz.y - luz.r, luz.r * 2, luz.r * 2);
     }
+
+    // Luz de cultivo (LED) sob cada prateleira da estufa autônoma: apaga na falta de energia.
+    if (ev !== 'PowerFailure') {
+      const led = this.brilho([255, 170, 235]);
+      for (const py of LAYOUT.prateleiras) {
+        c.globalAlpha = 0.3 + Math.sin(t * 1.3 + py) * 0.04;
+        c.drawImage(led, 516, py * E - 34, 134, 30);
+      }
+    }
+
+    // Frutos maduros (colheita) cintilam de vez em quando.
+    this.verificarEstagios(vista);
+    if (dt > 0 && t > this._proximoBrilho) {
+      this._proximoBrilho = t + 0.25;
+      for (const [quem, plantas] of [['jogador', LAYOUT.plantasJogador], ['ia', LAYOUT.plantasIA]]) {
+        if (vista[quem]?.estagio !== 5 || vista[quem].saude01 < 0.4) continue;
+        const pl = plantas[Math.floor(this.rng() * plantas.length)];
+        this.faisca(pl.x * E + (this.rng() - 0.5) * 10, pl.y * E - 6 - this.rng() * 14, 'estrela');
+      }
+    }
+    for (const f of this.faiscas) {
+      f.vida -= dt; f.x += f.vx * dt; f.y += f.vy * dt;
+      const k = Math.max(0, f.vida / f.total);
+      if (f.tipo === 'estrela') {
+        // Cruz de luz: aparece e some.
+        const a = Math.sin(k * Math.PI);
+        c.globalAlpha = 0.9 * a;
+        c.fillStyle = '#fffbe0';
+        c.fillRect(f.x - f.r, f.y - 0.5, f.r * 2, 1);
+        c.fillRect(f.x - 0.5, f.y - f.r, 1, f.r * 2);
+        c.globalAlpha = 0.5 * a;
+        const d = f.r * 3;
+        c.drawImage(this.brilho(f.cor), f.x - d / 2, f.y - d / 2, d, d);
+      } else {
+        c.globalAlpha = (f.tipo === 'nevoa' ? 0.35 : 0.8) * k;
+        const d = f.r * (f.tipo === 'nevoa' ? 4 : 3);
+        c.drawImage(this.brilho(f.cor), f.x - d / 2, f.y - d / 2, d, d);
+      }
+    }
+    this.faiscas = this.faiscas.filter((f) => f.vida > 0);
 
     // Poeira dourada: some na chuva e no escuro.
     const comLuz = ev !== 'HeavyRain' && ev !== 'PowerFailure';

@@ -2,9 +2,9 @@
 
 A estufa autônoma do jogo pergunta a cada meio segundo "o que devo fazer agora?". Este servidor responde com o
 **Random Forest de morango** da frente de IA ([AgroLab-IA](https://github.com/AgroLab-2026/AgroLab-IA),
-`morango/agrolab_morango_modelo.ipynb`). O jogo alterna morango e tomate (a alface foi retirada): nas fases de
-**morango (1, 3 e 5)** quem decide é o modelo; nas de **tomate (2 e 4)** o jogo usa as próprias regras até existir
-um modelo de tomate. Se o servidor estiver desligado ou demorar, o jogo também usa as regras, sem travar.
+`morango/agrolab_morango_modelo.ipynb`). O jogo tem alface, morango e tomate: nas fases de
+**morango (2 e 5)** quem decide é o modelo; nas de **alface (1 e 4)** e **tomate (3)** o jogo usa as próprias regras
+até existir um modelo para elas. Se o servidor estiver desligado ou demorar, o jogo também usa as regras, sem travar.
 
 ## Rodar (Windows)
 

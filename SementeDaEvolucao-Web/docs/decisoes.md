@@ -223,3 +223,28 @@ Registro das decisões tomadas sem consultar a equipe, por não bloquearem o tra
     `adaptador_morango.py` traduz a estufa do jogo para as 15 colunas dele. O dataset (365 linhas) vem junto com o
     jogo em `ia-servidor/dados_equipe/`, então o treino não precisa de internet; por isso o modelo provisório
     (plano B) deixou de ser necessário e foi removido, junto com o tradutor NFT e os dados simulados de alface.
+
+## v14 — as três culturas de volta, novo balanceamento e plantas redesenhadas
+
+47. **Alface, morango e tomate.** A alface voltou (pedido da equipe). Fases: 1 Alface (treino), 2 Morango (o jogo
+    começa de verdade), 3 Tomate e 4 Alface (intermediárias, 1:15 e 1:30), 5 Morango (a mais difícil, 2:00, e com o
+    Random Forest do grupo decidindo pela IA). Alface e tomate usam as regras do jogo na estufa autônoma.
+48. **Balanceamento** (48 partidas por fase; "N s" = o jogador simulado faz a ação certa a cada N segundos; quem
+    fica parado perde em todas):
+
+    | Fase | Tempo | 4 s | 6 s | 9 s | 12 s | 15 s | 20 s | 30 s |
+    |---|---|---|---|---|---|---|---|---|
+    | 1 Alface (treino) | 1:00 | 100 % | 100 % | 100 % | 100 % | 100 % | 98 % | 4 % |
+    | 2 Morango | 1:00 | 100 % | 100 % | 100 % | 100 % | 75 % | 65 % | 15 % |
+    | 3 Tomate | 1:15 | 100 % | 94 % | 77 % | 71 % | 33 % | 19 % | 0 % |
+    | 4 Alface | 1:30 | 88 % | 85 % | 69 % | 54 % | 27 % | 17 % | 6 % |
+    | 5 Morango | 2:00 | 85 % | 71 % | 35 % | 19 % | 0 % | 2 % | 0 % |
+
+49. **Plantas redesenhadas** (`js/render/Plantas.js`): três tons por folha, contorno escuro, brilho e sombra no
+    chão. Alface crespa em roseta com babado, folhas internas claras e coração verde-amarelado; morango com folhas
+    de três folíolos serrilhados, flores brancas e frutos pendendo para fora da moita, com sementinhas; tomate com
+    caule, folhas compostas que deixam o caule à vista, tutor de bambu com amarrilho, flores em estrela e pencas que
+    amadurecem do verde ao vermelho. Planta doente desbota, ganha manchas e murcha um pouco.
+50. **Mais vida na cena** (`js/render/Atmosfera.js`): luz de cultivo (LED) sob as prateleiras da estufa autônoma,
+    que apaga na falta de energia; frutos maduros cintilando; faíscas douradas quando as plantas mudam de estágio;
+    névoa d'água ao irrigar.
